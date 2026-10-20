@@ -1,9 +1,11 @@
 """遊戲中文名：把翻譯裡的《英文遊戲名》換成台灣官方中文名，發售日曆也一併加上中文名。
 
 查詢順序：
-1. Steam 台灣商店的繁體中文名稱（發行商自己填寫的官方名稱）。英文名稱必須完全相同才採用。
-2. 維基百科中文版的台灣正體標題（涵蓋主機獨佔遊戲）。必須是「電子遊戲」條目才採用。
-兩邊都查不到就保留原文，寧可不換也不要換錯。結果快取在 state 分支 names.json。
+1. Steam 台灣商店的繁體中文名稱（發行商自己填的官方名稱）。英文名稱必須完全相同，
+   而且要是有一定玩家數（100 則以上評論）或即將推出的遊戲，避免撞名的冷門小品。
+2. 維基百科中文版的台灣正體標題（涵蓋主機獨佔遊戲）。必須是「電子遊戲」條目；
+   轉址到某條目的段落、到別的作品、或數字對不上（2 代變 1 代）都不採用。
+兩邊都查不到就保留原文：寧可不換，也不要換錯。結果快取在 state 分支 names.json。
 """
 import concurrent.futures as cf
 import html
@@ -13,19 +15,30 @@ import urllib.parse
 
 from .util import hours_since, iso, parse_iso
 
+VERSION = 2   # 規則改了就加一，舊結果會重查
 STEAM_SEARCH = 'https://store.steampowered.com/api/storesearch/?term={q}&l=english&cc=TW'
-STEAM_DETAILS = 'https://store.steampowered.com/api/appdetails?appids={appid}&cc=tw&l=tchinese&filters=basic'
+STEAM_DETAILS = 'https://store.steampowered.com/api/appdetails?appids={appid}&cc=tw&l=tchinese'
 ENWIKI = 'https://en.wikipedia.org/w/api.php?'
 ZHWIKI = 'https://zh.wikipedia.org/w/api.php?'
 NAME_RX = re.compile(r'《([^《》]{2,80})》')
 CJK = re.compile(r'[㐀-鿿]')
 ASCII_NAME = re.compile(r'^[\x20-\x7eÀ-ɏ’‘–—]+$')
-GAME_DESC = re.compile(r'video game|game series|game franchise|visual novel', re.I)
+GAME_DESC = re.compile(r'video game|visual novel', re.I)
+SERIES_DESC = re.compile(r'\bseries\b|\bfranchise\b|\blist of\b', re.I)
 NOT_GAME = re.compile(r'(?:developer|publisher|company|designer|composer|journalist|studio|director|producer|'
-                      r'voice actor|actor|musician|engine|console|platform|controller|award|convention|exhibition)\b', re.I)
-DISAMBIG = re.compile(r'\s*[（(][^（）()]*(?:遊戲|游戏|電玩|电玩|作品|系列|video game)[^（）()]*[）)]\s*$', re.I)
+                      r'voice actor|actor|musician|engine|console|platform|controller|award|convention|'
+                      r'exhibition|character|soundtrack|film|television|anime|manga|book|novel series)\b', re.I)
+DISAMBIG = re.compile(r'\s*[（(][^（）()]*(?:遊戲|游戏|電玩|电玩|作品|video game)[^（）()]*[）)]\s*$', re.I)
+EN_DISAMBIG = re.compile(r'\s*\([^()]*(?:video game|game|series)[^()]*\)\s*$', re.I)
+PLATFORM_WORDS = re.compile(r'(?:nintendo\s+)?switch\s*2(?:\s+edition)?|\bps[45](?:\s+pro)?\b|\bxbox\s+series\s+[xs]\b', re.I)
+FULLWIDTH = {**{0xFF10 + i: 0x30 + i for i in range(10)}, **{0xFF21 + i: 0x41 + i for i in range(26)},
+             **{0xFF41 + i: 0x61 + i for i in range(26)}}
+ROMAN = {'ii': 2, 'iii': 3, 'iv': 4, 'v': 5, 'vi': 6, 'vii': 7, 'viii': 8, 'ix': 9, 'x': 10, 'xi': 11, 'xii': 12}
+ROMAN_U = {'Ⅱ': 2, 'Ⅲ': 3, 'Ⅳ': 4, 'Ⅴ': 5, 'Ⅵ': 6, 'Ⅶ': 7, 'Ⅷ': 8, 'Ⅸ': 9, 'Ⅹ': 10}
+ZH_NUM = {'二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10}
 POS_TTL_D, NEG_TTL_D = 60, 14
-WIKI_LINK = re.compile(r'^https://en\.wikipedia\.org/wiki/(.+)$')
+MIN_STEAM_REVIEWS = 100
+WIKI_LINK = re.compile(r'^https://en\.wikipedia\.org/wiki/([^#]+)$')
 
 
 def key(name: str) -> str:
@@ -34,8 +47,33 @@ def key(name: str) -> str:
     return re.sub(r'[^0-9a-zÀ-ɏ]+', '', s)
 
 
+def numbers_en(name: str) -> set:
+    n = PLATFORM_WORDS.sub(' ', EN_DISAMBIG.sub('', name))
+    out = {int(x) for x in re.findall(r'(?<![\w.])(\d{1,4})(?:st|nd|rd|th)?(?![\w.])', n)}
+    for w in re.findall(r'(?<![A-Za-z])([IVX]{2,4})(?![A-Za-z])', n):
+        if w.lower() in ROMAN:
+            out.add(ROMAN[w.lower()])
+    m = re.search(r'(?<![A-Za-z])([VX])\s*(?:$|:|–|—|-\s)', n)   # 結尾或副標前的單一 V／X（V Rising 不算）
+    if m and m.start() > 0:
+        out.add(ROMAN[m.group(1).lower()])
+    return out
+
+
+def numbers_zh(s: str) -> set:
+    s = s.translate(FULLWIDTH)
+    out = {int(x) for x in re.findall(r'\d{1,4}', s)}
+    out |= {ROMAN[w.lower()] for w in re.findall(r'(?<![A-Za-z])([IVX]{1,4})(?![A-Za-z])', s) if w.lower() in ROMAN}
+    out |= {v for k, v in ROMAN_U.items() if k in s}
+    out |= {v for k, v in ZH_NUM.items() if k in s}
+    return out
+
+
+def numbers_ok(en: str, zh: str) -> bool:
+    return numbers_en(en) <= numbers_zh(zh)
+
+
 def _fresh(entry, t0) -> bool:
-    if not entry:
+    if not entry or entry.get('v') != VERSION:
         return False
     age_d = hours_since(parse_iso(entry.get('at')) or t0, t0) / 24
     return age_d < (POS_TTL_D if entry.get('zh') else NEG_TTL_D)
@@ -58,20 +96,27 @@ class Namer:
         self._simp = SIMPLIFIED_ONLY
 
     # ---------- 整理中文名 ----------
-    def clean(self, zh: str, en: str):
-        s = html.unescape(re.sub(r'<[^>]+>', '', zh or ''))
-        s = re.sub(r'[®™©]', '', s).strip()
-        for e in {en, re.sub(r'[®™©]', '', en)}:
-            if e and e.lower() in s.lower():
-                i = s.lower().index(e.lower())
-                s = (s[:i] + s[i + len(e):]).strip()
+    def clean(self, zh: str, en: str, strip_series: bool = False):
+        s = html.unescape(re.sub(r'<[^>]+>', '', zh or '')).replace(' ', ' ')
+        s = re.sub(r'[®™©《》「」『』]', '', s).strip().translate(FULLWIDTH)
+        en_n = EN_DISAMBIG.sub('', re.sub(r'[®™©]', '', en or '')).replace(' ', ' ').strip()
+        if en_n:
+            words = [re.escape(w) for w in en_n.split()]
+            pat = re.compile(r'[\s\-–—:：]*' + r'[\s:：\-–—]*'.join(words) + r'[\s\-–—]*', re.I)
+            s2 = pat.sub(' ', s).strip()
+            if len(CJK.findall(s2)) >= 2:
+                s = s2
         s = re.sub(r'[（(]\s*[)）]', '', s)
         s = DISAMBIG.sub('', s)
+        if strip_series:
+            s = re.sub(r'\s*系列$', '', s)
         s = re.sub(r'^[\s:：\-–—|/]+|[\s:：\-–—|/]+$', '', s)
         s = re.sub(r'\s{2,}', ' ', s).strip()
         if self._s2tw and any(ch in self._simp for ch in s):
             s = self._s2tw.convert(s)
-        if len(CJK.findall(s)) < 2 or len(s) > 40:
+        if len(CJK.findall(s)) < 2 or len(s) > 40 or '列表' in s:
+            return None
+        if not numbers_ok(en, s):
             return None
         return s
 
@@ -86,11 +131,15 @@ class Namer:
             if len(hits) != 1:
                 return None
             appid = hits[0]['id']
-            d = self.http.get(STEAM_DETAILS.format(appid=appid), timeout=20, retries=0)
+            d = self.http.get(STEAM_DETAILS.format(appid=appid), timeout=25, retries=0)
             if d.status_code != 200:
                 return None
             data = (d.json().get(str(appid)) or {}).get('data') or {}
-            if data.get('type') not in ('game', None):
+            if data.get('type') != 'game':
+                return None
+            recs = (data.get('recommendations') or {}).get('total') or 0
+            soon = (data.get('release_date') or {}).get('coming_soon')
+            if recs < MIN_STEAM_REVIEWS and not soon:
                 return None
             zh = self.clean(data.get('name', ''), name)
             return {'zh': zh, 'via': 'steam', 'appid': appid} if zh else None
@@ -98,36 +147,33 @@ class Namer:
             return None
 
     # ---------- 維基百科 ----------
-    def _wiki_query(self, base, params):
-        params = dict(params, format='json', formatversion=2)
-        r = self.http.get(base + urllib.parse.urlencode(params), bot=True, timeout=30, retries=1)
-        if r.status_code != 200:
-            raise RuntimeError(f'HTTP {r.status_code}')
-        return r.json().get('query') or {}
-
-    def wiki_titles(self, en_titles: list[str], require_game: bool = True) -> dict:
-        """英文條目名 → 中文版條目名（只收電子遊戲條目）。"""
+    def wiki_pages(self, en_titles: list[str]) -> dict:
+        """英文條目名 → {zh, final, desc, redirected, fragment}。"""
         found = {}
         for i in range(0, len(en_titles), 50):
             chunk = en_titles[i:i + 50]
-            q = self._wiki_query(ENWIKI, {'action': 'query', 'redirects': 1, 'prop': 'langlinks|description',
-                                          'lllang': 'zh', 'lllimit': 'max', 'titles': '|'.join(chunk)})
+            params = {'action': 'query', 'redirects': 1, 'prop': 'langlinks|description', 'lllang': 'zh',
+                      'lllimit': 'max', 'titles': '|'.join(chunk), 'format': 'json', 'formatversion': 2}
+            r = self.http.get(ENWIKI + urllib.parse.urlencode(params), bot=True, timeout=30, retries=1)
+            if r.status_code != 200:
+                raise RuntimeError(f'HTTP {r.status_code}')
+            q = r.json().get('query') or {}
             norm = {x['from']: x['to'] for x in q.get('normalized', [])}
-            redir = {x['from']: x['to'] for x in q.get('redirects', [])}
+            redir = {x['from']: x for x in q.get('redirects', [])}
             pages = {p['title']: p for p in q.get('pages', []) if not p.get('missing') and not p.get('invalid')}
             for t in chunk:
                 n = norm.get(t, t)
-                p = pages.get(redir.get(n, n))
+                rd = redir.get(n)
+                final = rd['to'] if rd else n
+                p = pages.get(final)
                 if not p or not p.get('langlinks'):
                     continue
-                desc = p.get('description') or ''
-                if require_game and (not GAME_DESC.search(desc) or NOT_GAME.search(desc)):
-                    continue
-                found[t] = p['langlinks'][0]['title']
+                found[t] = {'zh': p['langlinks'][0]['title'], 'final': final, 'desc': p.get('description') or '',
+                            'redirected': bool(rd), 'fragment': bool(rd and rd.get('tofragment'))}
             time.sleep(0.3)
         return found
 
-    def zh_tw(self, zh_title: str, en: str):
+    def zh_tw(self, zh_title: str, en: str, strip_series: bool = False):
         """中文版條目的台灣正體標題（套用條目自己的用詞轉換）。"""
         try:
             params = {'action': 'parse', 'page': zh_title, 'prop': 'displaytitle', 'variant': 'zh-tw',
@@ -136,13 +182,25 @@ class Namer:
             if r.status_code != 200:
                 return None
             disp = ((r.json().get('parse') or {}).get('displaytitle')) or ''
-            return self.clean(disp, en)
+            return self.clean(disp, en, strip_series=strip_series)
         except Exception:  # noqa: BLE001
             return None
 
+    @staticmethod
+    def acceptable(info, *, variant: bool, allow_series: bool) -> bool:
+        if not info or info['fragment']:
+            return False
+        desc = info['desc']
+        if not GAME_DESC.search(desc) or NOT_GAME.search(desc):
+            return False
+        if SERIES_DESC.search(desc) and not allow_series:
+            return False
+        if variant and info['redirected']:
+            return False   # 「X (video game)」轉址到別處＝不是這款遊戲自己的條目
+        return True
+
     # ---------- 對外 ----------
-    def resolve(self, names: list[str]) -> dict:
-        """名稱 → 中文名（找不到的不在結果裡）。"""
+    def resolve(self, names: list[str]):
         todo, seen = [], set()
         for n in names:
             n = n.strip()
@@ -152,7 +210,6 @@ class Namer:
             seen.add(k)
             if not _fresh(self.cache.get(k), self.t0):
                 todo.append(n)
-        # 1) Steam（少量並行）
         miss = []
         if todo:
             def one(n):
@@ -165,37 +222,42 @@ class Namer:
                         continue
                     self.stats['lookups'] += 1
                     if res:
-                        self.cache[key(n)] = dict(res, en=n, at=iso(self.t0))
+                        self.cache[key(n)] = dict(res, en=n, at=iso(self.t0), v=VERSION)
                         self.stats['steam'] += 1
                     else:
                         miss.append(n)
-        # 2) 維基百科：先試「名稱 (video game)」，再試名稱本身
         if miss and time.time() < self.deadline:
             try:
                 tries = []
                 for n in miss:
                     tries += [f'{n} (video game)', n]
-                zh_titles = self.wiki_titles(tries)
+                pages = self.wiki_pages(tries)
                 for n in miss:
-                    zt = zh_titles.get(f'{n} (video game)') or zh_titles.get(n)
-                    zh = self.zh_tw(zt, n) if zt and time.time() < self.deadline else None
+                    if time.time() > self.deadline:
+                        break
+                    zh = None
+                    for t, variant in ((f'{n} (video game)', True), (n, False)):
+                        info = pages.get(t)
+                        if self.acceptable(info, variant=variant, allow_series=True):
+                            zh = self.zh_tw(info['zh'], n, strip_series=not re.search(r'series|franchise', n, re.I))
+                            if zh:
+                                break
                     if zh:
-                        self.cache[key(n)] = {'zh': zh, 'via': 'wiki', 'en': n, 'at': iso(self.t0)}
+                        self.cache[key(n)] = {'zh': zh, 'via': 'wiki', 'en': n, 'at': iso(self.t0), 'v': VERSION}
                         self.stats['wiki'] += 1
-                    elif time.time() < self.deadline:
-                        self.cache[key(n)] = {'zh': None, 'en': n, 'at': iso(self.t0)}
+                    else:
+                        self.cache[key(n)] = {'zh': None, 'en': n, 'at': iso(self.t0), 'v': VERSION}
                         self.stats['miss'] += 1
             except Exception as e:  # noqa: BLE001
                 self.stats['wiki_err'] = f'{type(e).__name__}: {e}'[:160]
-        return {key(n): self.cache[key(n)]['zh'] for n in names
-                if self.cache.get(key(n.strip()), {}).get('zh')}
 
     def lookup(self, name: str):
         c = self.cache.get(key(name))
-        return c.get('zh') if c else None
+        return c.get('zh') if c and c.get('v') == VERSION else None
 
     def save(self):
-        old = [k for k, v in self.cache.items() if hours_since(parse_iso(v.get('at')) or self.t0, self.t0) > 24 * 120]
+        old = [k for k, v in self.cache.items()
+               if v.get('v') != VERSION or hours_since(parse_iso(v.get('at')) or self.t0, self.t0) > 24 * 120]
         for k in old:
             del self.cache[k]
         self.st.save('names.json', self.cache)
@@ -229,9 +291,10 @@ def localize_news(entries: list[dict], namer: Namer):
 
 
 def localize_calendar(items: list[dict], namer: Namer, limit: int = 400):
-    """發售日曆：條目有英文維基連結的，直接查中文版條目；沒有的用遊戲名查 Steam。"""
+    """發售日曆：條目有英文維基連結的，查中文版條目（只收這款遊戲自己的條目，不收系列或段落）。"""
     want = []
     for x in items[:limit]:
+        x.pop('zh', None)
         m = WIKI_LINK.match(x.get('url') or '')
         if m:
             en_title = urllib.parse.unquote(m.group(1)).replace('_', ' ')
@@ -249,16 +312,18 @@ def localize_calendar(items: list[dict], namer: Namer, limit: int = 400):
     if not want or time.time() > namer.deadline:
         return
     try:
-        zh_titles = namer.wiki_titles([t for _, t, _ in want], require_game=False)
+        pages = namer.wiki_pages([t for _, t, _ in want])
     except Exception as e:  # noqa: BLE001
         namer.stats['cal_err'] = f'{type(e).__name__}: {e}'[:160]
         return
     for x, en_title, k in want:
         if time.time() > namer.deadline:
             break
-        zt = zh_titles.get(en_title)
-        zh = namer.zh_tw(zt, x['title']) if zt else None
-        namer.cache[k] = {'zh': zh, 'via': 'wiki' if zh else None, 'en': en_title, 'at': iso(namer.t0)}
+        info = pages.get(en_title)
+        zh = None
+        if namer.acceptable(info, variant=False, allow_series=False):
+            zh = namer.zh_tw(info['zh'], x['title'])
+        namer.cache[k] = {'zh': zh, 'via': 'wiki' if zh else None, 'en': en_title, 'at': iso(namer.t0), 'v': VERSION}
         if zh:
             x['zh'] = zh
             namer.stats['cal'] = namer.stats.get('cal', 0) + 1
