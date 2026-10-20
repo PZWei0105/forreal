@@ -8,21 +8,39 @@ exec > >(tee -a "$LOG") 2>&1
 echo "== setup $(date -u +%FT%TZ) cpu=$(nproc) mem=$(free -g | awk '/Mem/{print $2}')G disk=$(df -h ~ | awk 'NR==2{print $4}')"
 
 if [ ! -x "$D/bin/llama-server" ]; then
-  echo "llama.cpp assets:"; gh api repos/ggml-org/llama.cpp/releases/latest --jq '.tag_name, (.assets[].name)' 2>&1 | grep -i -E "ubuntu|b[0-9]+$|linux" | head -20
-  url=$(gh api repos/ggml-org/llama.cpp/releases/latest \
-        --jq '.assets[] | select(.name | test("bin-ubuntu-x64\\.(zip|tar\\.gz)$")) | .browser_download_url' | head -1)
+  # 1) 官方預先編好的 CPU 版
+  rel=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN:-}" -H "Accept: application/vnd.github+json" \
+        https://api.github.com/repos/ggml-org/llama.cpp/releases/latest 2>&1)
+  echo "release: $(echo "$rel" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("tag_name"), d.get("message",""))' 2>&1 | head -c 200)"
+  echo "linux assets: $(echo "$rel" | python3 -c 'import json,sys; print(" ".join(a["name"] for a in json.load(sys.stdin).get("assets",[]) if "ubuntu" in a["name"] or "linux" in a["name"]))' 2>&1 | head -c 600)"
+  url=$(echo "$rel" | python3 -c 'import json,sys,re; a=[x["browser_download_url"] for x in json.load(sys.stdin).get("assets",[]) if re.search(r"bin-ubuntu-x64\.(zip|tar\.gz)$", x["name"])]; print(a[0] if a else "")' 2>/dev/null)
   echo "llama.cpp: $url"
   if [ -n "$url" ]; then
-    rm -rf /tmp/llama && mkdir -p /tmp/llama
-    curl -fsSL --retry 3 "$url" -o /tmp/llama/pkg
-    case "$url" in
-      *.zip) unzip -q /tmp/llama/pkg -d /tmp/llama/x ;;
-      *) mkdir -p /tmp/llama/x && tar -xzf /tmp/llama/pkg -C /tmp/llama/x ;;
-    esac
-    srv=$(find /tmp/llama/x -type f -name llama-server | head -1)
-    echo "llama-server found at: $srv"; ls "$(dirname "$srv")" 2>/dev/null | head -30
-    if [ -n "$srv" ]; then
-      mkdir -p "$D/bin" && cp -a "$(dirname "$srv")"/. "$D/bin/" && chmod +x "$D/bin/llama-server"
+    rm -rf /tmp/llama && mkdir -p /tmp/llama/x
+    if curl -fsSL --retry 3 "$url" -o /tmp/llama/pkg; then
+      case "$url" in
+        *.zip) unzip -q /tmp/llama/pkg -d /tmp/llama/x ;;
+        *) tar -xzf /tmp/llama/pkg -C /tmp/llama/x ;;
+      esac
+      srv=$(find /tmp/llama/x -type f -name llama-server | head -1)
+      echo "llama-server found at: $srv"
+      if [ -n "$srv" ]; then
+        mkdir -p "$D/bin" && cp -a "$(dirname "$srv")"/. "$D/bin/" && chmod +x "$D/bin/llama-server"
+        LD_LIBRARY_PATH="$D/bin" "$D/bin/llama-server" --version 2>&1 | tail -2 || true
+      fi
+    fi
+  fi
+  # 2) 找不到就自己編譯（只編一次，之後放快取）
+  if [ ! -x "$D/bin/llama-server" ]; then
+    echo "building llama.cpp from source"
+    rm -rf /tmp/llama-src
+    git clone -q --depth 1 https://github.com/ggml-org/llama.cpp /tmp/llama-src && \
+    cmake -S /tmp/llama-src -B /tmp/llama-src/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+      -DGGML_NATIVE=OFF -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON -DLLAMA_CURL=OFF > /tmp/llama-cmake.log 2>&1 && \
+    cmake --build /tmp/llama-src/build --target llama-server -j "$(nproc)" > /tmp/llama-build.log 2>&1
+    echo "build rc=$? $(tail -3 /tmp/llama-build.log | tr '\n' ' ')"
+    if [ -x /tmp/llama-src/build/bin/llama-server ]; then
+      mkdir -p "$D/bin" && cp /tmp/llama-src/build/bin/llama-server "$D/bin/"
     fi
   fi
 fi
