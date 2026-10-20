@@ -47,7 +47,7 @@ const money = (v) => (v == null ? '' : `NT$${Math.round(v).toLocaleString('en-US
 const thousands = (v) => (v == null ? '' : Number(v).toLocaleString('en-US'));
 
 function imgFallback(cap) {
-  return cap ? `if(this.dataset.f){this.remove()}else{this.dataset.f=1;this.src='${esc(cap)}'}` : 'this.remove()';
+  return cap ? `if(this.dataset.f){this.style.visibility='hidden'}else{this.dataset.f=1;this.src='${esc(cap)}'}` : "this.style.visibility='hidden'";
 }
 const REL_TYPE = { original: '新作', port: '移植', remaster: '重製版', remake: '重製', 'early access': '搶先體驗', 'full release': '正式版', expansion: '資料片', compilation: '合輯', dlc: 'DLC', 'enhanced port': '強化移植', unknown: '' };
 const GENRE = { action: '動作', 'action-adventure': '動作冒險', adventure: '冒險', rpg: '角色扮演', 'action rpg': '動作角色扮演', jrpg: '日式 RPG', 'tactical rpg': '戰略 RPG', fps: '第一人稱射擊', tps: '第三人稱射擊', "shoot 'em up": '射擊', 'survival horror': '生存恐怖', horror: '恐怖', puzzle: '解謎', platformer: '平台', metroidvania: '銀河惡魔城', roguelike: 'Roguelike', roguelite: 'Roguelite', 'deck building': '牌組構築', strategy: '策略', rts: '即時戰略', tbs: '回合策略', '4x': '4X', simulation: '模擬', 'life sim': '生活模擬', 'city builder': '城市建造', survival: '生存', sandbox: '沙盒', sports: '運動', racing: '賽車', fighting: '格鬥', 'visual novel': '視覺小說', cozy: '療癒', stealth: '潛行', mmorpg: 'MMORPG', moba: 'MOBA', 'battle royale': '大逃殺', rhythm: '節奏', 'beat \'em up': '清版動作', soulslike: '魂系', 'hack and slash': '砍殺', 'party': '派對', 'card game': '卡牌', idle: '放置', farming: '農場', 'open world': '開放世界', 'tower defense': '塔防', 'turn-based': '回合制', 'dungeon crawl': '地城探索', otome: '乙女', cms: '經營模擬' };
