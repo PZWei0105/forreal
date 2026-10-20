@@ -306,7 +306,7 @@
    "id": "nvidia",
    "name": "NVIDIA Blog",
    "url": "https://blogs.nvidia.com/feed/",
-   "tier": 1,
+   "tier": 3,
    "cat": "tech",
    "home": "https://blogs.nvidia.com/"
   },

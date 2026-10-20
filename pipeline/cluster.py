@@ -125,6 +125,14 @@ class Clusterer:
                         cn[a] = _norm(cent[a])
                         starts[a] = min(starts[a], starts[b])
                         merged = True
+        # 每則新聞和自己那一組重心有多像：用來挑最能代表整組的標題
+        self.centrality = {}
+        for c, members in enumerate(clusters):
+            if not members:
+                continue
+            cn = _norm(cent[c])
+            for i in members:
+                self.centrality[items[i]['id']] = _cos(vec[i], cn)
         return [[items[i] for i in c] for c in clusters if c]
 
 

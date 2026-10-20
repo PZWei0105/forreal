@@ -1,14 +1,117 @@
 {
-  "_說明": "個人口味：符合的新聞往前排（只影響排序，不會因此擋掉別的新聞）。follow 是追蹤的遊戲名稱：提到它的新聞一律放行並大幅加分，連手遊也是。",
-  "boost": [
-    {"label": "策略／戰棋", "pts": 4, "patterns": ["\\bstrategy\\b", "\\btactic(?:s|al)\\b", "\\bturn-based\\b", "\\b4x\\b", "\\bcivilization\\b", "\\bxcom\\b", "戰棋", "策略"]},
-    {"label": "卡牌／牌組構築", "pts": 5, "patterns": ["\\bdeck-?build(?:er|ing)\\b", "\\bcard (?:game|battler|battle)s?\\b", "\\bslay the spire\\b", "\\bbalatro\\b", "\\bmarvel snap\\b", "卡牌", "牌組"]},
-    {"label": "Roguelike／倖存者類", "pts": 5, "patterns": ["\\brogue-?(?:like|lite)s?\\b", "\\bsurvivors?-?like\\b", "\\bvampire survivors\\b", "\\bbullet heaven\\b", "肉鴿", "倖存者"]},
-    {"label": "刷寶 ARPG", "pts": 3, "patterns": ["\\barpgs?\\b", "\\baction rpg\\b", "\\bdiablo\\b", "\\bpath of exile\\b", "\\blast epoch\\b", "\\blooter\\b", "刷寶", "暗黑破壞神"]},
-    {"label": "武俠／東方題材", "pts": 4, "patterns": ["\\bwuxia\\b", "\\bxianxia\\b", "\\bmartial arts\\b", "\\bblack myth\\b", "\\bwhere winds meet\\b", "\\bphantom blade\\b", "\\bwuchang\\b", "武俠", "仙俠", "黑神話"]},
-    {"label": "發表會與新品節", "pts": 3, "patterns": ["\\bnext fest\\b", "\\bnintendo direct\\b", "\\bstate of play\\b", "\\bgame awards\\b", "\\bshowcase\\b", "新品節", "直面會"]},
-    {"label": "玩家權益", "pts": 3, "patterns": ["\\bstop killing games\\b", "\\bgame preservation\\b", "\\bdigital ownership\\b", "\\bpower to the players\\b", "\\bdelist(?:ed|ing)?\\b", "數位所有權", "下架"]},
-    {"label": "Steam 硬體與掌機", "pts": 2, "patterns": ["\\bsteam machine\\b", "\\bsteam deck\\b", "\\bsteam frame\\b", "\\bswitch 2\\b", "\\bps6\\b", "\\brtx 50\\d0\\b", "掌機"]}
-  ],
-  "follow": []
+ "_說明": "個人口味：符合的新聞往前排（只影響排序，不會因此擋掉別的新聞）。follow 是追蹤的遊戲名稱：提到它的新聞一律放行並大幅加分，連手遊也是。",
+ "boost": [
+  {
+   "label": "策略／戰棋",
+   "pts": 4,
+   "patterns": [
+    "\\bstrategy\\b",
+    "\\btactic(?:s|al)\\b",
+    "\\bturn-based\\b",
+    "\\b4x\\b",
+    "\\bcivilization\\b",
+    "\\bxcom\\b",
+    "戰棋",
+    "策略"
+   ]
+  },
+  {
+   "label": "卡牌／牌組構築",
+   "pts": 5,
+   "patterns": [
+    "\\bdeck-?build(?:er|ing)\\b",
+    "\\bcard (?:game|battler|battle)s?\\b",
+    "\\bslay the spire\\b",
+    "\\bbalatro\\b",
+    "\\bmarvel snap\\b",
+    "卡牌",
+    "牌組"
+   ]
+  },
+  {
+   "label": "Roguelike／倖存者類",
+   "pts": 5,
+   "patterns": [
+    "\\brogue-?(?:like|lite)s?\\b",
+    "\\bsurvivors?-?like\\b",
+    "\\bvampire survivors\\b",
+    "\\bbullet heaven\\b",
+    "肉鴿",
+    "倖存者"
+   ]
+  },
+  {
+   "label": "刷寶 ARPG",
+   "pts": 3,
+   "patterns": [
+    "\\barpgs?\\b",
+    "\\baction rpg\\b",
+    "\\bdiablo\\b",
+    "\\bpath of exile\\b",
+    "\\blast epoch\\b",
+    "\\blooter\\b",
+    "刷寶",
+    "暗黑破壞神"
+   ]
+  },
+  {
+   "label": "武俠／東方題材",
+   "pts": 4,
+   "patterns": [
+    "\\bwuxia\\b",
+    "\\bxianxia\\b",
+    "\\bmartial arts\\b",
+    "\\bblack myth\\b",
+    "\\bwhere winds meet\\b",
+    "\\bphantom blade\\b",
+    "\\bwuchang\\b",
+    "武俠",
+    "仙俠",
+    "黑神話"
+   ]
+  },
+  {
+   "label": "發表會與新品節",
+   "pts": 3,
+   "patterns": [
+    "\\bnext fest\\b",
+    "\\bnintendo direct\\b",
+    "\\bstate of play\\b",
+    "\\bgame awards\\b",
+    "\\bshowcase\\b",
+    "新品節",
+    "直面會"
+   ]
+  },
+  {
+   "label": "玩家權益",
+   "pts": 3,
+   "patterns": [
+    "\\bstop killing games\\b",
+    "\\bgame preservation\\b",
+    "\\bdigital ownership\\b",
+    "\\bpower to the players\\b",
+    "\\bdelist(?:ed|ing)?\\b",
+    "數位所有權",
+    "下架",
+    "\\b(?:video )?game ownership\\b",
+    "\\bownership bill\\b",
+    "\\bpreservation\\b"
+   ]
+  },
+  {
+   "label": "新主機／掌機",
+   "pts": 2,
+   "patterns": [
+    "\\bsteam machine\\b",
+    "\\bsteam deck\\b",
+    "\\bsteam frame\\b",
+    "\\bswitch 2\\b",
+    "\\bps6\\b",
+    "\\brtx 50\\d0\\b",
+    "掌機"
+   ]
+  }
+ ],
+ "follow": []
 }
