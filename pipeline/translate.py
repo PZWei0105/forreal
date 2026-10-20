@@ -26,7 +26,8 @@ SYSTEM = """你是台灣的遊戲與科技新聞編輯。把外文新聞整理�
 1. 遊戲名、作品名、公司名、人名、產品名一律照抄原文（英文或日文），不要翻譯、不要自創中文名；遊戲與作品名加上《》。
 2. title：30 字以內的新聞標題。
 3. summary：1 到 2 句、40 到 90 字。只能寫內容裡有的事實，不可補充、推測或評論；不要自己加上「傳聞」「尚未證實」這類字眼，除非原文就這樣寫。
-4. 用台灣用語：影片、軟體、硬體、網路、儲存、複製、模組、搶先體驗、更新檔、伺服器、品質、預告片、上架。不要用簡體字。"""
+4. 數字、金額、日期必須和原文一致，換算要正確：$100,000 是 10 萬美元，$1 million 是 100 萬美元，不確定就照抄原文數字。
+5. 句子裡不要夾英文單字（名稱除外），用台灣用語：影片、軟體、硬體、網路、儲存、複製、模組、社群、搶先體驗、更新檔、伺服器、品質、預告片、上架。不要用簡體字。"""
 
 EXAMPLES = [
     ('來源：VGC\n標題：Samson developer Liquid Swords is facing bankruptcy\n內容：Liquid Swords, the Swedish studio behind open-world crime game Samson, has filed for bankruptcy just six months after the game\'s launch. Staff had reportedly not been paid for two months.',
@@ -54,7 +55,9 @@ TERMS = [('克隆', '複製'), ('存儲', '儲存'), ('視頻', '影片'), ('軟
          ('質量', '品質'), ('信息', '資訊'), ('用戶', '使用者'), ('服務器', '伺服器'), ('早期體驗', '搶先體驗'),
          ('修改檔', '模組'), ('鼠標', '滑鼠'), ('屏幕', '螢幕'), ('默認', '預設'), ('博客', '部落格'),
          ('社交媒體', '社群媒體'), ('星球大戰', '星際大戰'), ('網碼', '網路程式碼'), ('繫列', '系列'), ('臺灣', '台灣'),
-         ('臺北', '台北'), ('臺積電', '台積電'), ('臺幣', '台幣'), ('優化', '最佳化'), ('營運商', '營運商')]
+         ('臺北', '台北'), ('臺積電', '台積電'), ('臺幣', '台幣'), ('優化', '最佳化'), ('流行朋克', '流行龐克'),
+         ('朋克', '龐克'), ('社區', '社群'), ('集郵卡', '收藏卡'), ('reportedly ', '據報導'), (' reportedly', '據報導'),
+         ('AI聲 clone', 'AI 複製聲音'), (' clone', ' 複製'), ('網絡', '網路'), ('數據', '資料'), ('視圖', '畫面')]
 SIMPLIFIED_ONLY = set('们这个时会对发现经过还没进开关间问题实现为与业务东车长门马鸟龙认识让请谁说读调网络视频软件硬件质数据库设计应该样么见观觉专产团队游戏戏导岁华实际战类级线乐亲传标签载输设备优惠币购买卖费钱')
 RUMOR_ZH = ('傳聞', '尚未確認', '未經證實', '尚未證實', '未證實', '據傳', '謠傳', '尚未經官方', '未經官方', '尚未獲得官方')
 RUMOR_SRC = re.compile(r'\b(?:rumou?r|leak|reportedly|allegedly|insider|claims?|unconfirmed|speculat|datamin)', re.I)
@@ -113,7 +116,7 @@ class Translator:
             'response_format': {'type': 'json_object', 'schema': schema},
             'chat_template_kwargs': {'enable_thinking': False},
         }
-        r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=180)
+        r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=300)
         r.raise_for_status()
         content = r.json()['choices'][0]['message']['content'] or ''
         content = re.sub(r'(?s)<think>.*?</think>', '', content)
