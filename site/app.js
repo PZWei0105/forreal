@@ -376,9 +376,10 @@ function calendar(w) {
 function relRow(x) {
   const k = relKey(x);
   const on = S.watch.has(k);
-  const name = x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a>` : esc(x.title);
+  const label = x.zh || x.title;
+  const name = x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label);
   return `<div class="rel${x.big ? ' big' : ''}">
-    <div class="name">${name}</div>
+    <div class="name">${name}${x.zh ? `<span class="en">${esc(x.title)}</span>` : ''}</div>
     <button class="star" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on ? '取消追蹤' : '追蹤'}">${ICON.star}</button>
     <div class="sub">${x.big ? '<span class="bigmark">大廠</span>' : ''}${x.plat.map((p) => `<span class="p ${p}">${PLAT[p]}</span>`).join('')}
       <span>${esc([zhType(x.type || ''), zhGenre(x.genre || '')].filter(Boolean).join('／'))}</span><span>${esc(x.pub || x.dev)}</span>${x.srank ? `<span class="ty">Steam 期待 #${x.srank}</span>` : ''}</div>
@@ -432,7 +433,8 @@ function viewFilter() {
     <div class="panel rule-list">
       ${(m.rules?.block || []).map((r) => `<div><b><span class="stamp" style="margin-right:8px">${BLOCK_SHORT[r.id] || '擋'}</span>${esc(r.label)}</b>${esc(r.desc)}</div>`).join('')}
       ${(m.rules?.soft || []).map((r) => `<div><b>${esc(r.label)}（保留、往後排）</b>${esc(r.desc)}</div>`).join('')}
-      <div><b>翻譯與摘要</b>外文新聞在每小時更新時，先由開源模型${m.translate?.model ? `（${esc(m.translate.model)}）` : ''}翻成繁體中文標題並寫一到兩句摘要，再放進 App。遊戲、公司與人名保留原文；卡片上灰色小字是原文標題。來不及翻的會先標「翻譯中」，下一輪補上。</div>
+      <div><b>翻譯與摘要</b>外文新聞在每小時更新時，先由開源模型${m.translate?.model ? `（${esc(m.translate.model)}）` : ''}翻成繁體中文標題並寫一到兩句摘要，再放進 App。卡片上灰色小字是原文標題。來不及翻的會先標「翻譯中」，下一輪補上。</div>
+      <div><b>遊戲中文名</b>遊戲名稱優先用 Steam 台灣商店的官方中文名，查不到再用維基百科的台灣譯名；兩邊都查不到、或名稱對不上，就保留原文，寧可不換也不換錯。</div>
       <div><b>排序</b>官方來源與可信媒體優先；同一件事被越多家獨立報導越前面；越新越前面；發售、延期、發表會、評測加分。${(m.rules?.boost || []).length ? `你的口味也會加分：${(m.rules.boost || []).map((b) => esc(b.label)).join('、')}。` : ''}</div>
     </div>
     <div class="sec-head"><h2>來源</h2><span class="aside">${srcs.length} 個</span></div>

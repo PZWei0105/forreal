@@ -288,6 +288,16 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
         e.pop('_body', None)
     print('[forreal] translate', tr_stats, flush=True)
 
+    # 遊戲中文名：《英文遊戲名》換成 Steam 台灣商店／維基百科的台灣官方中文名
+    namer, name_stats = None, {}
+    try:
+        from . import names
+        namer = names.Namer(http, st, t0)
+        names.localize_news(game + tech, namer)
+    except Exception:  # noqa: BLE001
+        errors.append('names: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+
     deals, releases = {}, {}
     try:
         from . import stores
@@ -304,6 +314,16 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
         traceback.print_exc()
 
     link_steam_ranks(releases)
+    if namer is not None:
+        try:
+            from . import names
+            names.localize_calendar((releases.get('wiki') or {}).get('items') or [], namer)
+            namer.save()
+            name_stats = namer.stats
+        except Exception:  # noqa: BLE001
+            errors.append('names: ' + traceback.format_exc()[-400:])
+            traceback.print_exc()
+    print('[forreal] names', name_stats, flush=True)
 
     src_meta = {s['id']: {'name': s['name'], 'tier': s.get('tier', 3), 'cat': s.get('cat', 'game'),
                           'home': s.get('home')} for s in sources}
@@ -330,7 +350,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     runs = st.load('runs.json', [])
     runs.append({'at': iso(t0), 'secs': round((now() - t0).total_seconds(), 1), 'calls': http.calls,
                  'game': len(game), 'tech': len(tech), 'blocked': len(blocked), 'store': len(store),
-                 'translate': tr_stats, 'errors': errors[:5]})
+                 'translate': tr_stats, 'names': name_stats, 'errors': errors[:5]})
     st.save('runs.json', runs[-80:])
     # 翻譯器的安裝與執行紀錄（雲端 Claude 看不到 Actions 的 log，所以存進 state 分支）
     diag = st.path / 'diag'
