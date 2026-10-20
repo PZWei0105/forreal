@@ -15,7 +15,7 @@ import urllib.parse
 
 from .util import hours_since, iso, parse_iso
 
-VERSION = 3   # 規則改了就加一，舊結果會重查
+VERSION = 4   # 規則改了就加一，舊結果會重查
 STEAM_SEARCH = 'https://store.steampowered.com/api/storesearch/?term={q}&l=english&cc=TW'
 STEAM_DETAILS = 'https://store.steampowered.com/api/appdetails?appids={appid}&cc=tw&l=tchinese'
 ENWIKI = 'https://en.wikipedia.org/w/api.php?'
@@ -74,11 +74,12 @@ def numbers_ok(en: str, zh: str) -> bool:
 
 IGNORE_WORDS = {'the', 'a', 'an', 'of', 'and', 'in', 'on', 'for', 'to', 'edition', 'deluxe', 'gold', 'complete',
                 'definitive', 'ultimate', 'enhanced', 'goty', 'nintendo', 'switch', 'ps4', 'ps5', 'xbox', 'ww', 'hd',
-                'expanded', 'director', 'cut', 's'}
+                'expanded', 'director', 'cut', 's', 'encore', 'jp', 'na', 'eu'}
 
 
 def words(name: str) -> list:
-    toks = re.findall(r'[a-z]+|\d+', re.sub(r"[’']s\b", '', EN_DISAMBIG.sub('', name).lower()))
+    name = PLATFORM_WORDS.sub(' ', EN_DISAMBIG.sub('', name))
+    toks = re.findall(r'[a-z]+|\d+', re.sub(r"[’']s\b", '', name.lower()))
     out = []
     for i, t in enumerate(toks):
         if t in ROMAN and (len(t) >= 2 or i == len(toks) - 1) and i > 0:
@@ -216,11 +217,11 @@ class Namer:
             return None
 
     @staticmethod
-    def acceptable(info, *, variant: bool, allow_series: bool, requested: str = '') -> bool:
+    def acceptable(info, *, variant: bool, allow_series: bool, requested: str = '', always_check: bool = False) -> bool:
         if not info or info['fragment']:
             return False
-        if info['redirected'] and requested and not same_work(requested, info['final']):
-            return False   # 轉到別的作品（例如 Metro Redux → Metro: Last Light）
+        if requested and (info['redirected'] or always_check) and not same_work(requested, info['final']):
+            return False   # 指到別的作品（例如 Metro Redux → Metro: Last Light、Edge of Memories → Edge of Eternity）
         desc = info['desc']
         if not GAME_DESC.search(desc) or NOT_GAME.search(desc):
             return False
@@ -367,7 +368,7 @@ def localize_calendar(items: list[dict], namer: Namer, limit: int = 400):
             break
         info = pages.get(en_title)
         zh = None
-        if namer.acceptable(info, variant=False, allow_series=False, requested=x['title']):
+        if namer.acceptable(info, variant=False, allow_series=False, requested=x['title'], always_check=True):
             zh = namer.zh_tw(info['zh'], x['title'])
         namer.cache[k] = {'zh': zh, 'via': 'wiki' if zh else None, 'en': en_title, 'at': iso(namer.t0), 'v': VERSION}
         if zh:
