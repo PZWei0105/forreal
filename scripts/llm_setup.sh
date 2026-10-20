@@ -3,8 +3,12 @@
 set -uo pipefail
 D="$HOME/.cache/forreal-llm"
 mkdir -p "$D"
+LOG=/tmp/llm_setup.log
+exec > >(tee -a "$LOG") 2>&1
+echo "== setup $(date -u +%FT%TZ) cpu=$(nproc) mem=$(free -g | awk '/Mem/{print $2}')G disk=$(df -h ~ | awk 'NR==2{print $4}')"
 
 if [ ! -x "$D/bin/llama-server" ]; then
+  echo "llama.cpp assets:"; gh api repos/ggml-org/llama.cpp/releases/latest --jq '.tag_name, (.assets[].name)' 2>&1 | grep -i -E "ubuntu|b[0-9]+$|linux" | head -20
   url=$(gh api repos/ggml-org/llama.cpp/releases/latest \
         --jq '.assets[] | select(.name | test("bin-ubuntu-x64\\.(zip|tar\\.gz)$")) | .browser_download_url' | head -1)
   echo "llama.cpp: $url"
@@ -16,6 +20,7 @@ if [ ! -x "$D/bin/llama-server" ]; then
       *) mkdir -p /tmp/llama/x && tar -xzf /tmp/llama/pkg -C /tmp/llama/x ;;
     esac
     srv=$(find /tmp/llama/x -type f -name llama-server | head -1)
+    echo "llama-server found at: $srv"; ls "$(dirname "$srv")" 2>/dev/null | head -30
     if [ -n "$srv" ]; then
       mkdir -p "$D/bin" && cp -a "$(dirname "$srv")"/. "$D/bin/" && chmod +x "$D/bin/llama-server"
     fi
@@ -28,7 +33,9 @@ if [ ! -s "$D/model.gguf" ]; then
     "https://huggingface.co/lmstudio-community/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_M.gguf" \
     "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"; do
     echo "model: trying $u"
-    if curl -fL --retry 3 --retry-delay 5 -sS "$u" -o "$D/model.gguf.part" && [ "$(stat -c%s "$D/model.gguf.part")" -gt 1000000000 ]; then
+    curl -fL --retry 3 --retry-delay 5 -sS "$u" -o "$D/model.gguf.part"; rc=$?
+    echo "curl rc=$rc size=$(stat -c%s "$D/model.gguf.part" 2>/dev/null)"
+    if [ $rc -eq 0 ] && [ "$(stat -c%s "$D/model.gguf.part")" -gt 1000000000 ]; then
       mv "$D/model.gguf.part" "$D/model.gguf"
       basename "$u" .gguf > "$D/model.txt"
       break

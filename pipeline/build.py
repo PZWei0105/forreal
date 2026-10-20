@@ -332,6 +332,14 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                  'game': len(game), 'tech': len(tech), 'blocked': len(blocked), 'store': len(store),
                  'translate': tr_stats, 'errors': errors[:5]})
     st.save('runs.json', runs[-80:])
+    # 翻譯器的安裝與執行紀錄（雲端 Claude 看不到 Actions 的 log，所以存進 state 分支）
+    diag = st.path / 'diag'
+    diag.mkdir(exist_ok=True)
+    for name in ('llm_setup.log', 'llama.log'):
+        src = pathlib.Path('/tmp') / name
+        if src.exists():
+            txt = src.read_text(encoding='utf-8', errors='replace')
+            (diag / name).write_text(txt[-12000:], encoding='utf-8')
     st.save('items.json.gz', store)
     st.save('health.json', health)
     st.save('cache.json', cache)

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 在背景啟動翻譯器（llama-server），等它準備好；失敗也不讓整輪更新中斷。
 set -uo pipefail
+exec > >(tee -a /tmp/llm_setup.log) 2>&1
 D="$HOME/.cache/forreal-llm"
 if [ ! -x "$D/bin/llama-server" ] || [ ! -s "$D/model.gguf" ]; then
   echo "translator not available, news will stay in original language this round"
