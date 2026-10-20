@@ -443,7 +443,7 @@ function gameRow(x, rank) {
     <span class="g-main">
       <span class="name">${esc(x.name)}</span>
       ${x.tags?.length ? `<span class="g-tags">${x.tags.map(esc).join('・')}</span>` : ''}
-      ${x.short ? `<span class="g-desc">${esc(x.short)}</span>` : x.sp ? '<span class="g-desc pend">簡介翻譯中</span>' : ''}
+      ${x.short ? `<span class="g-desc">${x.mt ? '<span class="mt" title="英文簡介由開源模型翻譯">機翻</span>' : ''}${esc(x.short)}</span>` : x.sp ? '<span class="g-desc pend">簡介翻譯中</span>' : ''}
       ${gamePrice(x)}
       <span class="g-meta">${gameBadges(x)}</span>
     </span></a>`;
@@ -518,7 +518,7 @@ function saleCard(r, E) {
   return `<article class="slab ev-sale">
     <div class="lbl"><span class="src">${PK_KIND[r.kind] || '特賣'}</span>${r.spot ? '<span class="tag off">Steam 首頁推薦</span>' : ''}<span class="when">${st.k === 'live' ? `剩 ${span(new Date(r.end) - Date.now())}` : st.txt}</span></div>
     <a class="ev-sale-head" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">
-      <h3 class="t">${esc(r.tz || r.name)}</h3>${r.tz ? `<p class="t-orig">${esc(r.name)}</p>` : ''}
+      <h3 class="t">${esc(r.name)}</h3>
       <div class="ev-time sm"><span>${evTime(r.start, false)}</span><span class="arrow">→</span><span>${evTime(r.end, false)}</span>${r.count ? `<span class="sep">・</span>共 <b class="num">${thousands(r.count)}</b> 款` : ''}</div>
     </a>
     ${open ? `<div class="g-list">${games.map((x) => gameRow(x)).join('')}</div>`

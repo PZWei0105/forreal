@@ -872,7 +872,10 @@ def build(http, st, cache, health, t0):
 
 
 def translation_jobs(events: dict) -> list[tuple]:
-    """要翻的東西：英文遊戲簡介、英文的特賣活動名稱。重要的先翻（官方活動 → 發行商特賣 → 其他）。"""
+    """要翻的東西：英文遊戲簡介（開發商沒寫中文的）。重要的先翻（官方活動 → 發行商特賣 → 其他）。
+
+    特賣活動名稱不翻：多半是發行商名稱加上活動名，機器翻譯容易把專有名詞翻錯（寧可保留原文）。
+    """
     jobs, seen = [], set()
 
     def add(kind, key, text, name=''):
@@ -887,8 +890,6 @@ def translation_jobs(events: dict) -> list[tuple]:
                 x = g.get(str(a)) or {}
                 add('desc', str(a), x.get('_en'), x.get('name', ''))
     for r in events.get('partner') or []:
-        if cjk_ratio(r.get('name', '')) < 0.2:
-            add('title', 'ev:' + r['gid'], r['name'])
         for a in r.get('ids') or []:
             x = g.get(str(a)) or {}
             add('desc', str(a), x.get('_en'), x.get('name', ''))
@@ -902,9 +903,6 @@ def apply_translations(events: dict, done: dict):
         zh = done.get(('desc', a))
         if zh:
             x['short'] = zh
+            x['mt'] = True        # 機器翻譯（App 會標「機翻」）
         if x.pop('_en', None) and not zh:
             x['sp'] = True        # 簡介翻譯中
-    for r in events.get('partner') or []:
-        zh = done.get(('title', 'ev:' + r['gid']))
-        if zh and zh.strip() != r['name'].strip() and cjk_ratio(zh) > 0.1:
-            r['tz'] = zh

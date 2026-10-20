@@ -27,7 +27,7 @@
   - 新品節：時程顯示進行中時，抓 `store.steampowered.com/sale/nextfest` 活動頁（`data-partnereventstore`），排行榜用 `saleaction/ajaxgetsaledynamicappquery`（clanAnnouncementGID 要用 announcement_body.gid，不是活動 gid；flavor：dailyactiveuserdemo／topwishlisted／trendingwishlisted），榜上的試玩版換成正式遊戲（related_items.parent_appid）。
   - 參加遊戲：任何 Steam 特賣活動都可以用 `actions/ajaxgetdynamicsaleitems?tagids_featured=<標籤>` 依熱門程度列出（主題節用 optin_tagid，新品節與發行商特賣用 featured_app_tagid）。
   - 發行商／系列作特賣、展會：`saleaction/ajaxgetlivesaleevents` → `events/ajaxgetbatchedpartnerevent` → 上面的參加遊戲清單；依參加遊戲的評論數排序。每日特惠與首頁焦點：`api/featuredcategories`。
-  - 遊戲資料：`IStoreBrowseService/GetItems`（tchinese、TW）：台灣區價格、折扣與截止時間、評價、標籤（`GetTagList` 中文名）、繁中／簡中支援、試玩版、發售日。成人內容（content descriptor 3、4）排除。英文簡介先找開發商的簡中簡介（OpenCC 轉台灣正體），沒有才交給翻譯器（快取 state 分支 `extra_zh.json`，每輪最多 4 分鐘，重要的先翻）；英文的特賣活動名稱也會翻。
+  - 遊戲資料：`IStoreBrowseService/GetItems`（tchinese、TW）：台灣區價格、折扣與截止時間、評價、標籤（`GetTagList` 中文名）、繁中／簡中支援、試玩版、發售日。英文簡介先找開發商的簡中簡介（OpenCC 轉台灣正體），沒有才交給翻譯器（快取 state 分支 `extra_zh.json`，每輪最多 4 分鐘，重要的先翻；App 在機器翻譯的簡介前標「機翻」）。發行商特賣的活動名稱不翻（專有名詞常被翻錯，保留原文）。成人限定（content descriptor 3、4）與標了色情內容／Hentai 的小眾作品（評論 2 萬則以下）不收。
   - 離線測試：`python3 tests/local_events.py [模擬時間 ISO] [輸出 events.json]`（`PROBES` 指向解開的 probe 資料夾）。
 
 ## 介面
