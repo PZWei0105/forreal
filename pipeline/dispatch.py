@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import os
 import pathlib
+import sys
 import traceback
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -30,6 +31,9 @@ def set_output(key: str, value: str):
 
 def main():
     mode = decide_mode()
+    if '--print-mode' in sys.argv:
+        set_output('mode', mode)
+        return
     print(f'[forreal] mode={mode} at {dt.datetime.now(TW).isoformat()}', flush=True)
     deploy = False
     try:

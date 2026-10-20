@@ -151,7 +151,7 @@ function card(e, { hero = false, img = false } = {}) {
       ${verified ? `<span class="seal sm" title="${e.flags.includes('official') ? '官方來源' : '多家報導'}">真</span>` : ''}
       <span class="src">${esc(srcName(e.src))}</span>
       ${e.flags?.includes('official') ? '<span class="tag off">官方</span>' : ''}
-      ${rumor ? '<span class="tag rumor">傳聞</span>' : ''}${softTags}
+      ${rumor ? '<span class="tag rumor">傳聞</span>' : ''}${softTags}${e.pend ? '<span class="tag">翻譯中</span>' : ''}
       <span class="when">${ago(e.at)}</span>
       ${e.n > 1 ? `<span class="cov"><span class="num">${e.n}</span>家報導</span>` : ''}
     </div>
@@ -159,7 +159,7 @@ function card(e, { hero = false, img = false } = {}) {
     <a class="slab-link" href="${esc(e.u)}" target="_blank" rel="noopener noreferrer" data-open="${esc(e.id)}">
       <h3 class="t">${esc(e.tz || e.t)}</h3>
       ${e.tz ? `<p class="t-orig">${esc(e.t)}</p>` : ''}
-      ${(e.sz || e.s) ? `<p class="s">${esc(e.sz || e.s)}</p>` : ''}
+      ${e.tz ? (e.sz ? `<p class="s">${esc(e.sz)}</p>` : '') : (e.s ? `<p class="s">${esc(e.s)}</p>` : '')}
     </a>
     ${!hero ? pic : ''}
     <div class="meta-row">
@@ -432,6 +432,7 @@ function viewFilter() {
     <div class="panel rule-list">
       ${(m.rules?.block || []).map((r) => `<div><b><span class="stamp" style="margin-right:8px">${BLOCK_SHORT[r.id] || '擋'}</span>${esc(r.label)}</b>${esc(r.desc)}</div>`).join('')}
       ${(m.rules?.soft || []).map((r) => `<div><b>${esc(r.label)}（保留、往後排）</b>${esc(r.desc)}</div>`).join('')}
+      <div><b>翻譯與摘要</b>外文新聞在每小時更新時，先由開源模型${m.translate?.model ? `（${esc(m.translate.model)}）` : ''}翻成繁體中文標題並寫一到兩句摘要，再放進 App。遊戲、公司與人名保留原文；卡片上灰色小字是原文標題。來不及翻的會先標「翻譯中」，下一輪補上。</div>
       <div><b>排序</b>官方來源與可信媒體優先；同一件事被越多家獨立報導越前面；越新越前面；發售、延期、發表會、評測加分。${(m.rules?.boost || []).length ? `你的口味也會加分：${(m.rules.boost || []).map((b) => esc(b.label)).join('、')}。` : ''}</div>
     </div>
     <div class="sec-head"><h2>來源</h2><span class="aside">${srcs.length} 個</span></div>

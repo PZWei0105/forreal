@@ -181,7 +181,7 @@ main { max-width: 720px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 .slab-link { display: block; text-decoration: none; color: inherit; padding: 9px 13px 4px; }
 .slab-link:active { background: rgba(255, 255, 255, 0.03); }
 .t { margin: 0; font-size: 16.5px; line-height: 1.42; font-weight: 600; }
-.t-orig { margin: 3px 0 0; color: var(--ink-3); font-size: 12.5px; }
+.t-orig { margin: 3px 0 0; color: var(--ink-3); font-size: 12px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .s { margin: 5px 0 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .slab.read .t { color: var(--ink-3); }
 .meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 13px 11px; }

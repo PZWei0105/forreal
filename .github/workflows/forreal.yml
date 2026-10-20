@@ -23,25 +23,57 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 抓資料、過濾、整理，把網站打包好（不碰 Pages 環境，Pages 有狀況時資料照樣更新）
+  # 抓資料、過濾、翻譯、整理，把網站打包好（不碰 Pages 環境，Pages 有狀況時資料照樣更新）
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     outputs:
       deploy: ${{ steps.pipe.outputs.deploy }}
     steps:
       - uses: actions/checkout@v4
+      - id: mode
+        run: python3 -m pipeline.dispatch --print-mode
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
+
+      # 翻譯器：llama.cpp ＋ 開源模型，第一次下載後存在 GitHub 快取
+      - id: llmrestore
+        if: steps.mode.outputs.mode == 'build'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/forreal-llm
+          key: forreal-llm-v1
+      - id: llmsetup
+        if: steps.mode.outputs.mode == 'build'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/llm_setup.sh
+      - if: steps.mode.outputs.mode == 'build' && steps.llmrestore.outputs.cache-hit != 'true' && steps.llmsetup.outputs.ready == 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/forreal-llm
+          key: forreal-llm-v1
+      - if: steps.mode.outputs.mode == 'build'
+        continue-on-error: true
+        run: bash scripts/llm_start.sh
+
       - id: pipe
         run: python -m pipeline.dispatch
         env:
           EVENT: ${{ github.event_name }}
           INPUT_MODE: ${{ github.event.inputs.mode }}
           REPO: ${{ github.repository }}
+      - if: always() && steps.mode.outputs.mode == 'build'
+        continue-on-error: true
+        run: tail -25 /tmp/llama.log 2>/dev/null || true
       - if: steps.pipe.outputs.deploy == 'true'
         uses: actions/upload-pages-artifact@v3
         with:

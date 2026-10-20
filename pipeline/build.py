@@ -187,6 +187,7 @@ def process_news(store: dict, src_by_id: dict, rules: Rules, t0):
             'img': img, 'src': rep['src'], 'lang': rep['lang'], 'at': iso(first), 'up': iso(last), 'n': n,
             'm': others[:10], 'plat': plat, 'types': [ty for ty in types if ty != 'announce'],
             'flags': flags, 'soft': soft, 'boost': boost_labels, 'score': sc,
+            '_body': rep.get('body') or rep.get('summary') or '',
         }
         if hn:
             entry['pts'] = hn
@@ -274,6 +275,19 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     store = merge_store(st.load('items.json.gz', {}), fetched, t0)
     game, tech, blocked, stats = process_news(store, src_by_id, rules, t0)
 
+    # 外文新聞先翻成繁體中文＋摘要再發布（重要的先翻）
+    tr_stats = {'ok': False}
+    try:
+        from . import translate
+        order = sorted(game + tech, key=lambda e: e['score'] + (15 if e['sec'] == 'game' else 0), reverse=True)
+        tr_stats = translate.run(order, st, t0, {s['id']: s['name'] for s in sources})
+    except Exception:  # noqa: BLE001
+        errors.append('translate: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+    for e in game + tech:
+        e.pop('_body', None)
+    print('[forreal] translate', tr_stats, flush=True)
+
     deals, releases = {}, {}
     try:
         from . import stores
@@ -301,7 +315,8 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
         if k in health:
             health_out[k] = dict(health[k], owner=owner)
     meta = {'generated': iso(t0), 'build': build_id, 'stats': stats, 'rules': rules.describe(),
-            'sources': src_meta, 'health': health_out}
+            'sources': src_meta, 'health': health_out,
+            'translate': {k: tr_stats.get(k) for k in ('ok', 'model', 'done', 'cached', 'pending')}}
     outputs = {'news.json': {'generated': iso(t0), 'items': game},
                'tech.json': {'generated': iso(t0), 'items': tech},
                'blocked.json': {'generated': iso(t0), 'items': blocked},
@@ -315,7 +330,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     runs = st.load('runs.json', [])
     runs.append({'at': iso(t0), 'secs': round((now() - t0).total_seconds(), 1), 'calls': http.calls,
                  'game': len(game), 'tech': len(tech), 'blocked': len(blocked), 'store': len(store),
-                 'errors': errors[:5]})
+                 'translate': tr_stats, 'errors': errors[:5]})
     st.save('runs.json', runs[-80:])
     st.save('items.json.gz', store)
     st.save('health.json', health)

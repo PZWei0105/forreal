@@ -8,6 +8,7 @@ import feedparser
 from .util import UTC, canon_url, clean_summary, clip, cjk_ratio, iso, sid, strip_html
 
 _IMG = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.I)
+_KANA = re.compile(r'[\u3040-\u30ff]')
 _HN_POINTS = re.compile(r'Points:\s*(\d+)')
 
 
@@ -65,7 +66,14 @@ def parse_feed(content: bytes, src: dict, fetched_at: dt.datetime) -> list[dict]
             m = _HN_POINTS.search(strip_html(raw_summary))
             extra['points'] = int(m.group(1)) if m else None
             summary = ''
-        lang = 'zh' if cjk_ratio(title) > 0.2 else 'en'
+        if _KANA.search(title):
+            lang = 'ja'
+        elif cjk_ratio(title) > 0.2:
+            lang = 'zh'
+        else:
+            lang = 'en'
+        # 給翻譯摘要用的較長內文（全文優先，最多約 1500 字元；不會出現在 App 上）
+        body = clean_summary(raw or raw_summary, title)[:1500] if src.get('kind') != 'hn' else ''
         cats = [t.get('term') for t in e.get('tags') or [] if t.get('term')][:12]
         out.append({
             'id': sid(canon_url(link)),
@@ -77,6 +85,7 @@ def parse_feed(content: bytes, src: dict, fetched_at: dt.datetime) -> list[dict]
             'image': _image(e, raw or e.get('summary', '')),
             'cats': [strip_html(c) for c in cats],
             'lang': lang,
+            'body': body,
             **extra,
         })
     return out
