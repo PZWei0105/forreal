@@ -123,8 +123,11 @@ class Translator:
         data = json.loads(content[content.find('{'): content.rfind('}') + 1])
         t = self._tw(data.get('title', '')).rstrip('。')
         s = self._tw(data.get('summary', ''))
-        if len(re.findall(r'[\u4e00-\u9fff]', t)) < 2 or not 4 <= len(t) <= 100:
-            raise ValueError(f'標題不合格：{t[:40]}')
+        if len(re.findall(r'[\u4e00-\u9fff]', t)) < 2 or not 2 <= len(t) <= 100:
+            if len(title.split()) <= 5 and len(title) <= 60:
+                t = title  # 例如「MiniMax M3.1 Flash」這種純產品名，保留原文即可
+            else:
+                raise ValueError(f'標題不合格：{t[:40]}')
         if s:
             # 原文沒說是傳聞，摘要卻寫「傳聞／尚未證實」→ 刪掉那一句（避免模型自己加料）
             if not RUMOR_SRC.search(f'{title} {body}'):
@@ -147,7 +150,7 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
         h = _h(e['t'], (e.get('_body') or '')[:400])
         c = cache.get(e['id'])
         if c and c.get('h') == h and c.get('v') == PROMPT_VERSION:
-            e['tz'], e['sz'] = c['t'], c.get('s') or None
+            e['tz'], e['sz'] = tr._tw(c['t']), (tr._tw(c.get('s')) or None)
             stats['cached'] += 1
         else:
             need.append((e, h))
@@ -183,7 +186,7 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
                     continue
                 c = cache.get(m['id'])
                 if c and c.get('h') == _h(m['t']) and c.get('v') == PROMPT_VERSION:
-                    m['tz'] = c['t']
+                    m['tz'] = tr._tw(c['t'])
                 else:
                     members.append(m)
 
