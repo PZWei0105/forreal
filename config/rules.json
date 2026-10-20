@@ -1,0 +1,225 @@
+{
+  "_說明": "濾網規則。patterns 是正規表示式（不分大小寫）。block＝擋下並寫明理由；soft＝保留但標註、降低排序；types＝分類標籤。要調整就改這裡。",
+  "block": [
+    {
+      "id": "ad",
+      "label": "業配／廣告",
+      "desc": "標示贊助、合作、廣編，或附聯盟行銷分潤聲明的內容；中文科技媒體的開箱文多半是廠商提供，也一併擋下。",
+      "fields": "all",
+      "patterns": [
+        "\\bsponsored\\b", "\\bpartner(?:ed)? content\\b", "\\bpaid (?:post|partnership|promotion|content)\\b",
+        "\\bin partnership with\\b", "\\bbrought to you by\\b", "\\badvertorial\\b", "#ad\\b",
+        "\\b(?:may|might) earn (?:a |an affiliate )?commission\\b", "\\baffiliate (?:link|commission)s?\\b",
+        "\\b(?:casino|sportsbook|betting odds|sweepstakes casino)\\b",
+        "廣編", "業配", "贊助內容", "合作內容", "工商時間", "【廣告】", "（廣告）", "\\(廣告\\)", "PR稿",
+        "本文由.{0,15}(?:提供|贊助|合作)", "開箱"
+      ]
+    },
+    {
+      "id": "shop",
+      "label": "導購文",
+      "desc": "新聞網站的購物折扣文（多含分潤連結）。真正的特價請看「特價」頁，那裡直接用官方商店價格。官方來源的特賣公告不受影響。",
+      "fields": "title",
+      "except_tiers": [1],
+      "patterns": [
+        "\\b(?:best|top|great|big|huge|early|amazing|lowest|record[- ]low|all[- ]time[- ]low|incredible|massive)\\b.{0,40}\\b(?:deals?|discounts?)\\b",
+        "\\b(?:deal|deals) (?:on|for|of the day|alert|roundup|tracker)\\b", "^deals?\\b", "\\bdeals?:",
+        "\\bsave (?:up to )?(?:\\$|£|€|\\d)", "(?:\\$|£|€)\\s?\\d+(?:\\.\\d\\d)? off\\b", "\\b\\d{1,2}% off\\b",
+        "\\bdrops? to (?:\\$|£|€|its lowest|the lowest|lowest)", "\\bnow (?:just|only) (?:\\$|£|€)", "\\bfor (?:just|only) (?:\\$|£|€)",
+        "\\b(?:amazon|best buy|walmart|target|newegg|gamestop|costco|aliexpress|woot)\\b.{0,30}\\b(?:deal|sale|discount|price|for \\$|off)\\b",
+        "\\b(?:black friday|cyber monday|prime (?:big deal )?day|boxing day)\\b",
+        "\\bwhere to (?:buy|pre-?order)\\b", "\\bpre-?order (?:guide|deals?|bonus(?:es)? guide)\\b", "\\bin stock\\b", "\\brestock(?:ed|s)?\\b",
+        "\\bcoupon\\b", "\\bpromo codes?\\b", "\\bgift guide\\b", "\\bgift ideas\\b",
+        "下殺", "折價券", "優惠碼", "團購", "現省", "限時特惠", "超值優惠", "購物節", "雙11", "雙十一", "黑色星期五"
+      ]
+    },
+    {
+      "id": "guide",
+      "label": "攻略／農場文",
+      "desc": "攻略、兌換碼、上市倒數、每日猜字謎答案這類為了搜尋引擎量產的文章。",
+      "fields": "title",
+      "patterns": [
+        "^how to\\b",
+        "\\bhow to (?:get|find|beat|unlock|fix|solve|complete|farm|catch|craft|make|change|use|start|play|defeat|access|reach|earn|level|upgrade|evolve|cook|build|enable|turn|redeem|claim|join|download|watch|stream|preload|pre-load|romance|recruit|save|tame|breed|survive)\\b",
+        "\\bwhere to (?:find|get)\\b", "\\bguide\\b", "\\bwalkthrough\\b", "\\btier list\\b",
+        "\\bbest (?:builds?|loadouts?|class(?:es)?|weapons?|perks?|settings|decks?|teams?|characters?|skills?|talents?|gear|mods|starter|starting)\\b",
+        "\\bcodes?\\b.{0,25}(?:\\(|\\bworking\\b|\\bactive\\b|\\blist\\b|\\bredeem|\\bfree\\b|\\b202\\d\\b|\\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\\b)",
+        "\\bwordle\\b", "\\bconnections\\b.{0,20}\\b(?:hints?|answers?)\\b", "\\bstrands\\b", "\\bquordle\\b", "\\bnyt\\b.{0,30}\\b(?:hints?|answers?)\\b",
+        "\\bmini crossword\\b", "\\b(?:hints?|answers?) (?:for|today)\\b", "\\btoday'?s (?:hints?|answers?)\\b",
+        "\\ball .{0,30}\\blocations?\\b", "\\blocations? guide\\b", "\\bending,? explained\\b", "\\bcheat codes?\\b", "\\bcheats? for\\b",
+        "\\bpuzzle solutions?\\b", "\\bwhat time (?:does|is|will)\\b", "\\brelease times?\\b", "\\bcountdown\\b",
+        "\\bwhen does .{0,40} (?:release|come out|launch|unlock|start|end)\\b", "\\bhow long (?:is|to beat|does it take)\\b",
+        "^is .{0,50} (?:on game pass|cross-?platform|crossplay|multiplayer|co-?op|worth it|on switch|on ps5|on xbox)\\??$",
+        "\\beverything (?:we know|you need to know)\\b", "\\bexplained\\b.{0,30}\\b(?:mechanics?|system|stats?)\\b",
+        "攻略", "懶人包", "全收集", "圖鑑整理", "配裝推薦", "陣容推薦"
+      ]
+    },
+    {
+      "id": "gacha",
+      "label": "課金／手遊宣傳",
+      "desc": "抽卡、卡池、角色池、事前登錄、儲值好禮、開服公測這類課金手遊宣傳。",
+      "fields": "title+summary",
+      "patterns": [
+        "\\bgacha\\b(?!.{0,60}\\b(?:law|laws|regulat\\w*|ban|bans|banned|lawsuit|legislat\\w*|loot ?box))",
+        "\\bpre-?regist(?:er|ration|ered|rations)\\b", "\\b(?:pull|summon(?:ing)?|drop) rates?\\b",
+        "\\bbanners?\\b.{0,40}\\b(?:characters?|rerun|limited|5-star|4-star|ssr|ur)\\b", "\\b[45]-star (?:characters?|weapons?|units?)\\b",
+        "\\b(?:ssr|ur) (?:characters?|units?)\\b", "\\bversion \\d+\\.\\d+\\b.{0,40}\\b(?:banners?|characters?|livestream|special program)\\b",
+        "\\bspecial program\\b.{0,40}\\bcodes?\\b", "\\bprimogems?\\b", "\\bstellar jade\\b", "\\bpolychromes?\\b", "\\borundum\\b", "\\bpyroxene\\b",
+        "事前登錄", "事前預約", "預約(?:人數|突破|開跑|好禮|活動)", "首抽", "抽卡", "轉蛋", "卡池", "UP池", "儲值", "課金", "限定角色",
+        "開服", "公測", "不刪檔", "代言人", "下載突破", "好禮", "虛寶", "序號", "兌換碼", "禮包碼",
+        "雙平台(?:上市|正式|開戰|公測|預約|上線)", "全球同步(?:上市|上線|開服)", "改版(?:登場|開跑|上線)", "新角色.{0,6}登場", "限時活動"
+      ]
+    },
+    {
+      "id": "gacha_title",
+      "label": "課金／手遊宣傳",
+      "desc": "原神、星穹鐵道、絕區零、鳴潮等課金遊戲的角色池、版本活動、兌換碼。這些遊戲的產業新聞（裁員、財報）不受影響。",
+      "fields": "title",
+      "patterns": [
+        "\\b(?:genshin(?: impact)?|honkai(?:: star rail| impact 3rd| nexus anima)?|star rail|zenless zone zero|zzz|wuthering waves|arknights(?:: endfield)?|blue archive|fate/grand order|fgo|uma musume|goddess of victory|nikke|azur lane|punishing: gray raven|reverse: ?1999|snowbreak|tower of fantasy|infinity nikki|girls' frontline|love and deepspace|path to nowhere|limbus company|duet night abyss|ananta|neverness to everness|persona 5: the phantom x|honor of kings|whiteout survival|last war|royal match|monopoly go|pokemon tcg pocket|pokémon tcg pocket|umamusume)\\b.{0,80}\\b(?:banners?|characters?|version|update|codes?|livestream|special program|events?|tier|pulls?|rerun|skins?|patch|leaks?|new units?|redeem|limited|outfits?|rewards?)\\b"
+      ]
+    },
+    {
+      "id": "bait",
+      "label": "標題黨／引戰",
+      "desc": "用情緒字眼騙點擊，或專門挑起罵戰的標題。",
+      "fields": "title",
+      "patterns": [
+        "\\byou won'?t believe\\b", "\\bwill (?:blow|melt) your mind\\b", "\\b(?:is|are) (?:breaking|taking over) the internet\\b",
+        "\\bgo(?:es|ing)? viral\\b", "\\bwent viral\\b",
+        "\\bfans (?:are|were) (?:furious|livid|outraged|fuming|losing it|freaking out|in shambles|devastated|not happy|melting down|raging)\\b",
+        "\\bsparks? (?:outrage|backlash|fury|meltdown)\\b",
+        "\\b(?:slams?|blasts?|rips into|trashes|claps back|fires back|roasts?|calls out|torches|goes off on|hits back)\\b",
+        "\\bjaw-?dropping\\b", "\\bmind-?blowing\\b", "\\binsane\\b", "\\bshocking\\b", "\\bunhinged\\b", "\\bmeltdown\\b", "\\bepic fail\\b",
+        "\\bthe internet (?:is|has)\\b", "\\beveryone is (?:talking|freaking|losing)\\b", "\\bpeople are (?:losing|freaking|furious|obsessed)\\b",
+        "\\bthis is (?:hilarious|insane|wild)\\b",
+        "[!！]{2,}", "[?？][!！]|[!！][?？]",
+        "震驚", "竟然", "竟是", "網友暴動", "暴怒", "炸鍋", "炸裂", "瘋傳", "笑翻", "神操作", "必看", "不看後悔", "超狂", "超扯", "扯爆",
+        "嚇壞", "崩潰", "淚崩", "全網", "爆紅", "驚呆", "看傻", "傻眼", "怒嗆", "嗆爆", "砲轟", "狠酸", "酸爆", "打臉", "神回", "笑噴", "真相曝光"
+      ]
+    }
+  ],
+  "soft": [
+    {
+      "id": "rumor", "label": "傳聞", "pts": -8,
+      "desc": "爆料、傳聞、據報導。只有一家報導時會往後排；多家報導或官方證實後就恢復。",
+      "patterns": [
+        "\\brumou?r(?:s|ed)?\\b", "\\bleak(?:s|ed|er|ing)?\\b", "\\breportedly\\b", "\\binsiders?\\b", "\\ballegedly\\b", "\\bunconfirmed\\b",
+        "\\bdatamin(?:e|ed|ing|er|ers)\\b", "\\baccording to (?:a |an )?(?:report|source|insider|leaker)s?\\b", "\\bspeculat(?:ion|es|ed)\\b",
+        "\\bsupposedly\\b", "\\bsources say\\b", "\\bcould be (?:announced|revealed|coming)\\b",
+        "傳聞", "爆料", "疑似", "網傳", "傳出", "消息指出", "據傳", "謠言", "外流", "洩漏", "據稱", "未證實"
+      ]
+    },
+    {
+      "id": "opinion", "label": "評論／清單", "pts": -10,
+      "desc": "個人心得、排名清單、問卷這類文章，保留但往後排。",
+      "patterns": [
+        "^\\d{1,2} (?:best|biggest|greatest|worst|games|things|ways|reasons|moments|details|secrets|underrated|hidden|great|essential|classic)\\b",
+        "\\b(?:best|greatest|worst|biggest|scariest|funniest)\\b.{0,50}\\b(?:of all time|ever made|right now|this year|of 202\\d|in 202\\d)\\b",
+        "\\branked\\b", "\\btop \\d{1,2}\\b", "\\bopinion\\b",
+        "\\bi (?:played|tried|spent|think|love|hate|can'?t|don'?t|finally|just|wish|need|want|was|am|have|beat|got)\\b", "\\bwhy i\\b",
+        "\\bmy (?:favorite|favourite|game of)\\b", "\\bquiz\\b", "\\bpoll\\b", "\\bweekend (?:discussion|plans)\\b",
+        "\\bwhat (?:are you|you're) playing\\b", "\\bhot take\\b", "\\bpodcast\\b", "\\bmailbag\\b",
+        "盤點", "排行榜", "十大", "前十", "我玩了"
+      ]
+    },
+    {
+      "id": "media", "label": "影視", "pts": -10,
+      "desc": "遊戲改編影視、選角、票房，保留但往後排。",
+      "patterns": [
+        "\\b(?:season \\d+|episode \\d+|box office|cast(?:ing)? (?:as|news|update)|cast member|showrunner|live-?action|anime adaptation|tv (?:series|show)|netflix (?:series|show|movie)|hbo|prime video|disney\\+|film adaptation|movie (?:adaptation|trailer|review)|the movie|biopic|documentary)\\b",
+        "真人版", "電影版", "影集", "動畫化"
+      ]
+    },
+    {
+      "id": "merch", "label": "周邊商品", "pts": -12,
+      "desc": "模型、公仔、聯名商品，保留但往後排。",
+      "patterns": [
+        "\\b(?:lego|funko|figurines?|statues?|plush(?:ie)?s?|merch(?:andise)?|apparel|sneakers?|hoodies?|t-shirts?|collectibles?|vinyl|board games?|art ?books?|cookbooks?|amiibo)\\b",
+        "\\b(?:action|scale) figures?\\b", "周邊", "公仔", "聯名"
+      ]
+    }
+  ],
+  "types": [
+    {"id": "showcase", "label": "發表會", "pts": 8, "patterns": [
+      "\\bnintendo direct\\b", "\\bdirect mini\\b", "\\bpartner showcase\\b", "\\bstate of play\\b", "\\bxbox (?:games )?showcase\\b",
+      "\\bdeveloper direct\\b", "\\bsummer game fest\\b", "\\bgame awards\\b", "\\bgamescom\\b", "\\bopening night live\\b", "\\btokyo game show\\b",
+      "\\btgs ?20\\d\\d\\b", "\\bpc gaming show\\b", "\\bfuture games show\\b", "\\bwholesome direct\\b", "\\bday of the devs\\b", "\\bgolden joystick",
+      "\\bshowcase\\b", "\\bign live\\b", "\\bplaystation showcase\\b", "\\bubisoft forward\\b", "\\bbitsummit\\b", "\\bnext fest\\b",
+      "直面會", "發表會", "電玩展", "遊戲大獎", "新品節"]},
+    {"id": "delay", "label": "延期", "pts": 7, "patterns": [
+      "\\bdelay(?:s|ed)?\\b", "\\bpostpone(?:s|d)?\\b", "\\bpushed (?:back|to|into)\\b", "\\bslips? (?:to|into)\\b", "\\bmoved (?:back|to 20\\d\\d)\\b",
+      "\\bno longer (?:launching|releasing|coming)\\b", "延期", "延後", "跳票", "延至"]},
+    {"id": "release", "label": "發售", "pts": 6, "patterns": [
+      "\\brelease date\\b", "\\breleas(?:es|ed|ing) (?:on|in|this|next|today|tomorrow|for)\\b", "\\blaunch(?:es|ed|ing)? (?:on|in|this|next|today|tomorrow|date|for|day)\\b",
+      "\\bout now\\b", "\\bavailable now\\b", "\\bnow available\\b", "\\bearly access\\b", "\\bfull release\\b", "\\b1\\.0 (?:release|launch|update)\\b",
+      "\\bshadow-?drop(?:ped|s)?\\b", "\\bsurprise (?:launch|release)\\b", "\\bpre-?orders? (?:open|are open|now)\\b", "\\bcoming (?:to|in|this) .{0,30}\\b20\\d\\d\\b",
+      "發售", "上市", "正式推出", "推出日期", "搶先體驗", "開放預購"]},
+    {"id": "review", "label": "評測", "pts": 5, "patterns": [
+      "(?<!under )\\breview\\b(?![- ]?bomb)", "\\breviews? (?:are|is) in\\b", "\\breview roundup\\b", "\\bmetacritic\\b", "\\bopencritic\\b",
+      "\\bimpressions?\\b", "\\bhands-?on\\b", "\\bpreview\\b", "評測", "試玩", "實測", "搶先玩"]},
+    {"id": "industry", "label": "產業", "pts": 5, "patterns": [
+      "\\blay ?offs?\\b", "\\blaid off\\b", "\\bjob cuts?\\b", "\\bstudio (?:closure|closes|closed|shut)\\b", "\\bshut(?:s|ting)? down\\b",
+      "\\bacqui(?:re|res|red|sition)\\b", "\\bmerg(?:er|es|ed)\\b", "\\bearnings\\b", "\\brevenue\\b", "\\bquarterly\\b", "\\bfiscal\\b",
+      "\\bsales (?:figures|data|chart|milestone)s?\\b", "\\b(?:sold|sells|shipped) (?:over |more than )?\\d", "\\bcopies sold\\b", "\\bunits sold\\b",
+      "\\bconcurrent players\\b", "\\bplayer count\\b", "\\bunion(?:ize|ized|ise|ised|s)?\\b", "(?<!counter-)\\bstrike\\b", "\\bceo\\b", "\\bsteps down\\b",
+      "\\bresign(?:s|ed)\\b", "\\blawsuit\\b", "\\bsu(?:es|ed|ing)\\b", "\\bftc\\b", "\\bcma\\b", "\\bregulat(?:or|ion|ors|ions)\\b", "\\btariffs?\\b",
+      "\\bprice (?:increase|hike|rise|change)s?\\b", "\\bprices? (?:go|going) up\\b", "\\bipo\\b", "\\bfunding\\b",
+      "裁員", "收購", "併購", "財報", "營收", "銷量", "售出", "出貨", "工會", "罷工", "漲價", "降價", "訴訟", "提告", "關閉", "關服", "停止營運", "執行長", "社長", "股價"]},
+    {"id": "trailer", "label": "預告", "pts": 3, "patterns": [
+      "\\btrailer\\b", "\\bteaser\\b", "\\bgameplay (?:reveal|video|footage|trailer|overview|showcase|deep dive)\\b", "\\bfirst look\\b",
+      "預告", "宣傳影片", "實機", "首曝"]},
+    {"id": "sub", "label": "訂閱制", "pts": 4, "patterns": [
+      "\\bgame pass\\b", "\\bps plus\\b", "\\bplaystation plus\\b", "\\bnintendo switch online\\b", "\\bea play\\b", "\\bubisoft\\+", "\\bapple arcade\\b",
+      "\\bnetflix games\\b", "\\bprime gaming\\b", "訂閱"]},
+    {"id": "free", "label": "限免", "pts": 5, "patterns": [
+      "\\bfree (?:on|to keep|this week|game|games|to claim|weekend|for a limited time)\\b", "\\bfor free\\b", "\\bgiveaway\\b", "\\bclaim .{0,30} free\\b",
+      "限免", "免費領", "免費送", "限時免費"]},
+    {"id": "patch", "label": "更新", "pts": 0, "patterns": [
+      "\\bpatch(?: notes)?\\b", "\\bhotfix\\b", "\\btitle update\\b", "\\bupdate (?:\\d|adds|brings|is out|now live|out now|arrives)\\b", "\\bdlc\\b", "\\bexpansion\\b",
+      "更新", "改版", "資料片", "DLC"]},
+    {"id": "announce", "label": "公布", "pts": 2, "hidden": true, "patterns": [
+      "\\bannounc(?:e|es|ed|ing)\\b", "\\brevealed?\\b", "\\bunveil(?:s|ed)?\\b", "\\bofficially\\b", "\\bconfirm(?:s|ed)\\b",
+      "公布", "公開", "宣布", "揭曉"]},
+    {"id": "hardware", "label": "硬體", "pts": 0, "patterns": [
+      "\\bgpus?\\b", "\\bgraphics cards?\\b", "\\brtx ?\\d", "\\bgeforce\\b", "\\bradeon\\b", "\\bcpus?\\b", "\\bryzen\\b", "\\bcore ultra\\b", "\\bsnapdragon\\b",
+      "\\bsteam deck\\b", "\\brog (?:ally|xbox ally)\\b", "\\blegion go\\b", "\\bhandhelds?\\b", "\\bps5 pro\\b", "\\bsteam machine\\b", "\\bsteam frame\\b",
+      "\\bconsoles?\\b", "\\bmonitors?\\b", "\\boled\\b", "\\bssds?\\b", "\\bvram\\b", "\\bdram\\b", "\\bram (?:prices?|shortage)\\b", "\\bdlss\\b", "\\bfsr\\b",
+      "\\bray tracing\\b", "\\bpath tracing\\b", "\\bbenchmarks?\\b", "\\bchips?\\b", "\\bchipsets?\\b", "\\btsmc\\b", "\\bnvidia\\b", "\\bamd\\b", "\\bintel\\b",
+      "\\bqualcomm\\b", "\\bmediatek\\b", "\\biphone\\b", "\\bpixel \\d", "\\bgalaxy s\\d",
+      "顯卡", "顯示卡", "處理器", "晶片", "台積電", "掌機", "螢幕", "記憶體", "筆電"]},
+    {"id": "ai", "label": "AI", "pts": 0, "patterns": [
+      "\\bai\\b", "\\bartificial intelligence\\b", "\\bgenerative\\b", "\\bgen ?ai\\b", "\\bllms?\\b", "\\blarge language models?\\b", "\\bgpt[- ]?\\d",
+      "\\bchatgpt\\b", "\\bopenai\\b", "\\banthropic\\b", "\\bclaude\\b", "\\bgemini\\b", "\\bdeepmind\\b", "\\bcopilot\\b", "\\bmistral\\b", "\\bllama\\b",
+      "\\bgrok\\b", "\\bdeepseek\\b", "\\bqwen\\b", "\\bmachine learning\\b", "\\bneural\\b", "\\bsora\\b", "\\bmidjourney\\b", "\\bagentic\\b",
+      "\\bai agents?\\b", "\\bfoundation models?\\b", "\\bsuperintelligence\\b", "\\bagi\\b", "\\bhugging ?face\\b",
+      "人工智慧", "生成式", "大模型", "語言模型", "智慧代理", "機器學習"]}
+  ],
+  "platforms": {
+    "pc": ["\\bpc\\b(?! ?gamer)", "\\bsteam\\b", "\\bepic games store\\b", "\\bgog\\b", "\\bwindows\\b"],
+    "ps": ["\\bps5\\b", "\\bps4\\b", "\\bplaystation\\b", "\\bpsvr ?2\\b", "\\bps vr ?2\\b", "\\bps plus\\b"],
+    "xbox": ["\\bxbox\\b", "\\bgame pass\\b", "\\bseries [xs]\\b"],
+    "switch": ["\\bnintendo switch\\b", "\\bswitch 2\\b", "\\bswitch\\b(?=[ -](?:oled|lite|online|port|version|release|edition|games?|owners|players|exclusive|eshop))", "\\bnintendo\\b", "\\beshop\\b", "\\bns2?\\b(?=\\W|$)", "任天堂"],
+    "mobile": ["\\bios\\b", "\\bandroid\\b", "\\biphone\\b", "\\bipad\\b", "\\bmobile\\b", "\\bapp store\\b", "\\bgoogle play\\b", "\\bapple arcade\\b", "\\bsmartphones?\\b", "手機", "手遊", "雙平台"],
+    "vr": ["\\bvr\\b", "\\bquest ?3s?\\b", "\\bmeta quest\\b", "\\bpsvr ?2?\\b", "\\bvirtual reality\\b", "\\bvision pro\\b"]
+  },
+  "platforms_zh": {
+    "switch": ["\\bswitch\\b"]
+  },
+  "premium_mobile": [
+    "\\bpremium\\b", "\\bpaid\\b", "\\bbuy once\\b", "\\bone-?time purchase\\b", "\\bno (?:ads|iaps?|in-app purchases|microtransactions)\\b",
+    "\\bwithout (?:ads|iaps?|in-app purchases|microtransactions)\\b", "\\bapple arcade\\b", "\\bnetflix games?\\b", "\\bport(?:ed|s)?\\b",
+    "\\b(?:pc|console|steam|switch|indie) (?:hit|game|classic|favorite|darling|port|version)s?\\b", "\\bindie\\b", "(?:\\$|NT\\$|US\\$)\\s?\\d+(?:\\.\\d\\d)?",
+    "\\bon sale\\b", "\\bdiscount(?:ed)?\\b", "\\bremaster(?:ed)?\\b", "\\bbalatro\\b", "\\bstardew\\b", "\\bterraria\\b", "\\bdead cells\\b",
+    "\\bslay the spire\\b", "\\bminecraft\\b", "\\bvampire survivors\\b", "\\bdredge\\b", "\\bhades\\b", "\\bhollow knight\\b", "\\bfinal fantasy\\b",
+    "\\bcivilization\\b", "\\bxcom\\b", "\\bbaldur'?s gate\\b", "\\bresident evil\\b", "\\bdeath stranding\\b", "\\bassassin'?s creed\\b", "\\bdivinity\\b",
+    "\\bmonument valley\\b", "\\bpokémon\\b(?=.{0,20}(?:remaster|classic))", "買斷", "付費", "一次購買", "無內購", "無廣告", "移植", "單機", "獨立遊戲"
+  ],
+  "game_words": [
+    "\\bvideo ?games?\\b", "\\bgaming\\b", "\\bgamers?\\b", "\\bgame (?:studio|developer|publisher|industry|engine)\\b", "\\besports?\\b",
+    "\\bsteam\\b", "\\bplaystation\\b", "\\bxbox\\b", "\\bnintendo\\b", "\\bswitch 2\\b", "\\bgame pass\\b", "\\bepic games\\b", "\\bvalve\\b",
+    "\\bubisoft\\b", "\\bactivision\\b", "\\bblizzard\\b", "\\bbethesda\\b", "\\bcapcom\\b", "\\bsquare enix\\b", "\\bsega\\b", "\\bbandai namco\\b",
+    "\\bkonami\\b", "\\btake-?two\\b", "\\brockstar\\b", "\\bgta\\b", "\\bea sports\\b", "\\belectronic arts\\b", "\\broblox\\b", "\\bfortnite\\b", "\\bminecraft\\b",
+    "遊戲", "電玩", "玩家", "電競"
+  ]
+}
