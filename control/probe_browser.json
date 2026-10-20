@@ -1,12 +1,1 @@
-[
- {
-  "name": "nextfest_charts",
-  "url": "https://store.steampowered.com/sale/nextfest?l=tchinese&cc=tw",
-  "scrolls": 2,
-  "click": [
-   "text=排行榜",
-   "text=Charts",
-   "text=圖表"
-  ]
- }
-]
+[]

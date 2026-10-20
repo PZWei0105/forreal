@@ -1,109 +1,63 @@
 [
  {
   "name": "nf_topwishlisted",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366803&flavor=topwishlisted&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=topwishlisted&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
  },
  {
   "name": "nf_trendingwishlisted",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366803&flavor=trendingwishlisted&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=trendingwishlisted&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
  },
  {
   "name": "nf_dailyactiveuserdemo",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366803&flavor=dailyactiveuserdemo&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=dailyactiveuserdemo&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
+ },
+ {
+  "name": "nf_mostplayeddemo",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=mostplayeddemo&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
+ },
+ {
+  "name": "nf_popularcomingsoon",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=popularcomingsoon&start=0&count=50&tabuniqueid=23&sectionuniqueid=80225&return_capsules=true&bAllowDemos=true&bPrioritizeDiscounts=false&bUseCreatorHomeApps=false"
  },
  {
   "name": "nf_dau_min",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366803&flavor=dailyactiveuserdemo&start=0&count=50&return_capsules=true"
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366804&flavor=dailyactiveuserdemo&start=0&count=50&return_capsules=true"
  },
  {
-  "name": "nf_popular",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=39049601&clanAnnouncementGID=713414759190366803&flavor=popularcomingsoon&start=0&count=50&return_capsules=true&bAllowDemos=true"
+  "name": "cook_dyn",
+  "url": "https://store.steampowered.com/actions/ajaxgetdynamicsaleitems?max_results=10000&cc=TW&tagids_featured=1404564"
  },
  {
-  "name": "q_horror_optin_hub",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22optin%22%3A%7B%22name%22%3A%22sale_horror_2026%22%2C%22optin_only%22%3Atrue%7D%2C%22hub_type%22%3A%22category%22%2C%22hub_category%22%3A%22horror%22%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_q_tag",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22tagids_must_match%22%3A%5B%7B%22tagids%22%3A%5B1404564%5D%7D%5D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%2C%22include_supported_languages%22%3Atrue%7D%7D"
  },
  {
-  "name": "q_horror_optin",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22optin%22%3A%7B%22name%22%3A%22sale_horror_2026%22%2C%22optin_only%22%3Atrue%7D%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_q_hub",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22hub_type%22%3A%22category%22%2C%22hub_category%22%3A%22cooking%22%2C%22optin%22%3A%7B%22name%22%3A%22sale_cooking_2026%22%2C%22optin_tagid%22%3A1404564%2C%22prune_tagid%22%3A1404565%2C%22optin_only%22%3Atrue%7D%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%2C%22include_supported_languages%22%3Atrue%7D%7D"
  },
  {
-  "name": "q_autob_optin",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22optin%22%3A%7B%22name%22%3A%22sale_auto_battler_2026%22%2C%22optin_only%22%3Atrue%7D%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_q_saletag",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1404564%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%2C%22include_supported_languages%22%3Atrue%7D%7D"
  },
  {
-  "name": "q_cook_optin_hub",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22optin%22%3A%7B%22name%22%3A%22sale_cooking_2026%22%2C%22optin_only%22%3Atrue%7D%2C%22hub_type%22%3A%22category%22%2C%22hub_category%22%3A%22cooking%22%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_sdq_popularpurchaseddiscounted",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=41316928&clanAnnouncementGID=668371786222537437&strContentHubType=category&strContentHubCategory=cooking&flavor=popularpurchaseddiscounted&start=0&count=50&return_capsules=true&bContentHubDiscountedOnly=false&bUseCreatorHomeApps=false&bAllowDemos=false"
  },
  {
-  "name": "q_nf_optin",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22optin%22%3A%7B%22name%22%3A%22sale_nextfest_october_2026%22%2C%22optin_only%22%3Atrue%7D%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_sdq_contenthub_all",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=41316928&clanAnnouncementGID=668371786222537437&strContentHubType=category&strContentHubCategory=cooking&flavor=contenthub_all&start=0&count=50&return_capsules=true&bContentHubDiscountedOnly=false&bUseCreatorHomeApps=false&bAllowDemos=false"
  },
  {
-  "name": "q_nf_games",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22sort%22%3A20%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22content_descriptors_excluded%22%3A%5B3%2C4%5D%2C%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%2C%22include_platforms%22%3Atrue%7D%7D"
+  "name": "cook_sdq_discounted",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetsaledynamicappquery?cc=TW&l=tchinese&rgExcludedContentDescriptors[]=3&rgExcludedContentDescriptors[]=4&clanAccountID=41316928&clanAnnouncementGID=668371786222537437&strContentHubType=category&strContentHubCategory=cooking&flavor=discounted&start=0&count=50&return_capsules=true&bContentHubDiscountedOnly=false&bUseCreatorHomeApps=false&bAllowDemos=false"
  },
  {
-  "name": "gi_horror_optin",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A739630%7D%2C%7B%22appid%22%3A381210%7D%2C%7B%22appid%22%3A1966720%7D%2C%7B%22appid%22%3A1304930%7D%2C%7B%22appid%22%3A1196590%7D%2C%7B%22appid%22%3A2124490%7D%2C%7B%22appid%22%3A1562430%7D%2C%7B%22appid%22%3A2050650%7D%2C%7B%22appid%22%3A3241660%7D%2C%7B%22appid%22%3A1857950%7D%2C%7B%22appid%22%3A2871520%7D%2C%7B%22appid%22%3A699130%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_optin_registration_tags%22%3Atrue%2C%22include_basic_info%22%3Afalse%7D%7D"
- },
- {
-  "name": "gi_cook_optin",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A3120300%7D%2C%7B%22appid%22%3A5090740%7D%2C%7B%22appid%22%3A1058930%7D%2C%7B%22appid%22%3A1599600%7D%2C%7B%22appid%22%3A2294660%7D%2C%7B%22appid%22%3A575890%7D%2C%7B%22appid%22%3A1625790%7D%2C%7B%22appid%22%3A1731040%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_optin_registration_tags%22%3Atrue%7D%7D"
- },
- {
-  "name": "clan_events_41316928",
-  "url": "https://store.steampowered.com/events/ajaxgetpartnereventspageable/?clan_accountid=41316928&appid=0&offset=0&count=40&l=tchinese&origin=https://store.steampowered.com",
+  "name": "hubs_events6",
+  "url": "https://store.steampowered.com/events/ajaxgetpartnereventspageable/?clan_accountid=41316928&appid=0&offset=0&count=6&l=tchinese",
   "max": 8000000
  },
  {
-  "name": "clan_events_39049601",
-  "url": "https://store.steampowered.com/events/ajaxgetpartnereventspageable/?clan_accountid=39049601&appid=0&offset=0&count=40&l=tchinese&origin=https://store.steampowered.com",
-  "max": 8000000
- },
- {
-  "name": "clan_events_4145017",
-  "url": "https://store.steampowered.com/events/ajaxgetpartnereventspageable/?clan_accountid=4145017&appid=0&offset=0&count=40&l=tchinese&origin=https://store.steampowered.com",
-  "max": 8000000
- },
- {
-  "name": "adjacent_41316928",
-  "url": "https://store.steampowered.com/events/ajaxgetadjacentpartnerevents/?clan_accountid=41316928&count_before=0&count_after=40&lang_list=7_0",
-  "max": 8000000
- },
- {
-  "name": "doc_scream_zh",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed_sales/steam_halloween_2026"
- },
- {
-  "name": "doc_autob_zh",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed_sales/auto_battler_rpg_2026"
- },
- {
-  "name": "doc_themed_zh",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed_sales"
- },
- {
-  "name": "batched3",
-  "url": "https://store.steampowered.com/events/ajaxgetbatchedpartnerevent/?event_gids=672880459492885338,699893179027030431,667250959956574242&lang_list=7_0",
-  "max": 8000000
- },
- {
-  "name": "live_sales",
-  "url": "https://store.steampowered.com/saleaction/ajaxgetlivesaleevents?cc=TW&l=tchinese"
- },
- {
-  "name": "featuredcats",
-  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese"
- },
- {
-  "name": "sale_scream_guess",
-  "url": "https://store.steampowered.com/sale/steamscream?l=tchinese&cc=tw",
-  "max": 8000000
- },
- {
-  "name": "cat_horror_html",
-  "url": "https://store.steampowered.com/category/horror?l=tchinese&cc=tw",
-  "max": 8000000
+  "name": "nf_getitems",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1853440%7D%2C%7B%22appid%22%3A3681610%7D%2C%7B%22appid%22%3A2659410%7D%2C%7B%22appid%22%3A4348910%7D%2C%7B%22appid%22%3A5160800%7D%2C%7B%22appid%22%3A3629430%7D%2C%7B%22appid%22%3A2295170%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A10%2C%22include_platforms%22%3Atrue%2C%22include_supported_languages%22%3Atrue%7D%7D"
  }
 ]
