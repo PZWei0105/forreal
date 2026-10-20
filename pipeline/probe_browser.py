@@ -56,7 +56,7 @@ def run(out: pathlib.Path):
                 reqs.append({'i': i, 'type': req.resource_type, 'method': req.method, 'url': url[:6000],
                              'post': (req.post_data or '')[:6000], 'status': resp.status,
                              'ct': resp.headers.get('content-type'), 'size': len(body)})
-                (d / f'{i:03d}.bin').write_bytes(body[:1_500_000])
+                (d / f'{i:03d}.bin').write_bytes(body[:6_000_000])
 
             page.on('response', on_response)
             err = None

@@ -1,66 +1,124 @@
 [
  {
   "name": "sw_upcoming_en",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events"
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events?language=english",
+  "headers": {
+   "Accept-Language": "en-US,en;q=0.9"
+  },
+  "max": 6000000
  },
  {
-  "name": "sw_upcoming_zh",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events?l=tchinese"
+  "name": "sw_halloween_en",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed_sales/steam_halloween_2026?language=english",
+  "headers": {
+   "Accept-Language": "en-US,en;q=0.9"
+  }
  },
  {
-  "name": "sw_seasonal_en",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/seasonalsales"
+  "name": "sw_nextfest_oct",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/nextfest/2026october"
  },
  {
-  "name": "sw_nextfest_en",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/nextfest"
+  "name": "cat_cooking_html",
+  "url": "https://store.steampowered.com/category/cooking?l=tchinese&cc=tw",
+  "max": 6000000
  },
  {
-  "name": "sw_themed_en",
-  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed"
- },
- {
-  "name": "query_discount",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal-test%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22price_filters%22%3A%7B%22min_discount_percent%22%3A50%7D%2C%22released_only%22%3Atrue%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Afalse%2C%22include_platforms%22%3Atrue%7D%7D"
- },
- {
-  "name": "query_comingsoon",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22sort%22%3A11%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22coming_soon_only%22%3Atrue%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Afalse%2C%22include_platforms%22%3Atrue%7D%7D"
- },
- {
-  "name": "getitems",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1145360%7D%2C%7B%22appid%22%3A4435490%7D%2C%7B%22appid%22%3A2246340%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Atrue%2C%22include_platforms%22%3Atrue%7D%7D"
- },
- {
-  "name": "taglist_zh",
-  "url": "https://api.steampowered.com/IStoreService/GetTagList/v1/?language=tchinese"
- },
- {
-  "name": "featuredcats",
-  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese"
- },
- {
-  "name": "featured",
-  "url": "https://store.steampowered.com/api/featured/?cc=tw&l=tchinese"
+  "name": "cat_horror_html",
+  "url": "https://store.steampowered.com/category/horror?l=tchinese&cc=tw",
+  "max": 6000000
  },
  {
   "name": "sale_nextfest_html",
-  "url": "https://store.steampowered.com/sale/nextfest?l=tchinese&cc=tw"
+  "url": "https://store.steampowered.com/sale/nextfest?l=tchinese&cc=tw",
+  "max": 8000000
  },
  {
-  "name": "sale_fallout_html",
-  "url": "https://store.steampowered.com/sale/Falloutfranchise2026?l=tchinese&cc=tw"
+  "name": "dyn_nextfest",
+  "url": "https://store.steampowered.com/actions/ajaxgetdynamicsaleitems?max_results=10000&cc=TW&tagids_featured=1458863"
  },
  {
-  "name": "news_sales_html",
-  "url": "https://store.steampowered.com/news/collection/sales/?l=tchinese"
+  "name": "live_sales",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetlivesaleevents?cc=TW&l=tchinese"
  },
  {
-  "name": "steam_news_zh",
-  "url": "https://store.steampowered.com/feeds/news/app/593110/?cc=TW&l=tchinese"
+  "name": "live_sales2",
+  "url": "https://store.steampowered.com/saleaction/ajaxgetlivesaleevents?cc=TW&l=tchinese&start_time=0&end_time=2000000000&show_recent_first=true"
  },
  {
-  "name": "specials_html",
-  "url": "https://store.steampowered.com/specials?l=tchinese&cc=tw"
+  "name": "taglist_en",
+  "url": "https://api.steampowered.com/IStoreService/GetTagList/v1/?language=english"
+ },
+ {
+  "name": "hubconfig",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetContentHubConfig/v1/?input_json=%7B%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%7D"
+ },
+ {
+  "name": "q_nf_sort0",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A0%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort1",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A1%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort2",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A2%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort3",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A3%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort10",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A10%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort11",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A11%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort12",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A12%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort13",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A13%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort20",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A20%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort21",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A21%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort30",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A30%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_sort31",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22sort%22%3A31%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_nf_top",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A25%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22sale_filter%22%3A%7B%22sale_tagid%22%3A1458863%7D%7D%2C%22global_top_n_sellers%22%3A500%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_cook_optin",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A50%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22hub_type%22%3A%22category%22%2C%22hub_category%22%3A%22cooking%22%2C%22optin%22%3A%7B%22name%22%3A%22cooking_2026%22%2C%22optin_only%22%3Atrue%7D%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_cook_hub",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A50%2C%22filters%22%3A%7B%22store_page_filter%22%3A%7B%22content_hub_filter%22%3A%7B%22hub_type%22%3A%22category%22%2C%22hub_category%22%3A%22cooking%22%7D%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "q_discount_good",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A200%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22price_filters%22%3A%7B%22min_discount_percent%22%3A30%7D%2C%22review_score_filter%22%3A%7B%22min_score%22%3A8%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Afalse%2C%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D"
+ },
+ {
+  "name": "getitems_optin",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1853440%7D%2C%7B%22appid%22%3A3681610%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_optin_registration_tags%22%3Atrue%2C%22include_basic_info%22%3Atrue%7D%7D"
  }
 ]
