@@ -45,7 +45,6 @@ SALE_CHART = ('https://store.steampowered.com/saleaction/ajaxgetsaledynamicappqu
               '&return_capsules=true&bAllowDemos=true')
 FEATURED = 'https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese'
 GETITEMS = 'https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json='
-QUERY = 'https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json='
 TAGLIST = 'https://api.steampowered.com/IStoreService/GetTagList/v1/?language=tchinese'
 ASSET_BASE = 'https://shared.akamai.steamstatic.com/store_item_assets/'
 CTX = {'language': 'tchinese', 'country_code': 'TW', 'steam_realm': 1}
@@ -53,6 +52,10 @@ CLAN_BASE = 103582791429521408
 
 INTERVAL_H = {'ev_schedule': 11.5, 'ev_official': 1.9, 'ev_partner': 2.9, 'ev_daily': 0.9, 'ev_tags': 24 * 6.5}
 ADULT = {3, 4}            # 成人內容描述（與 Steam 匿名瀏覽的預設一樣排除）
+# Steam 只把「成人限定」藏起來；標了「色情內容／Hentai／Sexual Themes」的小眾作品也不收
+# （評論 2 萬則以上的大作例外，例如部分 3A 角色扮演遊戲也有這些標籤）
+ADULT_TAGS = {12095, 9130, 40500}
+ADULT_WORDS = re.compile(r'淫|hentai|nsfw|lewd|エロ|工口', re.I)
 LANG_TC, LANG_SC = 7, 6
 SEASON_ZH = {'winter': '冬季特賣', 'spring': '春季特賣', 'summer': '夏日特賣', 'autumn': '秋季特賣', 'fall': '秋季特賣'}
 MONTHS = {m: i for i, m in enumerate(('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'), 1)}
@@ -432,7 +435,10 @@ def _release(it):
 
 
 def norm_item(it: dict, tagnames: dict) -> dict | None:
-    if ADULT & set(it.get('content_descriptorids') or []):
+    if ADULT & set(it.get('content_descriptorids') or []) or ADULT_WORDS.search(it.get('name') or ''):
+        return None
+    n_reviews = ((it.get('reviews') or {}).get('summary_filtered') or {}).get('review_count') or 0
+    if ADULT_TAGS & {t.get('tagid') for t in it.get('tags') or []} and n_reviews < 20000:
         return None
     if it.get('type') not in (0, None) or it.get('item_type') not in (0, None):
         return None
@@ -578,8 +584,10 @@ def _match_schedule(schedule, kind, start, optin=None):
 def _official_events(http, schedule, t0):
     """目前正在進行（或 6 小時內開始）的官方活動，附確切時間與參加遊戲的來源。"""
     found = []
-    text = http.get(HUB_EVENTS.format(clan=HUB_CLAN, n=8), timeout=60).text
-    for e in _events_from_text(text):
+    r = http.get(HUB_EVENTS.format(clan=HUB_CLAN, n=8), timeout=60)
+    if r.status_code != 200:
+        raise RuntimeError(f'活動清單 HTTP {r.status_code}')
+    for e in _events_from_text(r.text):
         if e.get('event_type') != 20 or e.get('hidden') or not e.get('published', 1):
             continue
         jd = _jsondata(e)
@@ -805,6 +813,20 @@ def build(http, st, cache, health, t0):
     games.update({int(k): v for k, v in (par.get('games') or {}).items()})
     day = build_daily(http, cache, health, t0, tagnames, games).get('data') or {}
     games.update({int(k): v for k, v in (day.get('games') or {}).items()})
+
+    # 快取裡的舊資料也套用同一套成人內容規則（標籤名稱、遊戲名稱）
+    adult_names = {'色情內容', 'Hentai', 'Sexual Themes'}
+    for a in [a for a, x in games.items()
+              if ADULT_WORDS.search(x.get('name') or '') or (adult_names & set(x.get('tags') or []) and (x.get('n') or 0) < 20000)]:
+        del games[a]
+    for d in (off, par, day):
+        for e in d.get('events') or []:
+            for li in e.get('lists') or [e]:
+                if 'ids' in li:
+                    li['ids'] = [a for a in li['ids'] if a in games]
+    if day.get('deal'):
+        day['deal'] = [a for a in day['deal'] if a in games]
+    par['events'] = [r for r in par.get('events') or [] if r.get('ids')]
 
     now_ts = t0
     live = []

@@ -431,6 +431,8 @@ main { max-width: 720px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 .nav button svg { width: 23px; height: 23px; padding: 2px; border-radius: 8px; }
 .nav button[aria-current="page"] { color: var(--ink); font-weight: 600; }
 .nav button[aria-current="page"] svg { background: var(--label); color: var(--label-ink); width: 40px; padding: 2px 9px; }
+.nav button { position: relative; }
+.nav button.has-live::after { content: ""; position: absolute; top: 5px; left: calc(50% + 13px); width: 7px; height: 7px; border-radius: 50%; background: #1fa864; box-shadow: 0 0 0 2px var(--mat); }
 
 @media (min-width: 980px) {
   main { max-width: 1040px; }

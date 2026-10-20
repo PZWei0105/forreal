@@ -475,7 +475,7 @@ function evHero(e, E, idx = 0) {
   }
   return `<article class="slab ev-hero ${e.kind}">
     <div class="lbl"><span class="seal sm" title="Steam 官方活動">真</span><span class="src">Steam 官方</span><span class="tag">${EV_KIND[e.kind] || '活動'}</span>
-      <span class="when live-dot">進行中</span></div>
+      ${st.k === 'live' ? '<span class="when live-dot">進行中</span>' : `<span class="when">${st.txt}</span>`}</div>
     <div class="ev-head">
       <h3 class="ev-name">${esc(e.name)}${e.edition ? `<span class="ed">${esc(e.edition)}</span>` : ''}</h3>
       <div class="ev-time"><span>${evTime(e.start)}</span><span class="arrow">→</span><span>${evTime(e.end)}</span><span class="tz">台灣時間</span></div>
@@ -589,7 +589,7 @@ function viewEvents() {
       ${chipsHTML('pk', [['all', '全部', partner.length], ['publisher', '發行商', counts('publisher')], ['franchise', '系列作', counts('franchise')], ['show', '展會', counts('show')]].filter((c) => c[0] === 'all' || c[2]))}
       ${pShown.slice(0, pLimit).map((r) => saleCard(r, E)).join('')}
       ${pShown.length > pLimit ? `<button class="more-btn" data-pkall="1">再看 ${pShown.length - pLimit} 個特賣活動</button>` : ''}
-      <p class="hint">價格為 Steam 台灣區（新台幣），依參加遊戲的玩家人數排序。${E.at?.partner ? `${ago(E.at.partner)}更新。` : ''}</p>`;
+      <p class="hint">價格為 Steam 台灣區（新台幣），依參加遊戲的玩家人數排序；成人向內容不收錄。${E.at?.partner ? `${ago(E.at.partner)}更新。` : ''}</p>`;
   }
   html += `<div class="sec-head"><h2>Steam 官方活動時程</h2><span class="aside">台灣時間</span></div>
     ${sched.length ? schedRows(sched) : '<div class="empty">還沒有時程資料。</div>'}
@@ -670,6 +670,8 @@ function render() {
     }
   }
   document.querySelectorAll('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'));
+  const liveEv = (S.data.events?.live || []).some((e) => e.end && new Date(e.end) > Date.now() && new Date(e.start) <= Date.now());
+  $('.nav button[data-tab="events"]')?.classList.toggle('has-live', liveEv);
   S.landing = false;
 }
 
