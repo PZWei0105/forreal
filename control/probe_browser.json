@@ -1,0 +1,22 @@
+[
+ {
+  "name": "nextfest",
+  "url": "https://store.steampowered.com/sale/nextfest?l=tchinese&cc=tw",
+  "scrolls": 10
+ },
+ {
+  "name": "news_sales",
+  "url": "https://store.steampowered.com/news/collection/sales/?l=tchinese",
+  "scrolls": 6
+ },
+ {
+  "name": "specials",
+  "url": "https://store.steampowered.com/specials?l=tchinese&cc=tw",
+  "scrolls": 8
+ },
+ {
+  "name": "fallout_sale",
+  "url": "https://store.steampowered.com/sale/Falloutfranchise2026?l=tchinese&cc=tw",
+  "scrolls": 6
+ }
+]

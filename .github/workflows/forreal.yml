@@ -41,6 +41,9 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
+      - if: steps.mode.outputs.mode == 'probe'
+        continue-on-error: true
+        run: pip install playwright==1.49.1 && python -m playwright install --with-deps chromium
 
       # 翻譯器：llama.cpp ＋ 開源模型，第一次下載後存在 GitHub 快取
       - id: llmrestore

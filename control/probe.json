@@ -1,57 +1,66 @@
 [
  {
-  "name": "wiki_list_2026",
-  "bot_ua": true,
-  "max": 16000000,
-  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2026&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"
+  "name": "sw_upcoming_en",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events"
  },
  {
-  "name": "wiki_list_2027",
-  "bot_ua": true,
-  "max": 16000000,
-  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2027&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"
+  "name": "sw_upcoming_zh",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events?l=tchinese"
  },
  {
-  "name": "wiki_list_2026_sections",
-  "bot_ua": true,
-  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2026&prop=sections&format=json&formatversion=2&redirects=1"
+  "name": "sw_seasonal_en",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/seasonalsales"
  },
  {
-  "name": "steam_topsellers",
-  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&filter=topsellers&category1=998&cc=tw&l=tchinese&infinite=1"
+  "name": "sw_nextfest_en",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/nextfest"
  },
  {
-  "name": "steam_released_desc",
-  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&sort_by=Released_DESC&category1=998&cc=tw&l=tchinese&infinite=1"
+  "name": "sw_themed_en",
+  "url": "https://partner.steamgames.com/doc/marketing/upcoming_events/themed"
  },
  {
-  "name": "steam_specials_p2",
-  "url": "https://store.steampowered.com/search/results/?query=&start=100&count=100&specials=1&category1=998&sort_by=Reviews_DESC&cc=tw&l=tchinese&infinite=1"
+  "name": "query_discount",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal-test%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22price_filters%22%3A%7B%22min_discount_percent%22%3A50%7D%2C%22released_only%22%3Atrue%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Afalse%2C%22include_platforms%22%3Atrue%7D%7D"
  },
  {
-  "name": "steam_reviews_mw4",
-  "url": "https://store.steampowered.com/appreviews/4435490?json=1&language=all&purchase_type=all&num_per_page=0"
+  "name": "query_comingsoon",
+  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A30%2C%22sort%22%3A11%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22coming_soon_only%22%3Atrue%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Afalse%2C%22include_platforms%22%3Atrue%7D%7D"
  },
  {
-  "name": "steam_header_sf6",
-  "max": 2000,
-  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg"
+  "name": "getitems",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1145360%7D%2C%7B%22appid%22%3A4435490%7D%2C%7B%22appid%22%3A2246340%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_tag_count%22%3A12%2C%22include_all_purchase_options%22%3Atrue%2C%22include_platforms%22%3Atrue%7D%7D"
  },
  {
-  "name": "steam_header_new",
-  "max": 2000,
-  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4435490/header.jpg"
+  "name": "taglist_zh",
+  "url": "https://api.steampowered.com/IStoreService/GetTagList/v1/?language=tchinese"
  },
  {
-  "name": "itunes_lookup",
-  "url": "https://itunes.apple.com/lookup?id=479516143,525818839,6749456796,6801980968,6762813110,6780263761,1450144092,6502453075,6755046527,1406710800,6786246807,6811365567,6749132733,6670749900,6812927976,6448352407,6474194438,6759664029,6805504523,1609910024,6446021269,6819103516,6742472194,1503486239,6476663854,598581396,1668755109,6761328517,1491530147,6762582312,6800287771,6819034181,6742988247,485246824,6711347049,6801718756,1435456830,6477541914,6756307024,1631859420,6502623166,6760401505,1028950091,6753211881,6469114836,1563121109,6748751735,950812012,1389752090,891194610,1573482724,1439187947,6807659704,1456547302,763692274,1642601792,1474716211,6743115658,6737434503,1093131935,1596863467,1598843625,594117733,6502953520,578448682,6815152175,6810002638,1587860402,1477991646,6755103808,1403183441,6505052301,6738784151,1349292121,882362024,837860959,459189186,6468845068,1248033433,1121782467,625334537,1575192531,1616652599,6463616555,6746136017,6547834967,6787897705,6762803589,1438245901,1601177112,935216956,6808354789,6473001577,6758999138,1444761746,847381935,6816328267,1479608271,945322477&country=tw"
+  "name": "featuredcats",
+  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese"
  },
  {
-  "name": "itunes_new_paid",
-  "url": "https://itunes.apple.com/tw/rss/newpaidapplications/limit=50/genre=6014/json"
+  "name": "featured",
+  "url": "https://store.steampowered.com/api/featured/?cc=tw&l=tchinese"
  },
  {
-  "name": "steam_featured_en",
-  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=english"
+  "name": "sale_nextfest_html",
+  "url": "https://store.steampowered.com/sale/nextfest?l=tchinese&cc=tw"
+ },
+ {
+  "name": "sale_fallout_html",
+  "url": "https://store.steampowered.com/sale/Falloutfranchise2026?l=tchinese&cc=tw"
+ },
+ {
+  "name": "news_sales_html",
+  "url": "https://store.steampowered.com/news/collection/sales/?l=tchinese"
+ },
+ {
+  "name": "steam_news_zh",
+  "url": "https://store.steampowered.com/feeds/news/app/593110/?cc=TW&l=tchinese"
+ },
+ {
+  "name": "specials_html",
+  "url": "https://store.steampowered.com/specials?l=tchinese&cc=tw"
  }
 ]

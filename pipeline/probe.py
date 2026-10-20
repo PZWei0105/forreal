@@ -50,6 +50,12 @@ def run():
         print(json.dumps(meta, ensure_ascii=False)[:300], flush=True)
         time.sleep(t.get('sleep', 1.5))
 
+    try:
+        from . import probe_browser
+        probe_browser.run(out)
+    except Exception as e:  # noqa: BLE001 — 瀏覽器實測失敗不影響其他結果
+        (out / 'browser_error.txt').write_text(repr(e)[:2000], encoding='utf-8')
+
     summary['finished'] = dt.datetime.now(dt.timezone.utc).isoformat()
     (out / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=1),
                                       encoding='utf-8')
