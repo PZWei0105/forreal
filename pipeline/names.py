@@ -15,7 +15,7 @@ import urllib.parse
 
 from .util import hours_since, iso, parse_iso
 
-VERSION = 2   # 規則改了就加一，舊結果會重查
+VERSION = 3   # 規則改了就加一，舊結果會重查
 STEAM_SEARCH = 'https://store.steampowered.com/api/storesearch/?term={q}&l=english&cc=TW'
 STEAM_DETAILS = 'https://store.steampowered.com/api/appdetails?appids={appid}&cc=tw&l=tchinese'
 ENWIKI = 'https://en.wikipedia.org/w/api.php?'
@@ -70,6 +70,35 @@ def numbers_zh(s: str) -> set:
 
 def numbers_ok(en: str, zh: str) -> bool:
     return numbers_en(en) <= numbers_zh(zh)
+
+
+IGNORE_WORDS = {'the', 'a', 'an', 'of', 'and', 'in', 'on', 'for', 'to', 'edition', 'deluxe', 'gold', 'complete',
+                'definitive', 'ultimate', 'enhanced', 'goty', 'nintendo', 'switch', 'ps4', 'ps5', 'xbox', 'ww', 'hd',
+                'expanded', 'director', 'cut', 's'}
+
+
+def words(name: str) -> list:
+    toks = re.findall(r'[a-z]+|\d+', re.sub(r"[’']s\b", '', EN_DISAMBIG.sub('', name).lower()))
+    out = []
+    for i, t in enumerate(toks):
+        if t in ROMAN and (len(t) >= 2 or i == len(toks) - 1) and i > 0:
+            t = str(ROMAN[t])
+        out.append(t)
+    return out
+
+
+def same_work(requested: str, final: str) -> bool:
+    """轉址後的條目是不是同一部作品：要求的名稱裡每個字都要出現在目標條目（縮寫如 GTA、RDR、WoW 以字首比對）。"""
+    fw = words(final)
+    fset = set(fw)
+    initials = ''.join(w[0] for w in fw if not w.isdigit())
+    for t in words(requested):
+        if t in IGNORE_WORDS or t in fset:
+            continue
+        if not t.isdigit() and 2 <= len(t) <= 5 and t in initials:
+            continue
+        return False
+    return True
 
 
 def _fresh(entry, t0) -> bool:
@@ -187,9 +216,11 @@ class Namer:
             return None
 
     @staticmethod
-    def acceptable(info, *, variant: bool, allow_series: bool) -> bool:
+    def acceptable(info, *, variant: bool, allow_series: bool, requested: str = '') -> bool:
         if not info or info['fragment']:
             return False
+        if info['redirected'] and requested and not same_work(requested, info['final']):
+            return False   # 轉到別的作品（例如 Metro Redux → Metro: Last Light）
         desc = info['desc']
         if not GAME_DESC.search(desc) or NOT_GAME.search(desc):
             return False
@@ -210,7 +241,7 @@ class Namer:
             seen.add(k)
             if not _fresh(self.cache.get(k), self.t0):
                 todo.append(n)
-        miss = []
+        miss, verify = [], []
         if todo:
             def one(n):
                 if time.time() > self.deadline:
@@ -224,24 +255,39 @@ class Namer:
                     if res:
                         self.cache[key(n)] = dict(res, en=n, at=iso(self.t0), v=VERSION)
                         self.stats['steam'] += 1
+                        if len([w for w in words(n) if w not in IGNORE_WORDS]) <= 3:
+                            verify.append(n)
                     else:
                         miss.append(n)
-        if miss and time.time() < self.deadline:
+        if (miss or verify) and time.time() < self.deadline:
             try:
                 tries = []
-                for n in miss:
+                for n in miss + verify:
                     tries += [f'{n} (video game)', n]
                 pages = self.wiki_pages(tries)
+
+                def wiki_name(n):
+                    for t, variant in ((f'{n} (video game)', True), (n, False)):
+                        info = pages.get(t)
+                        if self.acceptable(info, variant=variant, allow_series=True, requested=n):
+                            zh = self.zh_tw(info['zh'], n, strip_series=not re.search(r'series|franchise', n, re.I))
+                            if zh:
+                                return zh
+                    return None
+
+                for n in verify:
+                    if time.time() > self.deadline:
+                        break
+                    zw = wiki_name(n)
+                    zs = self.cache[key(n)]['zh']
+                    if zw and len(set(CJK.findall(zw)) & set(CJK.findall(zs))) < 2:
+                        self.cache[key(n)] = {'zh': zw, 'via': 'wiki', 'en': n, 'at': iso(self.t0), 'v': VERSION,
+                                              'steam_other': zs}
+                        self.stats['conflict'] = self.stats.get('conflict', 0) + 1
                 for n in miss:
                     if time.time() > self.deadline:
                         break
-                    zh = None
-                    for t, variant in ((f'{n} (video game)', True), (n, False)):
-                        info = pages.get(t)
-                        if self.acceptable(info, variant=variant, allow_series=True):
-                            zh = self.zh_tw(info['zh'], n, strip_series=not re.search(r'series|franchise', n, re.I))
-                            if zh:
-                                break
+                    zh = wiki_name(n)
                     if zh:
                         self.cache[key(n)] = {'zh': zh, 'via': 'wiki', 'en': n, 'at': iso(self.t0), 'v': VERSION}
                         self.stats['wiki'] += 1
@@ -321,7 +367,7 @@ def localize_calendar(items: list[dict], namer: Namer, limit: int = 400):
             break
         info = pages.get(en_title)
         zh = None
-        if namer.acceptable(info, variant=False, allow_series=False):
+        if namer.acceptable(info, variant=False, allow_series=False, requested=x['title']):
             zh = namer.zh_tw(info['zh'], x['title'])
         namer.cache[k] = {'zh': zh, 'via': 'wiki' if zh else None, 'en': en_title, 'at': iso(namer.t0), 'v': VERSION}
         if zh:

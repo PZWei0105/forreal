@@ -18,6 +18,7 @@
 - 雲端 Claude 工作環境連不到這些網站，要實測新來源就用 `probe`。
 - 本機測試：先把 `probe-results` 分支解開到 scratchpad，`PROBE=<資料夾> python3 tests/local_news.py`（看濾網與合併）、`python3 tests/local_build.py <輸出資料夾> <state 資料夾>`（跑完整一輪）。
 - 翻譯：PZ 要外文新聞「先翻成繁體中文再收錄」，並附摘要。每輪在 Actions 上用 llama.cpp 跑開源模型（`scripts/llm_setup.sh` 下載、`scripts/llm_start.sh` 啟動，第一次下載後存在 GitHub 快取 `forreal-llm-v2-qwen3-8b`；4B 模型會翻錯遊戲名、亂加「傳聞」，已改用 8B 加範例，並刪掉原文沒有的「傳聞／尚未證實」句子），`pipeline/translate.py` 依重要性先翻，結果快取在 state 分支 `zh.json`。來不及翻的標 `pend`，App 顯示「翻譯中」。不需要 API 金鑰、不花錢。
+- 遊戲中文名（`pipeline/names.py`）：翻譯裡的《英文遊戲名》換成台灣官方中文名，發售日曆也加中文名。先查 Steam 台灣商店（英文名完全相同、100 則評論以上或即將推出），再查維基百科中文版台灣正體（必須是電子遊戲條目；轉址到段落、別的作品、數字對不上都不收）。短名稱兩邊不一致時以維基百科為準（防撞名）。寧可保留英文也不要換錯；規則改了就把 `VERSION` 加一，快取（state 分支 `names.json`）會重查。
 - 手動補充（選用）：若有 `ai/zh.json`（`{"items": {新聞id: {"t": 中文標題, "s": 中文摘要}}}`），build 也會合併。
 
 ## 介面
