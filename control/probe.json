@@ -1,76 +1,57 @@
 [
-  {"name": "gematsu", "url": "https://www.gematsu.com/feed"},
-  {"name": "vgc", "url": "https://www.videogameschronicle.com/feed/"},
-  {"name": "eurogamer", "url": "https://www.eurogamer.net/feed"},
-  {"name": "rps", "url": "https://www.rockpapershotgun.com/feed"},
-  {"name": "gibiz", "url": "https://www.gamesindustry.biz/feed"},
-  {"name": "pcgamer", "url": "https://www.pcgamer.com/rss/"},
-  {"name": "pcgamer2", "url": "https://www.pcgamer.com/feeds.xml"},
-  {"name": "gamespot", "url": "https://www.gamespot.com/feeds/game-news/"},
-  {"name": "gamespot2", "url": "https://www.gamespot.com/feeds/news/"},
-  {"name": "gamespot_reviews", "url": "https://www.gamespot.com/feeds/reviews/"},
-  {"name": "ign", "url": "https://feeds.feedburner.com/ign/news"},
-  {"name": "ign2", "url": "https://feeds.feedburner.com/ign/games-all"},
-  {"name": "ign3", "url": "https://feeds.ign.com/ign/news"},
-  {"name": "nlife", "url": "https://www.nintendolife.com/feeds/latest"},
-  {"name": "psquare", "url": "https://www.pushsquare.com/feeds/latest"},
-  {"name": "purexbox", "url": "https://www.purexbox.com/feeds/latest"},
-  {"name": "siliconera", "url": "https://www.siliconera.com/feed/"},
-  {"name": "gamedev", "url": "https://www.gamedeveloper.com/rss.xml"},
-  {"name": "destructoid", "url": "https://www.destructoid.com/feed/"},
-  {"name": "polygon", "url": "https://www.polygon.com/rss/index.xml"},
-  {"name": "polygon2", "url": "https://www.polygon.com/feed/"},
-  {"name": "verge_games", "url": "https://www.theverge.com/rss/games/index.xml"},
-  {"name": "automaton", "url": "https://automaton-media.com/en/feed/"},
-  {"name": "insidergaming", "url": "https://insider-gaming.com/feed/"},
-  {"name": "kotaku", "url": "https://kotaku.com/rss"},
-  {"name": "gamesradar", "url": "https://www.gamesradar.com/feeds.xml"},
-  {"name": "gamesradar2", "url": "https://www.gamesradar.com/rss/"},
-  {"name": "vg247", "url": "https://www.vg247.com/feed"},
-  {"name": "steam_news", "url": "https://store.steampowered.com/feeds/news/app/593110/?cc=TW&l=english"},
-  {"name": "psblog", "url": "https://blog.playstation.com/feed/"},
-  {"name": "psblog_zh", "url": "https://blog.zh-hant.playstation.com/feed/"},
-  {"name": "psblog_asia", "url": "https://blog.asia.playstation.com/feed/"},
-  {"name": "xboxwire", "url": "https://news.xbox.com/en-us/feed/"},
-  {"name": "nintendo_jp", "url": "https://www.nintendo.co.jp/news/whatsnew.xml"},
-  {"name": "toucharcade", "url": "https://toucharcade.com/feed/"},
-  {"name": "pockettactics", "url": "https://www.pockettactics.com/feed"},
-  {"name": "pocketgamer", "url": "https://www.pocketgamer.com/news/index.rss"},
-  {"name": "appstore_paid_games", "url": "https://itunes.apple.com/tw/rss/toppaidapplications/limit=100/genre=6014/json"},
-  {"name": "appstore_marketing_paid", "url": "https://rss.applemarketingtools.com/api/v2/tw/apps/top-paid/100/apps.json"},
-  {"name": "steam_featured", "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese"},
-  {"name": "steam_specials", "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&specials=1&category1=998&cc=tw&l=tchinese&infinite=1"},
-  {"name": "steam_specials_reviews", "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&specials=1&category1=998&sort_by=Reviews_DESC&cc=tw&l=tchinese&infinite=1"},
-  {"name": "steam_upcoming", "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&filter=popularcomingsoon&category1=998&cc=tw&l=tchinese&infinite=1"},
-  {"name": "steam_popularnew", "url": "https://store.steampowered.com/search/results/?query=&start=0&count=60&filter=popularnew&category1=998&cc=tw&l=tchinese&infinite=1"},
-  {"name": "steam_reviews_sample", "url": "https://store.steampowered.com/appreviews/1145360?json=1&language=all&purchase_type=all&num_per_page=0"},
-  {"name": "steam_appdetails_sample", "url": "https://store.steampowered.com/api/appdetails?appids=1145360&cc=tw&l=tchinese"},
-  {"name": "epic_free", "url": "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-Hant&country=TW&allowCountries=TW"},
-  {"name": "wiki2026_sections", "bot_ua": true, "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2026_in_video_games&prop=sections&format=json&formatversion=2&redirects=1"},
-  {"name": "wiki2026", "bot_ua": true, "max": 12000000, "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2026_in_video_games&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"},
-  {"name": "wiki2027_sections", "bot_ua": true, "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2027_in_video_games&prop=sections&format=json&formatversion=2&redirects=1"},
-  {"name": "wiki2027", "bot_ua": true, "max": 12000000, "url": "https://en.wikipedia.org/w/api.php?action=parse&page=2027_in_video_games&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"},
-  {"name": "verge", "url": "https://www.theverge.com/rss/index.xml"},
-  {"name": "ars", "url": "https://feeds.arstechnica.com/arstechnica/index"},
-  {"name": "techcrunch_ai", "url": "https://techcrunch.com/category/artificial-intelligence/feed/"},
-  {"name": "tomshw", "url": "https://www.tomshardware.com/feeds/all"},
-  {"name": "videocardz", "url": "https://videocardz.com/feed"},
-  {"name": "openai", "url": "https://openai.com/news/rss.xml"},
-  {"name": "deepmind", "url": "https://deepmind.google/blog/rss.xml"},
-  {"name": "googleai", "url": "https://blog.google/technology/ai/rss/"},
-  {"name": "hf", "url": "https://huggingface.co/blog/feed.xml"},
-  {"name": "nvidia", "url": "https://blogs.nvidia.com/feed/"},
-  {"name": "anthropic", "url": "https://www.anthropic.com/news/rss.xml"},
-  {"name": "hn300", "url": "https://hnrss.org/frontpage?points=300"},
-  {"name": "engadget", "url": "https://www.engadget.com/rss.xml"},
-  {"name": "technews", "url": "https://technews.tw/feed/"},
-  {"name": "ithome", "url": "https://www.ithome.com.tw/rss"},
-  {"name": "inside", "url": "https://www.inside.com.tw/feed/rss"},
-  {"name": "bnext", "url": "https://www.bnext.com.tw/rss"},
-  {"name": "techorange", "url": "https://buzzorange.com/techorange/feed/"},
-  {"name": "gamers4", "url": "https://www.4gamers.com.tw/rss/latest-news"},
-  {"name": "udn_game", "url": "https://game.udn.com/rss/news/2003/"},
-  {"name": "gcores", "url": "https://www.gcores.com/rss"},
-  {"name": "yystv", "url": "https://www.yystv.cn/rss/feed"},
-  {"name": "chuapp", "url": "https://www.chuapp.com/feed"}
+ {
+  "name": "wiki_list_2026",
+  "bot_ua": true,
+  "max": 16000000,
+  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2026&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"
+ },
+ {
+  "name": "wiki_list_2027",
+  "bot_ua": true,
+  "max": 16000000,
+  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2027&prop=text&format=json&formatversion=2&redirects=1&disableeditsection=1&disabletoc=1"
+ },
+ {
+  "name": "wiki_list_2026_sections",
+  "bot_ua": true,
+  "url": "https://en.wikipedia.org/w/api.php?action=parse&page=List_of_video_games_released_in_2026&prop=sections&format=json&formatversion=2&redirects=1"
+ },
+ {
+  "name": "steam_topsellers",
+  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&filter=topsellers&category1=998&cc=tw&l=tchinese&infinite=1"
+ },
+ {
+  "name": "steam_released_desc",
+  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&sort_by=Released_DESC&category1=998&cc=tw&l=tchinese&infinite=1"
+ },
+ {
+  "name": "steam_specials_p2",
+  "url": "https://store.steampowered.com/search/results/?query=&start=100&count=100&specials=1&category1=998&sort_by=Reviews_DESC&cc=tw&l=tchinese&infinite=1"
+ },
+ {
+  "name": "steam_reviews_mw4",
+  "url": "https://store.steampowered.com/appreviews/4435490?json=1&language=all&purchase_type=all&num_per_page=0"
+ },
+ {
+  "name": "steam_header_sf6",
+  "max": 2000,
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg"
+ },
+ {
+  "name": "steam_header_new",
+  "max": 2000,
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4435490/header.jpg"
+ },
+ {
+  "name": "itunes_lookup",
+  "url": "https://itunes.apple.com/lookup?id=479516143,525818839,6749456796,6801980968,6762813110,6780263761,1450144092,6502453075,6755046527,1406710800,6786246807,6811365567,6749132733,6670749900,6812927976,6448352407,6474194438,6759664029,6805504523,1609910024,6446021269,6819103516,6742472194,1503486239,6476663854,598581396,1668755109,6761328517,1491530147,6762582312,6800287771,6819034181,6742988247,485246824,6711347049,6801718756,1435456830,6477541914,6756307024,1631859420,6502623166,6760401505,1028950091,6753211881,6469114836,1563121109,6748751735,950812012,1389752090,891194610,1573482724,1439187947,6807659704,1456547302,763692274,1642601792,1474716211,6743115658,6737434503,1093131935,1596863467,1598843625,594117733,6502953520,578448682,6815152175,6810002638,1587860402,1477991646,6755103808,1403183441,6505052301,6738784151,1349292121,882362024,837860959,459189186,6468845068,1248033433,1121782467,625334537,1575192531,1616652599,6463616555,6746136017,6547834967,6787897705,6762803589,1438245901,1601177112,935216956,6808354789,6473001577,6758999138,1444761746,847381935,6816328267,1479608271,945322477&country=tw"
+ },
+ {
+  "name": "itunes_new_paid",
+  "url": "https://itunes.apple.com/tw/rss/newpaidapplications/limit=50/genre=6014/json"
+ },
+ {
+  "name": "steam_featured_en",
+  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=english"
+ }
 ]
