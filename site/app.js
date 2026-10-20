@@ -173,7 +173,7 @@ function card(e, { hero = false, img = false } = {}) {
       </span>
     </div>
     <div class="others"${open ? '' : ' hidden'}>
-      ${(e.m || []).map((m) => `<a href="${esc(m.u)}" target="_blank" rel="noopener noreferrer"><b>${esc(srcName(m.src))}</b><span>${esc(m.t)}</span></a>`).join('')}
+      ${(e.m || []).map((m) => `<a href="${esc(m.u)}" target="_blank" rel="noopener noreferrer"><b>${esc(srcName(m.src))}</b><span>${esc(m.tz || m.t)}</span></a>`).join('')}
     </div>
   </article>`;
 }

@@ -26,6 +26,9 @@ SYSTEM = """你是台灣的遊戲與科技新聞編輯，替讀者把外文新�
 3. 用台灣慣用詞：影片、軟體、硬體、網路、主機、搶先體驗、更新檔、評測、預告片、發表會、裁員、資料片、伺服器、玩家、品質、支援。
 4. 不要用簡體字，不要加表情符號，不要用引號把整句包起來。"""
 
+SYSTEM_TITLE = """你是台灣的遊戲與科技新聞編輯。把使用者給的外文新聞標題翻成自然、精簡的台灣繁體中文標題（30 字以內）。遊戲名稱、公司名稱、人名、產品型號一律保留原文，不要自己編中文譯名；用台灣慣用詞；不要用簡體字。只輸出 JSON：{"title": 中文標題}。"""
+SCHEMA_TITLE = {'type': 'object', 'properties': {'title': {'type': 'string'}}, 'required': ['title']}
+
 SCHEMA = {
     'type': 'object',
     'properties': {'title': {'type': 'string'}, 'summary': {'type': 'string'}},
@@ -70,12 +73,16 @@ class Translator:
                 s = s.replace(a, b)
         return s
 
-    def one(self, source: str, title: str, body: str):
-        user = f'來源：{source}\n標題：{title}\n內容：{(body or "（只有標題）")[:1400]}'
+    def one(self, source: str, title: str, body: str, title_only: bool = False):
+        if title_only:
+            system, schema, user, max_tokens = SYSTEM_TITLE, SCHEMA_TITLE, f'標題：{title}', 90
+        else:
+            system, schema, max_tokens = SYSTEM, SCHEMA, 280
+            user = f'來源：{source}\n標題：{title}\n內容：{(body or "（只有標題）")[:1400]}'
         payload = {
-            'messages': [{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': user}],
-            'temperature': 0.2, 'top_p': 0.9, 'max_tokens': 280, 'cache_prompt': True,
-            'response_format': {'type': 'json_object', 'schema': SCHEMA},
+            'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}],
+            'temperature': 0.2, 'top_p': 0.9, 'max_tokens': max_tokens, 'cache_prompt': True,
+            'response_format': {'type': 'json_object', 'schema': schema},
         }
         r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=180)
         r.raise_for_status()
@@ -131,6 +138,32 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
                 elif err != 'budget':
                     stats['failed'] += 1
                     errors.append(err)
+        # 第二輪：「其他 N 家」裡的外文標題（只翻標題）
+        members = []
+        for e in entries:
+            for m in e.get('m') or []:
+                if m.get('lang') == 'zh' or not m.get('id'):
+                    continue
+                c = cache.get(m['id'])
+                if c and c.get('h') == _h(m['t']):
+                    m['tz'] = c['t']
+                else:
+                    members.append(m)
+
+        def mjob(m):
+            if time.time() - start > budget:
+                return m, None, 'budget'
+            try:
+                return m, tr.one('', m['t'], '', title_only=True)[0], None
+            except Exception as ex:  # noqa: BLE001
+                return m, None, f'{type(ex).__name__}: {ex}'[:140]
+
+        with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+            for m, t, err in ex.map(mjob, members):
+                if t:
+                    m['tz'] = t
+                    cache[m['id']] = {'t': t, 's': '', 'h': _h(m['t']), 'at': iso(t0)}
+                    stats['members'] = stats.get('members', 0) + 1
         stats['secs'] = round(time.time() - start)
         if errors:
             stats['errors'] = errors[:5]
@@ -138,6 +171,12 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
         if needs_translation(e) and not e.get('tz'):
             e['pend'] = True
             stats['pending'] += 1
+        for m in e.get('m') or []:
+            if not m.get('tz'):
+                c = cache.get(m.get('id'))
+                if c and c.get('h') == _h(m['t']):
+                    m['tz'] = c['t']
+            m.pop('lang', None)
     for k in [k for k, v in cache.items() if hours_since(parse_iso(v.get('at')) or t0, t0) > 24 * KEEP_DAYS]:
         del cache[k]
     st.save('zh.json', cache)

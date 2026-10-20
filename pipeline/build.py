@@ -181,7 +181,7 @@ def process_news(store: dict, src_by_id: dict, rules: Rules, t0):
             if m['src'] in seen_src:
                 continue
             seen_src.add(m['src'])
-            others.append({'src': m['src'], 't': m['title'], 'u': m['url'], 'at': iso(m['_t'])})
+            others.append({'id': m['id'], 'src': m['src'], 't': m['title'], 'u': m['url'], 'at': iso(m['_t']), 'lang': m['lang']})
         entry = {
             'id': rep['id'], 'sec': sec, 't': rep['title'], 'u': rep['url'], 's': rep.get('summary') or '',
             'img': img, 'src': rep['src'], 'lang': rep['lang'], 'at': iso(first), 'up': iso(last), 'n': n,
