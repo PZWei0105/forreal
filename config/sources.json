@@ -391,6 +391,12 @@
    "cat": "store",
    "home": "https://store.steampowered.com/"
   },
+  "steam_events": {
+   "name": "Steam 官方活動與特賣活動",
+   "tier": 1,
+   "cat": "store",
+   "home": "https://partner.steamgames.com/doc/marketing/upcoming_events"
+  },
   "epic": {
    "name": "Epic Games Store",
    "tier": 1,

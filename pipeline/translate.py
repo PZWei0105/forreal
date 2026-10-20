@@ -138,6 +138,85 @@ class Translator:
         return t, s
 
 
+SYSTEM_DESC = """你是台灣的遊戲編輯。把 Steam 商店的遊戲簡介翻成台灣繁體中文，只輸出 JSON：{"desc": 中文簡介}。
+
+規則：
+1. 遊戲名、角色名、地名、公司名一律照抄原文，不要翻譯、不要自創中文名；遊戲名加上《》。
+2. 忠實翻譯原文的意思，40 到 110 字；可以精簡，但不可補充原文沒有的內容，也不要評論。
+3. 句子裡不要夾英文單字（名稱除外），用台灣用語：玩家、關卡、角色扮演、合作模式、搶先體驗、模組、伺服器。不要用簡體字。"""
+EXAMPLES_DESC = [
+    ('遊戲：Lantern Keeper\n簡介：Guide a lonely lighthouse keeper through a stormy archipelago. Repair the lamps, trade with passing ships and uncover what happened to the last keeper. Play solo or with a friend in local co-op.',
+     '{"desc": "帶領孤單的燈塔守護人穿越暴風雨中的群島：修好燈火、和路過的船隻交易，並揭開上一任守護人的遭遇。可以單人遊玩，也能和朋友本機合作。"}'),
+]
+SCHEMA_DESC = {'type': 'object', 'properties': {'desc': {'type': 'string'}}, 'required': ['desc']}
+DESC_VERSION = 1
+DESC_KEEP_DAYS = 45
+
+
+def _one_desc(tr: 'Translator', name: str, text: str) -> str:
+    messages = [{'role': 'system', 'content': SYSTEM_DESC}]
+    for q, a in EXAMPLES_DESC:
+        messages += [{'role': 'user', 'content': q}, {'role': 'assistant', 'content': a}]
+    messages.append({'role': 'user', 'content': f'遊戲：{name}\n簡介：{text[:480]}'})
+    payload = {'messages': messages, 'temperature': 0.1, 'top_p': 0.9, 'max_tokens': 180, 'cache_prompt': True,
+               'response_format': {'type': 'json_object', 'schema': SCHEMA_DESC},
+               'chat_template_kwargs': {'enable_thinking': False}}
+    r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=300)
+    r.raise_for_status()
+    content = re.sub(r'(?s)<think>.*?</think>', '', r.json()['choices'][0]['message']['content'] or '')
+    d = tr._tw(json.loads(content[content.find('{'): content.rfind('}') + 1]).get('desc', ''))
+    if len(re.findall(r'[一-鿿]', d)) < 8 or len(d) > 260:
+        raise ValueError(f'簡介不合格：{d[:40]}')
+    return d
+
+
+def run_extra(jobs: list[tuple], st, t0, budget_s: int = 240, workers: int = 4) -> tuple[dict, dict]:
+    """「活動」分頁要翻的東西：('desc', appid, 英文簡介, 遊戲名) 或 ('title', key, 英文活動名, '')。
+
+    結果快取在 state 分支的 extra_zh.json（同樣的原文只翻一次）。回傳 ({(kind, key): 中文}, 統計)。
+    """
+    cache = st.load('extra_zh.json', {})
+    tr = Translator()
+    stats = {'ok': tr.ok, 'done': 0, 'cached': 0, 'failed': 0, 'pending': 0}
+    out, need = {}, []
+    for kind, key, text, name in jobs:
+        h = _h(kind, text)
+        c = cache.get(f'{kind}:{key}')
+        if c and c.get('h') == h and c.get('v') == DESC_VERSION:
+            out[(kind, key)] = tr._tw(c['z'])
+            c['at'] = iso(t0)
+            stats['cached'] += 1
+        else:
+            need.append((kind, key, text, name, h))
+    if tr.ok and need:
+        start = time.time()
+
+        def job(item):
+            kind, key, text, name, h = item
+            if time.time() - start > budget_s:
+                return item, None, 'budget'
+            try:
+                z = _one_desc(tr, name, text) if kind == 'desc' else tr.one('', text, '', title_only=True)[0]
+                return item, z, None
+            except Exception as ex:  # noqa: BLE001 — 單則失敗就下輪再試
+                return item, None, f'{type(ex).__name__}: {ex}'[:140]
+
+        with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+            for (kind, key, text, name, h), z, err in ex.map(job, need):
+                if z:
+                    out[(kind, key)] = z
+                    cache[f'{kind}:{key}'] = {'z': z, 'h': h, 'at': iso(t0), 'v': DESC_VERSION}
+                    stats['done'] += 1
+                elif err != 'budget':
+                    stats['failed'] += 1
+        stats['secs'] = round(time.time() - start)
+    stats['pending'] = len(jobs) - len(out)
+    for k in [k for k, v in cache.items() if hours_since(parse_iso(v.get('at')) or t0, t0) > 24 * DESC_KEEP_DAYS]:
+        del cache[k]
+    st.save('extra_zh.json', cache)
+    return out, stats
+
+
 def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = None, workers: int = 4) -> dict:
     """entries 依重要性排好；會直接在 entries 上加 tz（中文標題）、sz（中文摘要）或 pend（翻譯中）。"""
     cache = st.load('zh.json', {})

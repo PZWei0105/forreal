@@ -12,11 +12,12 @@ const ICON = {
   rel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2.5M13.5 14H16M8 17h2.5"/></svg>',
   tech: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M10 10h4v4h-4zM9 3v3.5M15 3v3.5M9 17.5V21M15 17.5V21M3 9h3.5M3 15h3.5M17.5 9H21M17.5 15H21"/></svg>',
   filter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5h17l-6.5 7.6v5.6l-4 2.3v-7.9z"/></svg>',
+  events: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h14a1.5 1.5 0 0 1 1.5 1.5v2.2a2.3 2.3 0 0 0 0 4.6v2.2A1.5 1.5 0 0 1 19 18H5a1.5 1.5 0 0 1-1.5-1.5v-2.2a2.3 2.3 0 0 0 0-4.6z"/><path d="M14.5 6.5v1.8M14.5 11.1v1.8M14.5 15.7v1.8"/></svg>',
   refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',
   save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1z"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.5l6-.8z"/></svg>',
 };
-const TABS = [['top', '頭條'], ['deals', '特價'], ['rel', '上市'], ['tech', '科技'], ['filter', '濾網']];
+const TABS = [['top', '頭條'], ['deals', '特價'], ['events', '活動'], ['rel', '上市'], ['tech', '科技'], ['filter', '濾網']];
 
 // ---------- 小工具 ----------
 const $ = (s, el = document) => el.querySelector(s);
@@ -61,7 +62,7 @@ const S = {
   blocked: null,
   failed: [],
   sub: { deals: local.get('sub.deals', 'steam'), rel: local.get('sub.rel', 'cal') },
-  f: { top: 'all', tech: 'all', blk: 'all', cal: 'all', deals: 'all' },
+  f: { top: 'all', tech: 'all', blk: 'all', cal: 'all', deals: 'all', pk: 'all' },
   shown: { top: 30, tech: 30 },
   read: new Set(local.get('read', [])),
   saved: local.get('saved', []),
@@ -70,6 +71,10 @@ const S = {
   open: new Set(),
   landing: true,
   pastDays: false,
+  evList: {},      // 每個官方活動目前看哪一份榜單
+  evShown: {},     // 每份榜單展開到幾款
+  evOpen: new Set(),
+  pkAll: false,
 };
 
 function srcName(id) {
@@ -89,7 +94,7 @@ async function getJSON(name, force) {
   return r.json();
 }
 async function load(force = false) {
-  const names = ['meta', 'news', 'tech', 'deals', 'releases'];
+  const names = ['meta', 'news', 'tech', 'deals', 'releases', 'events'];
   const res = await Promise.allSettled(names.map((n) => getJSON(n, force)));
   S.failed = [];
   res.forEach((r, i) => {
@@ -386,6 +391,212 @@ function relRow(x) {
   </div>`;
 }
 
+// ---------- 活動（Steam 官方活動、發行商特賣、每日特惠、官方時程） ----------
+const EV_KIND = { season: '季節特賣', nextfest: '新品節', fest: '主題節', special: '官方特賣' };
+const PK_KIND = { publisher: '發行商特賣', franchise: '系列作特賣', show: '展會', sale: '主題特賣' };
+const fmtWD = fmt({ weekday: 'short' });
+function evTime(iso, withWd = true) {
+  if (!iso) return '';
+  const t = new Date(iso);
+  return `${fmtMD.format(t)}${withWd ? ` ${fmtWD.format(t)}` : ''} ${fmtHM.format(t)}`;
+}
+function span(ms) {
+  const m = Math.max(1, Math.floor(ms / 6e4));
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (d >= 2) return `<b class="num">${d}</b> 天`;
+  if (d >= 1) return `<b class="num">${d}</b> 天 <b class="num">${h % 24}</b> 小時`;
+  if (h >= 1) return `<b class="num">${h}</b> 小時`;
+  return `<b class="num">${m}</b> 分鐘`;
+}
+function evStatus(e, now = Date.now()) {
+  const s = e.start ? new Date(e.start).getTime() : null;
+  const en = e.end ? new Date(e.end).getTime() : null;
+  if (!s) return { k: 'tbd', txt: '日期未定' };
+  if (now < s) return { k: 'soon', txt: `${span(s - now)}後開始` };
+  if (en && now < en) return { k: 'live', txt: `進行中・還剩 ${span(en - now)}` };
+  return { k: 'past', txt: '已結束' };
+}
+
+function gameBadges(x) {
+  const b = [];
+  if (x.zh === 'tc') b.push('<span class="gb tc">繁中</span>');
+  else if (x.zh === 'sc') b.push('<span class="gb">簡中</span>');
+  if (x.rel?.soon) {
+    if (x.demo) b.push('<span class="gb demo">試玩版</span>');
+    b.push(`<span class="gb">${esc(x.rel.t || '即將推出')}</span>`);
+  }
+  if (x.rel?.ea) b.push('<span class="gb">搶先體驗</span>');
+  if (x.n >= 10 && x.pct != null) b.push(`<span class="gb rv ${gradeClass(x.pct)}"><b class="num">${x.pct}%</b> ${esc(x.label || '')}・${thousands(x.n)} 則</span>`);
+  return b.join('');
+}
+
+function gamePrice(x) {
+  if (x.final == null) return x.free ? '<span class="gp"><span class="now num">免費</span></span>' : '';
+  if (x.final === 0) return '<span class="gp"><span class="now num">免費</span></span>';
+  return `<span class="gp">${x.disc ? `<span class="off num">-${x.disc}%</span>` : ''}<span class="now num">${money(x.final)}</span>${x.disc ? `<span class="was">${money(x.orig)}</span>` : ''}${x.rel?.soon && x.final ? '<span class="pre">預購</span>' : ''}${x.disc && x.ends ? `<span class="until">到 ${fmtMD.format(new Date(x.ends))}</span>` : ''}</span>`;
+}
+
+function gameRow(x, rank) {
+  return `<a class="g-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">
+    <span class="g-art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">${rank ? `<span class="rk num">${rank}</span>` : ''}</span>
+    <span class="g-main">
+      <span class="name">${esc(x.name)}</span>
+      ${x.tags?.length ? `<span class="g-tags">${x.tags.map(esc).join('・')}</span>` : ''}
+      ${x.short ? `<span class="g-desc">${esc(x.short)}</span>` : x.sp ? '<span class="g-desc pend">簡介翻譯中</span>' : ''}
+      ${gamePrice(x)}
+      <span class="g-meta">${gameBadges(x)}</span>
+    </span></a>`;
+}
+
+function dealAsGame(d) {
+  return { name: d.name, url: d.url, img: d.img, cap: d.capsule, final: d.final, orig: d.orig, disc: d.disc, n: d.n, pct: d.pct, label: d.desc, tags: d.genres };
+}
+
+function evHero(e, E, idx = 0) {
+  const lists = e.lists || [];
+  const cur = lists.find((l) => l.id === S.evList[e.id]) || lists[0];
+  const st = evStatus(e);
+  const s = new Date(e.start).getTime();
+  const en = new Date(e.end).getTime();
+  const pct = Math.min(100, Math.max(0, ((Date.now() - s) / (en - s)) * 100));
+  let rows = '';
+  let total = 0;
+  if (cur) {
+    const items = cur.src === 'deals'
+      ? (S.data.deals?.steam?.items || []).slice(0, 40).map(dealAsGame)
+      : (cur.ids || []).map((a) => E.games?.[a]).filter(Boolean);
+    total = items.length;
+    const key = `${e.id}:${cur.id}`;
+    const n = S.evShown[key] || (idx === 0 ? 12 : 6);
+    rows = items.slice(0, n).map((x, i) => gameRow(x, i + 1)).join('');
+    if (total > n) rows += `<button class="more-btn" data-evmore="${esc(key)}" data-n="${n}">再看 ${Math.min(12, total - n)} 款（共 ${total} 款）</button>`;
+    if (!total) rows = `<div class="empty">${cur.src === 'deals' ? '特價資料整理中。' : '參加遊戲整理中，下一輪更新會補上。'}</div>`;
+  }
+  return `<article class="slab ev-hero ${e.kind}">
+    <div class="lbl"><span class="seal sm" title="Steam 官方活動">真</span><span class="src">Steam 官方</span><span class="tag">${EV_KIND[e.kind] || '活動'}</span>
+      <span class="when live-dot">進行中</span></div>
+    <div class="ev-head">
+      <h3 class="ev-name">${esc(e.name)}${e.edition ? `<span class="ed">${esc(e.edition)}</span>` : ''}</h3>
+      <div class="ev-time"><span>${evTime(e.start)}</span><span class="arrow">→</span><span>${evTime(e.end)}</span><span class="tz">台灣時間</span></div>
+      <div class="ev-track" aria-hidden="true"><span style="width:${pct.toFixed(1)}%"></span></div>
+      <div class="ev-left">${st.k === 'live' ? `還剩 ${span(en - Date.now())}` : st.txt}${e.count ? `<span class="sep">・</span>共 <b class="num">${thousands(e.count)}</b> 款參加` : ''}</div>
+      ${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}
+      ${e.rule ? `<p class="ev-rule">${esc(e.rule)}</p>` : ''}
+    </div>
+    ${lists.length > 1 ? `<div class="seg ev-seg" role="tablist">${lists.map((l) => `<button data-evlist="${esc(e.id)}|${esc(l.id)}" aria-pressed="${l === cur}">${esc(l.label)}</button>`).join('')}</div>` : ''}
+    <div class="g-list">${rows}</div>
+    <a class="ev-go" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">到 Steam 活動頁看全部 ↗</a>
+  </article>`;
+}
+
+function evNext(e) {
+  const st = evStatus(e);
+  return `<article class="slab ev-next">
+    <div class="lbl"><span class="src">下一場官方活動</span><span class="tag">${EV_KIND[e.kind] || '活動'}</span><span class="when">${st.txt}</span></div>
+    <div class="ev-head">
+      <h3 class="ev-name">${esc(e.name)}${e.edition ? `<span class="ed">${esc(e.edition)}</span>` : ''}</h3>
+      <div class="ev-time"><span>${evTime(e.start)}</span><span class="arrow">→</span><span>${evTime(e.end)}</span><span class="tz">台灣時間</span></div>
+      ${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}
+      <p class="ev-rule">活動開始後，這裡會自動列出參加遊戲、台灣區價格與折扣。</p>
+    </div>
+  </article>`;
+}
+
+function miniCard(x) {
+  return `<a class="mini-card" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">
+    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">${x.disc ? `<span class="off num">-${x.disc}%</span>` : ''}</span>
+    <span class="name">${esc(x.name)}</span>
+    <span class="mp">${x.final == null ? (x.rel?.soon ? esc(x.rel.t || '即將推出') : '') : x.final === 0 ? '免費' : `<span class="num">${money(x.final)}</span>`}${x.disc && x.orig ? `<s>${money(x.orig)}</s>` : ''}</span>
+  </a>`;
+}
+
+function saleCard(r, E) {
+  const st = evStatus(r);
+  const games = (r.ids || []).map((a) => E.games?.[a]).filter(Boolean);
+  const open = S.evOpen.has(r.gid);
+  return `<article class="slab ev-sale">
+    <div class="lbl"><span class="src">${PK_KIND[r.kind] || '特賣'}</span>${r.spot ? '<span class="tag off">Steam 首頁推薦</span>' : ''}<span class="when">${st.k === 'live' ? `剩 ${span(new Date(r.end) - Date.now())}` : st.txt}</span></div>
+    <a class="ev-sale-head" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">
+      <h3 class="t">${esc(r.tz || r.name)}</h3>${r.tz ? `<p class="t-orig">${esc(r.name)}</p>` : ''}
+      <div class="ev-time sm"><span>${evTime(r.start, false)}</span><span class="arrow">→</span><span>${evTime(r.end, false)}</span>${r.count ? `<span class="sep">・</span>共 <b class="num">${thousands(r.count)}</b> 款` : ''}</div>
+    </a>
+    ${open ? `<div class="g-list">${games.map((x) => gameRow(x)).join('')}</div>`
+      : `<div class="ev-strip">${games.slice(0, 8).map(miniCard).join('')}</div>`}
+    ${games.length > 3 ? `<button class="mini ev-toggle" data-evsale="${esc(r.gid)}" aria-expanded="${open}">${open ? '收起' : `列出 ${games.length} 款的價格與評價`}</button>` : ''}
+  </article>`;
+}
+
+function schedRows(list) {
+  const now = Date.now();
+  const byMonth = new Map();
+  const tbd = [];
+  for (const e of list) {
+    if (!e.start) { tbd.push(e); continue; }
+    const ym = twDate(new Date(e.start)).slice(0, 7);
+    if (!byMonth.has(ym)) byMonth.set(ym, []);
+    byMonth.get(ym).push(e);
+  }
+  const row = (e) => {
+    const st = evStatus(e, now);
+    const d = e.start ? new Date(e.start) : null;
+    return `<div class="ev-row ${st.k} k-${e.kind}">
+      <div class="ev-date">${d ? `<span class="d num">${Number(twDate(d).slice(8))}</span><span class="w">${fmtWD.format(d)}</span>` : '<span class="d num">?</span>'}</div>
+      <div class="ev-info">
+        <div class="name">${esc(e.name)}${e.edition ? ` <span class="ed">${esc(e.edition)}</span>` : ''}<span class="kind k-${e.kind}">${EV_KIND[e.kind] || ''}</span></div>
+        ${d ? `<div class="sub">${evTime(e.start)} → ${evTime(e.end)}</div>` : ''}
+        <div class="st ${st.k}">${st.txt}</div>
+        ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
+      </div></div>`;
+  };
+  let html = '';
+  for (const ym of [...byMonth.keys()].sort()) {
+    html += `<div class="month-head">${Number(ym.slice(0, 4))} 年 ${Number(ym.slice(5))} 月</div>${byMonth.get(ym).map(row).join('')}`;
+  }
+  if (tbd.length) html += `<div class="month-head">日期未定</div>${tbd.map(row).join('')}`;
+  return html;
+}
+
+function viewEvents() {
+  const E = S.data.events;
+  if (!E) return `${staleNotice()}<div class="empty">還沒有活動資料。第一輪自動更新跑完就會出現（每小時一次）。</div>`;
+  const now = Date.now();
+  const live = (E.live || []).filter((e) => !e.end || new Date(e.end) > now);
+  const sched = (E.schedule || []).filter((e) => !e.end || (now - new Date(e.end)) / 864e5 < 3);
+  const upcoming = sched.filter((e) => e.start && new Date(e.start) > now);
+  const partner = (E.partner || []).filter((r) => !r.end || new Date(r.end) > now);
+  const pf = S.f.pk;
+  const pShown = partner.filter((r) => pf === 'all' || r.kind === pf || (pf === 'publisher' && r.kind === 'sale'));
+  const counts = (k) => partner.filter((r) => r.kind === k || (k === 'publisher' && r.kind === 'sale')).length;
+  const pLimit = S.pkAll ? pShown.length : 8;
+  const daily = E.daily || {};
+  const dealGames = (daily.deal || []).map((a) => E.games?.[a]).filter(Boolean);
+  const spots = (daily.spots || []).map((s) => ({ ...s, g: s.appid ? E.games?.[s.appid] : null }));
+  let html = staleNotice();
+  html += live.length ? live.map((e, i) => evHero(e, E, i)).join('') : (upcoming[0] ? evNext(upcoming[0]) : '');
+  if (live.length && upcoming[0] && !live.some((e) => e.id === upcoming[0].id)) {
+    const st = evStatus(upcoming[0]);
+    html += `<p class="hint ev-after">下一場：<b>${esc(upcoming[0].name)}</b>${upcoming[0].edition ? ` ${esc(upcoming[0].edition)}` : ''}，${st.txt}（${evTime(upcoming[0].start)}）</p>`;
+  }
+  if (dealGames.length || spots.length) {
+    html += `<div class="sec-head"><h2>今日特惠・首頁焦點</h2><span class="aside">${E.at?.daily ? `${ago(E.at.daily)}更新` : ''}</span></div>
+      <div class="g-list panel">${dealGames.map((x) => gameRow({ ...x, tags: ['每日特惠', ...(x.tags || []).slice(0, 2)] })).join('')}
+      ${spots.map((s) => (s.g ? gameRow({ ...s.g, tags: [s.name, ...(s.g.tags || []).slice(0, 2)] })
+    : `<a class="g-row spot" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span class="g-art">${s.img ? `<img src="${esc(s.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''}</span><span class="g-main"><span class="name">${esc(s.name)}</span><span class="g-tags">${esc(partner.find((r) => r.vanity && s.sale && r.vanity.toLowerCase() === s.sale.toLowerCase())?.name || s.sale || '')}</span></span></a>`)).join('')}</div>`;
+  }
+  if (partner.length) {
+    html += `<div class="sec-head"><h2>發行商・系列作特賣</h2><span class="aside">${partner.length} 個進行中</span></div>
+      ${chipsHTML('pk', [['all', '全部', partner.length], ['publisher', '發行商', counts('publisher')], ['franchise', '系列作', counts('franchise')], ['show', '展會', counts('show')]].filter((c) => c[0] === 'all' || c[2]))}
+      ${pShown.slice(0, pLimit).map((r) => saleCard(r, E)).join('')}
+      ${pShown.length > pLimit ? `<button class="more-btn" data-pkall="1">再看 ${pShown.length - pLimit} 個特賣活動</button>` : ''}
+      <p class="hint">價格為 Steam 台灣區（新台幣），依參加遊戲的玩家人數排序。${E.at?.partner ? `${ago(E.at.partner)}更新。` : ''}</p>`;
+  }
+  html += `<div class="sec-head"><h2>Steam 官方活動時程</h2><span class="aside">台灣時間</span></div>
+    ${sched.length ? schedRows(sched) : '<div class="empty">還沒有時程資料。</div>'}
+    <p class="hint">時程來自 <a href="${esc(E.doc || 'https://partner.steamgames.com/doc/marketing/upcoming_events')}" target="_blank" rel="noopener noreferrer">Steamworks 官方活動時程</a>，Steam 活動都在太平洋時間上午 10 點開始與結束（台灣隔天凌晨 1 或 2 點）。${E.at?.schedule ? `${ago(E.at.schedule)}更新。` : ''}</p>`;
+  return html;
+}
+
 // ---------- 濾網 ----------
 function viewFilter() {
   const m = S.data.meta;
@@ -443,7 +654,7 @@ function viewFilter() {
 }
 
 // ---------- 繪製 ----------
-const VIEWS = { top: viewTop, deals: viewDeals, rel: viewRel, tech: viewTech, filter: viewFilter };
+const VIEWS = { top: viewTop, deals: viewDeals, events: viewEvents, rel: viewRel, tech: viewTech, filter: viewFilter };
 
 function render() {
   updHeader();
@@ -483,8 +694,12 @@ function findItem(id) {
 }
 
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],#refresh');
+  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],#refresh');
   if (!t) return;
+  if (t.dataset.evlist) { const [id, l] = t.dataset.evlist.split('|'); S.evList[id] = l; render(); return; }
+  if (t.dataset.evmore) { S.evShown[t.dataset.evmore] = Number(t.dataset.n || 12) + 12; render(); return; }
+  if (t.dataset.evsale) { const g = t.dataset.evsale; S.evOpen.has(g) ? S.evOpen.delete(g) : S.evOpen.add(g); render(); return; }
+  if (t.dataset.pkall) { S.pkAll = true; render(); return; }
   if (t.dataset.open) { markRead(t.dataset.open); t.closest('.slab')?.classList.add('read'); return; }
   if (t.id === 'refresh') { refresh(); return; }
   if (t.dataset.tab) { ev.preventDefault(); setTab(t.dataset.tab); return; }

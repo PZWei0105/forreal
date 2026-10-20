@@ -21,7 +21,7 @@ KEEP_HOURS = 120          # 新聞在 state 裡保留多久
 SHOW_HOURS = 72           # App 顯示多久內的新聞
 BLOCKED_SHOW_HOURS = 48
 MAX_GAME, MAX_TECH, MAX_BLOCKED = 240, 160, 320
-OUT_FILES = ('news.json', 'tech.json', 'blocked.json', 'deals.json', 'releases.json', 'meta.json')
+OUT_FILES = ('news.json', 'tech.json', 'blocked.json', 'deals.json', 'releases.json', 'events.json', 'meta.json')
 
 
 # ---------------------------------------------------------------- state
@@ -313,6 +313,27 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
         errors.append('wiki: ' + traceback.format_exc()[-400:])
         traceback.print_exc()
 
+    # Steam 平台活動：官方特賣與節慶時程、正在進行的活動與參加遊戲、發行商特賣、每日特惠
+    events, ev_stats = {}, {}
+    try:
+        from . import events as steam_events
+        events = steam_events.build(http, st, cache, health, t0)
+    except Exception:  # noqa: BLE001
+        errors.append('events: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+    if events:
+        try:
+            from . import translate
+            done, ev_stats = translate.run_extra(steam_events.translation_jobs(events), st, t0)
+            steam_events.apply_translations(events, done)
+        except Exception:  # noqa: BLE001
+            errors.append('events translate: ' + traceback.format_exc()[-400:])
+            traceback.print_exc()
+            for x in (events.get('games') or {}).values():
+                if x.pop('_en', None):
+                    x['sp'] = True
+    print('[forreal] events', {k: len(v) for k, v in events.items() if isinstance(v, (list, dict))}, ev_stats, flush=True)
+
     link_steam_ranks(releases)
     if namer is not None:
         try:
@@ -329,7 +350,8 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                           'home': s.get('home')} for s in sources}
     src_meta.update({k: dict(v, store=True) for k, v in cfg.get('stores', {}).items()})
     store_keys = {'steam_deals': 'steam', 'steam_upcoming': 'steam', 'steam_new': 'steam', 'epic': 'epic',
-                  'appstore': 'appstore', 'wiki': 'wiki'}
+                  'appstore': 'appstore', 'wiki': 'wiki', 'ev_schedule': 'steam_events', 'ev_official': 'steam_events',
+                  'ev_partner': 'steam_events', 'ev_daily': 'steam_events', 'ev_tags': 'steam_events'}
     health_out = {k: v for k, v in health.items() if k in src_meta}
     for k, owner in store_keys.items():
         if k in health:
@@ -342,6 +364,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                'blocked.json': {'generated': iso(t0), 'items': blocked},
                'deals.json': dict(deals, generated=iso(t0)),
                'releases.json': dict(releases, generated=iso(t0)),
+               'events.json': dict(events, generated=iso(t0)),
                'meta.json': meta}
     for name, obj in outputs.items():
         write_json(data_dir, name, obj)
@@ -350,7 +373,9 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     runs = st.load('runs.json', [])
     runs.append({'at': iso(t0), 'secs': round((now() - t0).total_seconds(), 1), 'calls': http.calls,
                  'game': len(game), 'tech': len(tech), 'blocked': len(blocked), 'store': len(store),
-                 'translate': tr_stats, 'names': name_stats, 'errors': errors[:5]})
+                 'translate': tr_stats, 'names': name_stats, 'events': ev_stats,
+                 'live': [e.get('name') for e in events.get('live') or []], 'partner': len(events.get('partner') or []),
+                 'errors': errors[:5]})
     st.save('runs.json', runs[-80:])
     # 翻譯器的安裝與執行紀錄（雲端 Claude 看不到 Actions 的 log，所以存進 state 分支）
     diag = st.path / 'diag'
