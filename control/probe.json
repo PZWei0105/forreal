@@ -1,42 +1,15 @@
 [
  {
-  "name": "mm_plain",
-  "url": "https://api.steampowered.com/IMarketingMessagesService/GetActiveMarketingMessages/v1/?country=TW&anonymous_user=true"
+  "name": "gi_fallout",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1151340%7D%2C%7B%22appid%22%3A377160%7D%2C%7B%22appid%22%3A22380%7D%2C%7B%22appid%22%3A22370%7D%2C%7B%22appid%22%3A588430%7D%2C%7B%22appid%22%3A4114140%7D%2C%7B%22appid%22%3A4841320%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_all_purchase_options%22%3Atrue%7D%7D"
  },
  {
-  "name": "mm_json",
-  "url": "https://api.steampowered.com/IMarketingMessagesService/GetActiveMarketingMessages/v1/?input_json=%7B%22country%22%3A%20%22TW%22%2C%20%22anonymous_user%22%3A%20true%7D"
+  "name": "gi_fallout_min",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1151340%7D%2C%7B%22appid%22%3A377160%7D%2C%7B%22appid%22%3A22380%7D%2C%7B%22appid%22%3A22370%7D%2C%7B%22appid%22%3A588430%7D%2C%7B%22appid%22%3A4114140%7D%2C%7B%22appid%22%3A4841320%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_release%22%3Atrue%7D%7D"
  },
  {
-  "name": "mm_nocc",
-  "url": "https://api.steampowered.com/IMarketingMessagesService/GetActiveMarketingMessages/v1/"
- },
- {
-  "name": "ftk_games",
-  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&cc=tw&l=tchinese&infinite=1&maxprice=free&specials=1&category1=998"
- },
- {
-  "name": "ftk_all",
-  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&cc=tw&l=tchinese&infinite=1&maxprice=free&specials=1"
- },
- {
-  "name": "fw_filter",
-  "url": "https://store.steampowered.com/search/results/?query=&start=0&count=100&cc=tw&l=tchinese&infinite=1&filter=freeweekend"
- },
- {
-  "name": "q_ftk",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A50%2C%22filters%22%3A%7B%22price_filters%22%3A%7B%22min_discount_percent%22%3A100%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%7D%7D"
- },
- {
-  "name": "q_ftk_games",
-  "url": "https://api.steampowered.com/IStoreQueryService/Query/v1/?input_json=%7B%22query_name%22%3A%22forreal%22%2C%22query%22%3A%7B%22start%22%3A0%2C%22count%22%3A50%2C%22filters%22%3A%7B%22type_filters%22%3A%7B%22include_games%22%3Atrue%7D%2C%22price_filters%22%3A%7B%22min_discount_percent%22%3A100%7D%7D%7D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_tag_count%22%3A8%7D%7D"
- },
- {
-  "name": "featuredcats",
-  "url": "https://store.steampowered.com/api/featuredcategories?cc=tw&l=tchinese"
- },
- {
-  "name": "featured",
-  "url": "https://store.steampowered.com/api/featured/?cc=tw&l=tchinese"
+  "name": "fallout_sale_html",
+  "url": "https://store.steampowered.com/sale/falloutfranchise2026?l=tchinese&cc=tw",
+  "max": 8000000
  }
 ]
