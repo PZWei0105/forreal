@@ -1134,10 +1134,25 @@ window.addEventListener('hashchange', () => setTab(location.hash.slice(1), { pus
 
 // 離開 App 時記下時間，下次打開就知道哪些是「新」的
 function rememberVisit() { local.set('lastSeen', Date.now()); }
+// 介面改版時：新版的 service worker 接手後，等下次切回 App 再換成新版，不打斷正在看的畫面
+const SW = { reg: null, updated: false, checked: 0 };
+function initSW() {
+  if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) SW.updated = true; });
+  navigator.serviceWorker.register('sw.js').then((r) => { SW.reg = r; SW.checked = Date.now(); }).catch(() => {});
+}
+
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') { rememberVisit(); stopSpeak(); S.speakingLine = -1; }
+  if (document.visibilityState === 'hidden') {
+    rememberVisit();
+    if (S.speakingLine >= 0) { stopSpeak(); S.speakingLine = -1; highlightLine(); }
+    return;
+  }
+  if (SW.updated) { location.reload(); return; }
+  if (SW.reg && Date.now() - SW.checked > 30 * 60000) { SW.checked = Date.now(); SW.reg.update().catch(() => {}); }
   const g = S.data.meta?.generated;
-  if (document.visibilityState === 'visible' && g && (Date.now() - new Date(g)) / 60000 > 65) rescan();
+  if (g && (Date.now() - new Date(g)) / 60000 > 65) rescan();
 });
 window.addEventListener('pagehide', rememberVisit);
 
@@ -1166,7 +1181,7 @@ async function bootApp() {
   await dataP;
   setTab(S.tab, { push: false });
   if (shown || firstOpen) whenUnlocked(() => play('boot'));
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  initSW();
 }
 
 bootApp();
