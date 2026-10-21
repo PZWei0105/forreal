@@ -28,10 +28,16 @@
   - 參加遊戲：任何 Steam 特賣活動都可以用 `actions/ajaxgetdynamicsaleitems?tagids_featured=<標籤>` 依熱門程度列出（主題節用 optin_tagid，新品節與發行商特賣用 featured_app_tagid）。
   - 發行商／系列作特賣、展會：`saleaction/ajaxgetlivesaleevents` → `events/ajaxgetbatchedpartnerevent` → 上面的參加遊戲清單；依參加遊戲的評論數排序。每日特惠與首頁焦點：`api/featuredcategories`。
   - 遊戲資料：`IStoreBrowseService/GetItems`（tchinese、TW）：台灣區價格、折扣與截止時間、評價、標籤（`GetTagList` 中文名）、繁中／簡中支援、試玩版、發售日。英文簡介先找開發商的簡中簡介（OpenCC 轉台灣正體），沒有才交給翻譯器（快取 state 分支 `extra_zh.json`，每輪最多 4 分鐘，重要的先翻；App 在機器翻譯的簡介前標「機翻」）。發行商特賣的活動名稱不翻（專有名詞常被翻錯，保留原文）。成人限定（content descriptor 3、4）與標了色情內容／Hentai 的小眾作品（評論 2 萬則以下）不收。
+  - 限時免費（`build_free`）：免費領取（領了就永久留在收藏庫）用 Steam 搜尋 `search/results/?maxprice=free&specials=1`（會混到 DLC，DLC 也收、排在遊戲後面），再用 GetItems 的 `best_purchase_option.is_free_to_keep`、`free_to_keep_ends` 確認與取截止時間。免費週末只看 GetItems 的 `free_weekend` 欄位和行銷訊息 type 14（`is_free_temporarily` 在免費領取時也是 true，不能拿來判斷免費週末）。
+  - Steam 用戶端行銷訊息 `IMarketingMessagesService/GetActiveMarketingMessages/v1/?country=TW&anonymous_user=true`：週末特價（2）、週中特價（11）、每日特惠（12）、免費週末（14）、特賣頁（15）的確切起訖，用來補「今日特惠與首頁焦點」的截止時間。抓不到時只記警告，免費領取照做。
   - 離線測試：`python3 tests/local_events.py [模擬時間 ISO] [輸出 events.json]`（`PROBES` 指向解開的 probe 資料夾）。
 
 ## 介面
-- 主題：鑑定台。牌桌綠墊、壓克力卡盒、卡盒上方的標籤條寫來源與可信度。
-- 全像「真」印只給「官方來源」或「三家以上獨立報導」的消息、特價頁的「好價」，以及「活動」頁的 Steam 官方活動（發行商自己辦的特賣不給）。不要拿來裝飾。
-- 「活動」頁：進行中的官方活動放最上面（時間、進度條、剩幾天、參加遊戲榜單），沒有進行中的就顯示下一場；再來是今日特惠、發行商／系列作特賣、官方活動時程（依月份）。時間一律顯示台灣時間。
-- 被擋下的內容用紅色印章標理由。數字用 Saira（窄體），中文用系統字。
+- 主題：防偽情報中樞（2026/10 改版，取代原本的鑑定台）。深藍墨色底，用鈔票、護照的防偽印刷當視覺語言：扭索紋花飾（`fx.js` 的 `rosette()`）、全像箔、紫外線掃描光、凹版紅色「攔截」印章、切角的「保全文件」卡片（`.doc`）。標題用 Noto Serif TC 900，數字用 Saira（窄體），內文用系統字。只有深色模式。
+- 全像箔只用在：「真」印、選中的分頁、小真的核心。「真」印只給「官方來源」或「三家以上獨立報導」的消息、特價頁的「好價」，以及「活動」頁的 Steam 官方活動（發行商自己辦的特賣不給）。不要拿來裝飾。
+- 小真：PZ 的情報秘書，「簡報」分頁最上面的簡報。內容用固定規則從當輪資料組出來（`brief.js` 的 `buildBrief`，不是 AI 生成）：頭號消息、Steam 活動、限時免費、好價、7 天內大作、追蹤關鍵字、濾網統計。可以用手機內建語音（speechSynthesis、zh-TW）播報，唸到哪一行就亮哪一行。
+- 聲光：`sfx.js` 用 Web Audio 即時合成音效（不載音檔）並搭配震動；`fx.js` 是開機動畫（每次打開 App 播一次、輕觸略過）、全像光影（跟著捲動或傾斜手機變色）、紫外線掃描、數字滾動、提示框。全部都能在「設定」關掉或切省電；系統開了「減少動態效果」時一律不播。設定存在 localStorage（`fr.sfx`、`fr.fx`）。
+- 搜尋（右上放大鏡）：同時搜新聞、特價、Steam 活動、發售表，可以把關鍵字直接加到追蹤。
+- 「活動」頁：進行中的官方活動放最上面（倒數圓環、時間、剩幾天、參加遊戲榜單），沒有進行中的就顯示下一場；再來是限時免費、今日特惠與首頁焦點、發行商／系列作特賣、官方活動時程（依月份）。時間一律顯示台灣時間。
+- 被擋下的內容用紅色印章標理由。
+- `app.js` 用 `?v=__BUILD__` 匯入其他模組；`build.py` 的 `copy_site` 會把所有 .js、.html 裡的 `__BUILD__` 換成這輪的 build id（`sw.js` 也是），改版後手機不會卡在舊檔。

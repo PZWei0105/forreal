@@ -1,11 +1,14 @@
-/* 玩真的 service worker：介面檔案先用快取（秒開），資料一律先抓網路、失敗才用上次的資料。 */
+/* 玩真的 service worker：介面檔案先用快取（秒開），資料一律先抓網路、失敗才用上次的資料。
+   介面檔案的網址都帶 ?v=版本，換版時整組換新。 */
 const BUILD = '__BUILD__';
 const SHELL = `forreal-shell-${BUILD}`;
 const DATA = 'forreal-data';
-const SHELL_FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
+const V = `?v=${BUILD}`;
+const SHELL_FILES = ['./', 'index.html', `styles.css${V}`, `app.js${V}`, `sfx.js${V}`, `fx.js${V}`, `brief.js${V}`, 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload'：不要拿到瀏覽器 HTTP 快取裡的舊檔
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
