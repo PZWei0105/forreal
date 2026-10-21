@@ -249,10 +249,10 @@ def copy_site(out_dir: pathlib.Path):
         if p.is_file() and 'data' not in p.relative_to(ROOT / 'site').parts:
             h.update(p.read_bytes())
     build_id = h.hexdigest()[:10]
-    for name in ('sw.js', 'index.html'):
-        f = out_dir / name
-        if f.exists():
-            f.write_text(f.read_text(encoding='utf-8').replace('__BUILD__', build_id), encoding='utf-8')
+    for f in list(out_dir.glob('*.js')) + list(out_dir.glob('*.html')):
+        txt = f.read_text(encoding='utf-8')
+        if '__BUILD__' in txt:
+            f.write_text(txt.replace('__BUILD__', build_id), encoding='utf-8')
     return build_id
 
 
@@ -351,7 +351,8 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     src_meta.update({k: dict(v, store=True) for k, v in cfg.get('stores', {}).items()})
     store_keys = {'steam_deals': 'steam', 'steam_upcoming': 'steam', 'steam_new': 'steam', 'epic': 'epic',
                   'appstore': 'appstore', 'wiki': 'wiki', 'ev_schedule': 'steam_events', 'ev_official': 'steam_events',
-                  'ev_partner': 'steam_events', 'ev_daily': 'steam_events', 'ev_tags': 'steam_events'}
+                  'ev_partner': 'steam_events', 'ev_daily': 'steam_events', 'ev_tags': 'steam_events',
+                  'ev_free': 'steam_events'}
     health_out = {k: v for k, v in health.items() if k in src_meta}
     for k, owner in store_keys.items():
         if k in health:

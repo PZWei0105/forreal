@@ -17,7 +17,7 @@ from pipeline.util import parse_iso  # noqa: E402
 from tests.fake_http import R  # noqa: E402
 
 SCR = '/tmp/claude-0/-home-claude/61a76801-9268-5d2b-b17a-ad8c58a2eb47/scratchpad'
-DIRS = [pathlib.Path(p) for p in os.environ.get('PROBES', ':'.join(f'{SCR}/{d}' for d in ('probe6', 'probe5', 'probe4', 'probe3'))).split(':')]
+DIRS = [pathlib.Path(p) for p in os.environ.get('PROBES', ':'.join(f'{SCR}/{d}' for d in ('probe8', 'probe7', 'probe6', 'probe5', 'probe4', 'probe3'))).split(':')]
 
 
 def find(name):
@@ -73,6 +73,10 @@ class Http:
             raw = find('browser/specials/009.bin').decode('utf-8', 'replace')
             evs = [e for e in events._events_from_text(raw) if e['gid'] in gids]
             b = json.dumps({'success': 1, 'events': evs}).encode()
+        elif 'GetActiveMarketingMessages' in url:
+            b = find('mm_plain')
+        elif 'maxprice=free&specials=1' in url:
+            b = find('ftk_all')
         elif 'featuredcategories' in url:
             b = find('featuredcats')
         elif 'GetTagList' in url:
@@ -109,6 +113,7 @@ if __name__ == '__main__':
     for r in ev['partner'][:30]:
         print('  ', r['kind'], r['name'][:40], r['start'], r['end'], r['count'], len(r['ids']), 'spot' if r['spot'] else '')
     print('daily', ev['daily'])
+    print('free', ev['free'], [(ev['games'][str(a)]['name'], ev['games'][str(a)].get('ftk_end')) for a in ev['free']['keep']])
     print('games', len(ev['games']))
     jobs = events.translation_jobs(ev)
     print('jobs', len(jobs), jobs[:3])

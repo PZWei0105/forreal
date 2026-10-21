@@ -90,7 +90,7 @@
     "\\bwalkthrough\\b",
     "\\btier list\\b",
     "\\bbest (?:builds?|loadouts?|class(?:es)?|weapons?|perks?|settings|decks?|teams?|characters?|skills?|talents?|gear|mods|starter|starting)\\b",
-    "\\bcodes?\\b.{0,25}(?:\\(|\\bworking\\b|\\bactive\\b|\\blist\\b|\\bredeem|\\bfree\\b|\\b202\\d\\b|\\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\\b)",
+    "\\bcodes\\b.{0,25}(?:\\(|\\bworking\\b|\\bactive\\b|\\blist\\b|\\bredeem|\\bfree\\b|\\b202\\d\\b|\\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\\b)|\\bcode\\b.{0,25}(?:\\bworking\\b|\\bactive\\b|\\bredeem)",
     "\\bwordle\\b",
     "\\bconnections\\b.{0,20}\\b(?:hints?|answers?)\\b",
     "\\bstrands\\b",

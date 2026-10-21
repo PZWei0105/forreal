@@ -50,13 +50,20 @@ ASSET_BASE = 'https://shared.akamai.steamstatic.com/store_item_assets/'
 CTX = {'language': 'tchinese', 'country_code': 'TW', 'steam_realm': 1}
 CLAN_BASE = 103582791429521408
 
-INTERVAL_H = {'ev_schedule': 11.5, 'ev_official': 1.9, 'ev_partner': 2.9, 'ev_daily': 0.9, 'ev_tags': 24 * 6.5}
+INTERVAL_H = {'ev_schedule': 11.5, 'ev_official': 1.9, 'ev_partner': 2.9, 'ev_daily': 0.9, 'ev_free': 0.9,
+              'ev_tags': 24 * 6.5}
 ADULT = {3, 4}            # 成人內容描述（與 Steam 匿名瀏覽的預設一樣排除）
 # Steam 只把「成人限定」藏起來；標了「色情內容／Hentai／Sexual Themes」的小眾作品也不收
 # （評論 2 萬則以上的大作例外，例如部分 3A 角色扮演遊戲也有這些標籤）
 ADULT_TAGS = {12095, 9130, 40500}
 ADULT_WORDS = re.compile(r'淫|hentai|nsfw|lewd|エロ|工口', re.I)
 LANG_TC, LANG_SC = 7, 6
+TYPE_DLC = 4
+MARKETING = 'https://api.steampowered.com/IMarketingMessagesService/GetActiveMarketingMessages/v1/?country=TW&anonymous_user=true'
+FREE_SEARCH = ('https://store.steampowered.com/search/results/?query=&start=0&count=100&maxprice=free&specials=1'
+               '&cc=tw&l=tchinese&infinite=1')
+# Steam 用戶端彈出的行銷訊息種類（只取跟特價、免費有關的）
+MM_KIND = {2: 'weekend', 11: 'midweek', 12: 'daily', 14: 'freeweekend', 15: 'sale'}
 SEASON_ZH = {'winter': '冬季特賣', 'spring': '春季特賣', 'summer': '夏日特賣', 'autumn': '秋季特賣', 'fall': '秋季特賣'}
 MONTHS = {m: i for i, m in enumerate(('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'), 1)}
 NEXTFEST_CHARTS = (('play', '最多人玩', 'dailyactiveuserdemo'), ('wish', '最受期待', 'topwishlisted'),
@@ -434,13 +441,13 @@ def _release(it):
             'ea': bool(rel.get('is_early_access'))}
 
 
-def norm_item(it: dict, tagnames: dict) -> dict | None:
+def norm_item(it: dict, tagnames: dict, allow_dlc: bool = False) -> dict | None:
     if ADULT & set(it.get('content_descriptorids') or []) or ADULT_WORDS.search(it.get('name') or ''):
         return None
     n_reviews = ((it.get('reviews') or {}).get('summary_filtered') or {}).get('review_count') or 0
     if ADULT_TAGS & {t.get('tagid') for t in it.get('tags') or []} and n_reviews < 20000:
         return None
-    if it.get('type') not in (0, None) or it.get('item_type') not in (0, None):
+    if it.get('type') not in ((0, None, TYPE_DLC) if allow_dlc else (0, None)) or it.get('item_type') not in (0, None):
         return None
     appid = it.get('appid') or it.get('id')
     bpo = it.get('best_purchase_option') or {}
@@ -477,6 +484,16 @@ def norm_item(it: dict, tagnames: dict) -> dict | None:
             x['_en'] = short[:600]   # 英文簡介：交給翻譯器，翻好才放進 App
     if not x['tags']:
         x.pop('tags')
+    if it.get('type') == TYPE_DLC:
+        x['dlc'] = True
+    # 限時免費領取（領了就永久保留）
+    if bpo.get('is_free_to_keep') or (final == 0 and x['disc'] == 100):
+        x['ftk'] = True
+        x['ftk_end'] = _ts(bpo.get('free_to_keep_ends')) or x['ends']
+    # 免費週末（限時免費玩，結束後要買才能繼續玩）。注意 is_free_temporarily 在「免費領取」時也是 true，不能拿來判斷
+    fw = it.get('free_weekend') or {}
+    if fw.get('end_time') and not x.get('ftk'):
+        x['fw'] = {'start': _ts(fw.get('start_time')), 'end': _ts(fw.get('end_time'))}
     return x
 
 
@@ -801,6 +818,62 @@ def build_daily(http, cache, health, t0, tagnames, games):
     return _ok(cache, health, key, data, t0, n=len(deal) + len(spots))
 
 
+# ---------------------------------------------------------------- 限時免費（免費領取、免費週末）
+def _marketing(http, t0):
+    """Steam 用戶端的官方行銷訊息（台灣區）：免費週末、週中／週末特價、每日特惠的確切起訖時間。"""
+    d = _json(http, MARKETING)
+    out = []
+    for m in (d.get('response') or {}).get('messages') or []:
+        kind = MM_KIND.get(m.get('type'))
+        s, e = m.get('start_date'), m.get('end_date')
+        if not kind or not e or not (s or 0) <= t0.timestamp() < e:
+            continue
+        link = re.search(r'"linkurl"\s+"([^"]+)"', m.get('template_vars') or '')
+        out.append({'kind': kind, 'appid': m.get('associated_id') if m.get('association_type') == 1 else None,
+                    'title': m.get('title') or '', 'start': _ts(s), 'end': _ts(e),
+                    'link': link.group(1).split('?')[0] if link else None})
+    return out
+
+
+def build_free(http, cache, health, t0, tagnames, games):
+    key = 'ev_free'
+    if not _due(cache, key, t0):
+        return cache[key]
+    try:
+        mm = _marketing(http, t0)
+        health.setdefault(key, {}).pop('warn', None)
+    except Exception as e:  # noqa: BLE001 — 行銷訊息抓不到，免費領取照做
+        mm = []
+        health.setdefault(key, {})['warn'] = f'marketing: {type(e).__name__}: {e}'[:160]
+    try:
+        r = http.get(FREE_SEARCH, timeout=30)
+        if r.status_code != 200:
+            raise RuntimeError(f'HTTP {r.status_code}')
+        from .stores import parse_steam_search
+        rows = parse_steam_search(r.json().get('results_html') or '')
+    except Exception as e:  # noqa: BLE001
+        return _fail(cache, health, key, f'{type(e).__name__}: {e}', t0)
+    keep_ids = [x['appid'] for x in rows if x.get('discount') == 100 or x.get('final') == 0]
+    fw_msgs = {m['appid']: m for m in mm if m['kind'] == 'freeweekend' and m.get('appid')}
+    info = get_items(http, [a for a in keep_ids + list(fw_msgs)])
+    found = {}
+    for a, it in info.items():
+        g = norm_item(it, tagnames, allow_dlc=True)
+        if g:
+            found[a] = g
+    _zh_fallback(http, list(found.values()))
+    keep = [a for a in keep_ids if a in found and found[a].get('ftk')]
+    keep.sort(key=lambda a: (bool(found[a].get('dlc')), -(found[a].get('n') or 0)))   # 遊戲先、DLC 後；熱門的先
+    weekend = []
+    for a, m in fw_msgs.items():
+        if a in found:
+            fw = found[a].get('fw') or {}
+            weekend.append({'appid': a, 'start': fw.get('start') or m['start'], 'end': fw.get('end') or m['end']})
+    games.update(found)
+    data = {'keep': keep, 'weekend': weekend, 'mm': mm, 'games': {str(a): found[a] for a in found}}
+    return _ok(cache, health, key, data, t0, n=len(keep) + len(weekend))
+
+
 # ---------------------------------------------------------------- 對外
 def build(http, st, cache, health, t0):
     schedule = (build_schedule(http, cache, health, t0).get('data') or [])
@@ -813,6 +886,8 @@ def build(http, st, cache, health, t0):
     games.update({int(k): v for k, v in (par.get('games') or {}).items()})
     day = build_daily(http, cache, health, t0, tagnames, games).get('data') or {}
     games.update({int(k): v for k, v in (day.get('games') or {}).items()})
+    free = build_free(http, cache, health, t0, tagnames, games).get('data') or {}
+    games.update({int(k): v for k, v in (free.get('games') or {}).items()})
 
     # 快取裡的舊資料也套用同一套成人內容規則（標籤名稱、遊戲名稱）
     adult_names = {'色情內容', 'Hentai', 'Sexual Themes'}
@@ -864,10 +939,43 @@ def build(http, st, cache, health, t0):
         used.update(r['ids'])
     used.update(day.get('deal') or [])
     used.update(s['appid'] for s in day.get('spots') or [] if s.get('appid'))
+
+    # 限時免費：免費領取（還沒截止的）＋免費週末（行銷訊息，以及其他清單裡剛好正在免費週末的遊戲）
+    def alive(end):
+        e = parse_iso(end) if end else None
+        return e is None or e > now_ts
+    keep = [a for a in free.get('keep') or [] if a in games and alive(games[a].get('ftk_end'))]
+    weekend, seen_fw = [], set()
+    for w in free.get('weekend') or []:
+        if w['appid'] in games and alive(w.get('end')) and w['appid'] not in seen_fw:
+            weekend.append(w)
+            seen_fw.add(w['appid'])
+    for a, x in games.items():
+        fw = x.get('fw')
+        if fw and fw.get('end') and a not in seen_fw and alive(fw['end']) and \
+                (not fw.get('start') or parse_iso(fw['start']) <= now_ts):
+            weekend.append({'appid': a, 'start': fw.get('start'), 'end': fw['end']})
+            seen_fw.add(a)
+    used.update(keep)
+    used.update(w['appid'] for w in weekend)
+    # 首頁焦點補上確切截止時間（Steam 用戶端行銷訊息裡有）
+    mm = free.get('mm') or []
+    spots = []
+    for sp in day.get('spots') or []:
+        sp = dict(sp)
+        for m in mm:
+            same_app = sp.get('appid') and m.get('appid') == sp['appid']
+            same_sale = sp.get('sale') and m.get('link') and m['link'].lower().rstrip('/').endswith('/sale/' + sp['sale'].lower())
+            if (same_app or same_sale) and alive(m.get('end')):
+                sp['end'] = m['end']
+                break
+        spots.append(sp)
+
     out_games = {str(a): dict(games[a]) for a in used if a in games}   # 複本：翻譯只改輸出，不改快取
-    at = {k: (cache.get(f'ev_{k}') or {}).get('at') for k in ('schedule', 'official', 'partner', 'daily')}
+    at = {k: (cache.get(f'ev_{k}') or {}).get('at') for k in ('schedule', 'official', 'partner', 'daily', 'free')}
     return {'at': at, 'live': live, 'partner': partner,
-            'daily': {'deal': day.get('deal') or [], 'spots': day.get('spots') or []},
+            'daily': {'deal': day.get('deal') or [], 'spots': spots},
+            'free': {'keep': keep, 'weekend': weekend},
             'schedule': sched, 'games': out_games, 'doc': DOC_URL}
 
 
@@ -884,6 +992,10 @@ def translation_jobs(events: dict) -> list[tuple]:
         seen.add(key)
         jobs.append((kind, key, text, name))
     g = events.get('games') or {}
+    free = events.get('free') or {}
+    for a in list(free.get('keep') or []) + [w['appid'] for w in free.get('weekend') or []]:
+        x = g.get(str(a)) or {}
+        add('desc', str(a), x.get('_en'), x.get('name', ''))
     for ev in events.get('live') or []:
         for li in ev.get('lists') or []:
             for a in li.get('ids') or []:
