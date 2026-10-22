@@ -1,15 +1,137 @@
 [
  {
-  "name": "gi_fallout",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1151340%7D%2C%7B%22appid%22%3A377160%7D%2C%7B%22appid%22%3A22380%7D%2C%7B%22appid%22%3A22370%7D%2C%7B%22appid%22%3A588430%7D%2C%7B%22appid%22%3A4114140%7D%2C%7B%22appid%22%3A4841320%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%2C%22include_reviews%22%3Atrue%2C%22include_assets%22%3Atrue%2C%22include_all_purchase_options%22%3Atrue%7D%7D"
+  "name": "steam_vanity_xml",
+  "url": "https://steamcommunity.com/id/gabelogannewell/?xml=1",
+  "max": 6000000
  },
  {
-  "name": "gi_fallout_min",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A1151340%7D%2C%7B%22appid%22%3A377160%7D%2C%7B%22appid%22%3A22380%7D%2C%7B%22appid%22%3A22370%7D%2C%7B%22appid%22%3A588430%7D%2C%7B%22appid%22%3A4114140%7D%2C%7B%22appid%22%3A4841320%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_release%22%3Atrue%7D%7D"
+  "name": "steam_wishlist_gabe",
+  "url": "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?steamid=76561197960287930",
+  "max": 6000000
  },
  {
-  "name": "fallout_sale_html",
-  "url": "https://store.steampowered.com/sale/falloutfranchise2026?l=tchinese&cc=tw",
-  "max": 8000000
+  "name": "steam_wishlist_count",
+  "url": "https://api.steampowered.com/IWishlistService/GetWishlistItemCount/v1/?steamid=76561197960287930",
+  "max": 6000000
+ },
+ {
+  "name": "gp_recent",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=f13cf6b4-57e6-4459-89df-6aec18cf0538&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "gp_coming",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=095bda36-f5cd-43f2-9ee1-0a72f371fb96&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "gp_leaving",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=393f05bf-e596-4ef6-9487-6d4fa0eab987&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "gp_console_all",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=f6f1f99f-9b49-4ccd-b3bf-4d9767a77f5e&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "gp_pc_all",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "gp_popular",
+  "url": "https://catalog.gamepass.com/sigls/v2?id=eab7757c-ff70-45af-bfa6-79d3cfb2bf81&language=zh-tw&market=TW",
+  "max": 6000000
+ },
+ {
+  "name": "ms_catalog",
+  "url": "https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9NKX70BBCDRN,9PP5G1F0C2B6,9NCJSXWZTP88&market=TW&languages=zh-tw&MS-CV=DGU1mcuYo0WMMp+F.1",
+  "max": 6000000
+ },
+ {
+  "name": "xbox_wire_gp_post",
+  "url": "https://news.xbox.com/en-us/2026/10/20/xbox-game-pass-october-2026-wave-2/",
+  "max": 6000000
+ },
+ {
+  "name": "xbox_wire_gp_tag",
+  "url": "https://news.xbox.com/en-us/xbox-game-pass/",
+  "max": 6000000
+ },
+ {
+  "name": "ps_whatsnew",
+  "url": "https://www.playstation.com/zh-hant-tw/ps-plus/whats-new/",
+  "max": 6000000
+ },
+ {
+  "name": "ps_plus",
+  "url": "https://www.playstation.com/zh-hant-tw/ps-plus/",
+  "max": 6000000
+ },
+ {
+  "name": "ps_store_deals",
+  "url": "https://store.playstation.com/zh-hant-tw/pages/deals",
+  "max": 6000000
+ },
+ {
+  "name": "ps_store_alldeals",
+  "url": "https://store.playstation.com/zh-hant-tw/category/3f772501-f6f8-49b7-abac-874a88ca4897/1",
+  "max": 6000000
+ },
+ {
+  "name": "ps_store_browse",
+  "url": "https://store.playstation.com/zh-hant-tw/pages/browse/1",
+  "max": 6000000
+ },
+ {
+  "name": "ns_price_tw",
+  "url": "https://api.ec.nintendo.com/v1/price?country=TW&lang=zh&ids=70010000000185,70010000006442,70010000013000",
+  "max": 6000000
+ },
+ {
+  "name": "ns_price_hk",
+  "url": "https://api.ec.nintendo.com/v1/price?country=HK&lang=zh&ids=70010000000185,70010000006442,70010000013000",
+  "max": 6000000
+ },
+ {
+  "name": "ns_tw_site",
+  "url": "https://www.nintendo.com/tw/",
+  "max": 6000000
+ },
+ {
+  "name": "ns_hk_site",
+  "url": "https://www.nintendo.com/hk/",
+  "max": 6000000
+ },
+ {
+  "name": "ns_tw_old",
+  "url": "https://www.nintendo.com.tw/",
+  "max": 6000000
+ },
+ {
+  "name": "ns_hk_old",
+  "url": "https://www.nintendo.com.hk/",
+  "max": 6000000
+ },
+ {
+  "name": "ns_hk_softjson",
+  "url": "https://www.nintendo.com.hk/data/json/switch_software.json",
+  "max": 6000000
+ },
+ {
+  "name": "ns_ec_hk",
+  "url": "https://ec.nintendo.com/HK/zh/",
+  "max": 6000000
+ },
+ {
+  "name": "ns_ec_tw",
+  "url": "https://ec.nintendo.com/TW/zh/",
+  "max": 6000000
+ },
+ {
+  "name": "psblog_zh_plus",
+  "url": "https://blog.zh-hant.playstation.com/tag/playstation-plus/feed/",
+  "max": 6000000
  }
 ]

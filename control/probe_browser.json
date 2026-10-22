@@ -1,1 +1,27 @@
-[]
+[
+ {
+  "name": "b_xbox_gp",
+  "url": "https://www.xbox.com/zh-TW/xbox-game-pass/games",
+  "scrolls": 6
+ },
+ {
+  "name": "b_ps_deals",
+  "url": "https://store.playstation.com/zh-hant-tw/pages/deals",
+  "scrolls": 8
+ },
+ {
+  "name": "b_ps_whatsnew",
+  "url": "https://www.playstation.com/zh-hant-tw/ps-plus/whats-new/",
+  "scrolls": 8
+ },
+ {
+  "name": "b_ns_tw",
+  "url": "https://www.nintendo.com/tw/",
+  "scrolls": 5
+ },
+ {
+  "name": "b_ns_hk_sale",
+  "url": "https://www.nintendo.com/hk/",
+  "scrolls": 5
+ }
+]
