@@ -179,11 +179,16 @@ def _ms_products(http, ids: list[str]) -> dict:
             rel = ((p.get('MarketProperties') or [{}])[0].get('OriginalReleaseDate') or '')[:10] or None
             name = (zh.get('ProductTitle') or en.get('ProductTitle') or '').strip()
             name = re.sub(r'^《(.*)》$', r'\1', name)   # 有些台灣商品名稱自己帶書名號
+            preview = bool(re.search(r'\((?:Game Preview|遊戲預覽版)\)', name + (en.get('ProductTitle') or ''), re.I))
+            name = re.sub(r'\s*\((?:Game Preview|遊戲預覽版)\)', '', name).strip()   # App 另外標「搶先體驗」
             out[p['ProductId']] = {
                 'id': p['ProductId'], 'name': name,
-                'en': (en.get('ProductTitle') or '').strip(), 'pub': zh.get('PublisherName') or en.get('PublisherName'),
+                'en': re.sub(r'\s*\(Game Preview\)', '', en.get('ProductTitle') or '', flags=re.I).strip(),
+                'pub': zh.get('PublisherName') or en.get('PublisherName'),
                 'img': img, 'url': XBOX_STORE.format(id=p['ProductId']), 'rel': rel, 'price': price,
             }
+            if preview:
+                out[p['ProductId']]['preview'] = True
         time.sleep(0.3)
     return out
 
@@ -232,8 +237,9 @@ def build_gamepass(http, cache, health, t0, store_items) -> dict:
                 x.pop('date')   # 「最近新增」不會有未來日期；對到的是別的文章
             rows.append(x)
         if name == 'coming':
-            # 文章公布了、但 Microsoft 清單還沒放進來的（多半是首日加入的新作），一樣列出（只有英文名）
-            have = {_norm(x['en']) for x in rows} | {_norm(x['name']) for x in rows}
+            # 文章公布了、但 Microsoft 清單還沒放進來的（多半是首日加入的新作），一樣列出（只有英文名）。
+            # 已經在任何一份清單裡的（例如今天剛加入、已經移到「最近新增」）不重複列
+            have = {_norm(g['en']) for g in prods.values()} | {_norm(g['name']) for g in prods.values()}
             for k, info in coming_d.items():
                 if k not in have and info.get('date') and info['date'] >= today:
                     rows.append({'name': info['en'], 'en': '', 'date': info['date'], 'tiers': info.get('tiers'),
