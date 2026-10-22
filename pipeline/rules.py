@@ -43,6 +43,8 @@ class Rules:
         self.boosts = [dict(b, rx=_compile(b['patterns'])) for b in taste.get('boost', [])]
         self.follow = [g.strip() for g in taste.get('follow', []) if g.strip()]
         self.follow_rx = [re.compile(re.escape(g), re.IGNORECASE) for g in self.follow]
+        # 依來源自己標的分類擋下（例如 The Verge 的 deals）
+        self.block_cats = {k: {c.lower() for c in v} for k, v in data.get('block_cats', {}).items()}
         self.label = {r['id']: r['label'] for r in data['block'] + data['soft'] + data['types']}
         self.label['mobile_f2p'] = '一般手遊（非買斷）'
 
@@ -108,11 +110,12 @@ class Rules:
                     blocks.append({'r': r['id'] if r['id'] != 'gacha_title' else 'gacha', 'm': m[:40]})
                     break
             low_cats = {c.strip().lower() for c in it.get('cats') or []}
-            if not blocks and tier != 1 and low_cats & {'deals', 'deal', 'shopping', 'commerce', 'affiliate', 'buying guide', 'buying guides'}:
-                blocks.append({'r': 'shop', 'm': '分類：' + next(iter(low_cats & {'deals', 'deal', 'shopping', 'commerce', 'affiliate', 'buying guide', 'buying guides'}))})
-            if not blocks and tier != 1 and low_cats & {'sponsored', 'partner', 'partner content', 'promoted', 'advertorial'}:
-                blocks.append({'r': 'ad', 'm': '分類：' + next(iter(low_cats & {'sponsored', 'partner', 'partner content', 'promoted', 'advertorial'}))})
-            if not blocks and section == 'game' and plat and set(plat) <= {'mobile'} and 'hardware' not in types:
+            for rid in ('shop', 'ad'):
+                hit = sorted(low_cats & self.block_cats.get(rid, set()))
+                if not blocks and tier != 1 and hit:
+                    blocks.append({'r': rid, 'm': '分類：' + hit[0]})
+            # 只出現手機平台的消息：產業新聞（判決、裁員、收購、停止開發…）不算手遊宣傳
+            if not blocks and section == 'game' and plat and set(plat) <= {'mobile'} and not {'hardware', 'industry'} & set(types):
                 f2p = _first(self.f2p, title)
                 if f2p:
                     blocks.append({'r': 'mobile_f2p', 'm': f2p[:40]})
@@ -150,6 +153,7 @@ def score(*, tier: int, n_sources: int, age_h: float, section: str, type_pts: in
     """排序分數：來源可信度＋幾家報導＋新鮮度＋類型＋口味。數字只用來排序。"""
     s = TIER_PTS.get(tier, 10)
     s += min(max(n_sources - 1, 0), 6) * 7
+    s += min(max(n_sources - 7, 0), 8) * 2   # 十幾家都在報的大事（例如工作室關閉）要排在只有 7、8 家的消息前面
     s += 26 * math.exp(-max(age_h, 0) / 20)
     s += SECTION_PTS.get(section, 0)
     s += type_pts + boost

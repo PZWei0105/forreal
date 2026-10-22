@@ -117,6 +117,7 @@ button { font: inherit; color: inherit; }
 main { max-width: 760px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + env(safe-area-inset-bottom) + 30px); }
 .view { display: block; }
 .sec-head { display: flex; align-items: baseline; gap: 10px; margin: 26px 2px 12px; }
+.view > .sec-head:first-child { margin-top: 10px; }
 .sec-head h2 { margin: 0; font-family: var(--serif); font-weight: 900; font-size: 19px; letter-spacing: 0.04em; }
 .sec-head .aside { margin-left: auto; color: var(--paper-3); font-size: 12.5px; }
 .hint { color: var(--paper-3); font-size: 12.5px; margin: 8px 2px 0; line-height: 1.6; }
@@ -399,7 +400,7 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 .g-desc.pend { color: var(--paper-3); font-size: 12px; }
 .g-desc .mt { display: inline-block; margin-right: 5px; padding: 0 4px; border-radius: 4px; border: 1px solid var(--line-2); color: var(--paper-3); font-size: 10.5px; line-height: 1.45; vertical-align: 1px; }
 .g-dead { font-size: 12.5px; font-weight: 650; color: var(--gold); line-height: 1.45; }
-.g-dead .left { margin-left: 8px; font-weight: 400; color: var(--paper-3); }
+.g-dead .left { margin-left: 8px; font-weight: 400; color: var(--paper-3); white-space: nowrap; }
 .g-dead b { font-size: 14px; }
 .gp { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 1px; }
 .gp .now { font-size: 18px; color: var(--gold); }

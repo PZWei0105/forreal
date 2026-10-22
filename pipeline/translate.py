@@ -19,6 +19,10 @@ ENDPOINT = os.environ.get('FORREAL_LLM', 'http://127.0.0.1:8088')
 KEEP_DAYS = 8
 
 PROMPT_VERSION = 2   # 改了提示詞或模型就加一，舊翻譯會重翻
+# 每輪翻譯器都是剛啟動、沒有快取，第一批請求要從頭讀完整段提示：4 核心機器上要 5 分多鐘。
+# 等太短會讓排最前面（最重要）的新聞每輪都逾時、永遠停在「翻譯中」。
+READ_TIMEOUT = (10, 600)
+GIVE_UP = 6   # 同一則新聞連續翻失敗幾輪就放棄、改顯示原文（內容改了會重新嘗試）
 
 SYSTEM = """你是台灣的遊戲與科技新聞編輯。把外文新聞整理成台灣繁體中文，只輸出 JSON：{"title": 中文標題, "summary": 中文摘要}。
 
@@ -57,9 +61,32 @@ TERMS = [('克隆', '複製'), ('存儲', '儲存'), ('視頻', '影片'), ('軟
          ('社交媒體', '社群媒體'), ('星球大戰', '星際大戰'), ('網碼', '網路程式碼'), ('繫列', '系列'), ('臺灣', '台灣'),
          ('臺北', '台北'), ('臺積電', '台積電'), ('臺幣', '台幣'), ('優化', '最佳化'), ('流行朋克', '流行龐克'),
          ('朋克', '龐克'), ('社區', '社群'), ('集郵卡', '收藏卡'), ('reportedly ', '據報導'), (' reportedly', '據報導'),
-         ('AI聲 clone', 'AI 複製聲音'), (' clone', ' 複製'), ('網絡', '網路'), ('數據', '資料'), ('視圖', '畫面')]
+         ('AI聲 clone', 'AI 複製聲音'), (' clone', ' 複製'), ('網絡', '網路'), ('數據', '資料'), ('視圖', '畫面'),
+         ('芯片', '晶片'), ('筆記本電腦', '筆電')]
 SIMPLIFIED_ONLY = set('们这个时会对发现经过还没进开关间问题实现为与业务东车长门马鸟龙认识让请谁说读调网络视频软件硬件质数据库设计应该样么见观觉专产团队游戏戏导岁华实际战类级线乐亲传标签载输设备优惠币购买卖费钱'
                       '复杂览奖励终极计节资动态单双将独')
+
+
+def _simplified_only_chars() -> set:
+    """OpenCC 字典裡「只在簡體出現」的字（簡轉繁時不會保留原字的那些，例如 们、锤、获、页）。
+
+    舊做法只列了一百多個常見字，像「戰锤」「获得」「帮助页面」就漏掉沒轉。台、后、干、里這類繁簡共用字不算。
+    """
+    try:
+        import opencc
+        path = os.path.join(os.path.dirname(opencc.__file__), 'dictionary', 'STCharacters.txt')
+        out = set()
+        with open(path, encoding='utf-8') as f:
+            for line in f:
+                parts = line.rstrip('\n').split('\t')
+                if len(parts) == 2 and len(parts[0]) == 1 and parts[0] not in parts[1].split():
+                    out.add(parts[0])
+        return out
+    except Exception:  # noqa: BLE001 — 沒有字典就只用上面的常見字
+        return set()
+
+
+SIMPLIFIED_ONLY |= _simplified_only_chars()
 RUMOR_ZH = ('傳聞', '尚未確認', '未經證實', '尚未證實', '未證實', '據傳', '謠傳', '尚未經官方', '未經官方', '尚未獲得官方')
 RUMOR_SRC = re.compile(r'\b(?:rumou?r|leak|reportedly|allegedly|insider|claims?|unconfirmed|speculat|datamin)', re.I)
 _KANA = re.compile(r'[぀-ヿ]')
@@ -117,7 +144,7 @@ class Translator:
             'response_format': {'type': 'json_object', 'schema': schema},
             'chat_template_kwargs': {'enable_thinking': False},
         }
-        r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=300)
+        r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=READ_TIMEOUT)
         r.raise_for_status()
         content = r.json()['choices'][0]['message']['content'] or ''
         content = re.sub(r'(?s)<think>.*?</think>', '', content)
@@ -162,7 +189,7 @@ def _one_desc(tr: 'Translator', name: str, text: str) -> str:
     payload = {'messages': messages, 'temperature': 0.1, 'top_p': 0.9, 'max_tokens': 180, 'cache_prompt': True,
                'response_format': {'type': 'json_object', 'schema': SCHEMA_DESC},
                'chat_template_kwargs': {'enable_thinking': False}}
-    r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=300)
+    r = requests.post(ENDPOINT + '/v1/chat/completions', json=payload, timeout=READ_TIMEOUT)
     r.raise_for_status()
     content = re.sub(r'(?s)<think>.*?</think>', '', r.json()['choices'][0]['message']['content'] or '')
     d = tr._tw(json.loads(content[content.find('{'): content.rfind('}') + 1]).get('desc', ''))
@@ -221,9 +248,11 @@ def run_extra(jobs: list[tuple], st, t0, budget_s: int = 240, workers: int = 4) 
 def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = None, workers: int = 4) -> dict:
     """entries 依重要性排好；會直接在 entries 上加 tz（中文標題）、sz（中文摘要）或 pend（翻譯中）。"""
     cache = st.load('zh.json', {})
+    fails = st.load('zh_fail.json', {})   # 翻譯失敗次數：{新聞id: {h, n, at}}
     tr = Translator()
     stats = {'ok': tr.ok, 'model': tr.model, 'done': 0, 'cached': 0, 'failed': 0, 'pending': 0, 'secs': 0}
     need = []
+    nfail = lambda e, h: (fails.get(e['id']) or {}).get('n', 0) if (fails.get(e['id']) or {}).get('h') == h else 0  # noqa: E731
     for e in entries:
         if not needs_translation(e):
             continue
@@ -232,8 +261,10 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
         if c and c.get('h') == h and c.get('v') == PROMPT_VERSION:
             e['tz'], e['sz'] = tr._tw(c['t']), (tr._tw(c.get('s')) or None)
             stats['cached'] += 1
-        else:
+        elif nfail(e, h) < GIVE_UP:
             need.append((e, h))
+    # 失敗過兩次以上的排到最後，不要每輪都卡住最前面那批
+    need.sort(key=lambda x: nfail(*x) >= 2)
     if tr.ok and need:
         env_budget = os.environ.get('FORREAL_LLM_BUDGET')
         budget = budget_s or (int(env_budget) if env_budget else (1500 if len(need) > 100 else 900))
@@ -254,10 +285,12 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
                 if res:
                     e['tz'], e['sz'] = res[0], res[1] or None
                     cache[e['id']] = {'t': res[0], 's': res[1], 'h': h, 'at': iso(t0), 'v': PROMPT_VERSION}
+                    fails.pop(e['id'], None)
                     stats['done'] += 1
                 elif err != 'budget':
                     stats['failed'] += 1
                     errors.append(err)
+                    fails[e['id']] = {'h': h, 'n': nfail(e, h) + 1, 'at': iso(t0)}
         # 第二輪：「其他 N 家」裡的外文標題（只翻標題）
         members = []
         for e in entries:
@@ -289,8 +322,12 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
             stats['errors'] = errors[:5]
     for e in entries:
         if needs_translation(e) and not e.get('tz'):
-            e['pend'] = True
-            stats['pending'] += 1
+            h = _h(e['t'], (e.get('_body') or '')[:400])
+            if nfail(e, h) >= GIVE_UP:
+                stats['gave_up'] = stats.get('gave_up', 0) + 1   # 試了好幾輪都翻不出來：直接顯示原文，不再標「翻譯中」
+            else:
+                e['pend'] = True
+                stats['pending'] += 1
         for m in e.get('m') or []:
             if not m.get('tz'):
                 c = cache.get(m.get('id'))
@@ -299,5 +336,8 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
             m.pop('lang', None)
     for k in [k for k, v in cache.items() if hours_since(parse_iso(v.get('at')) or t0, t0) > 24 * KEEP_DAYS]:
         del cache[k]
+    for k in [k for k, v in fails.items() if hours_since(parse_iso(v.get('at')) or t0, t0) > 24 * KEEP_DAYS]:
+        del fails[k]
     st.save('zh.json', cache)
+    st.save('zh_fail.json', fails)
     return stats

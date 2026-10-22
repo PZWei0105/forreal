@@ -45,8 +45,8 @@ const local = {
 };
 const fmt = (opt) => new Intl.DateTimeFormat('zh-TW', { timeZone: TZ, ...opt });
 const fmtMD = fmt({ month: 'numeric', day: 'numeric' });
-const fmtHM = fmt({ hour: '2-digit', minute: '2-digit', hour12: false });
-const fmtFull = fmt({ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+const fmtHM = fmt({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const fmtFull = fmt({ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const fmtWD = fmt({ weekday: 'short' });
 function ago(iso) {
   if (!iso) return '';
@@ -287,14 +287,18 @@ function briefHTML() {
   </section>`;
 }
 
-function viewTop() {
+function topChips() {
   const items = S.data.news?.items || [];
   const count = (f) => filterNews(items, f).length;
   const newN = S.lastSeen ? count('new') : 0;
-  const chips = [['all', '全部'], ...(newN ? [['new', '新進', newN]] : []), ...(S.follow.length ? [['follow', '追蹤', count('follow')]] : []),
+  return [['all', '全部'], ...(newN ? [['new', '新進', newN]] : []), ...(S.follow.length ? [['follow', '追蹤', count('follow')]] : []),
     ...(S.saved.length ? [['saved', '稍後看', S.saved.length]] : []), ['verified', '已證實'],
     '|', ['pc', 'PC'], ['ps', 'PS'], ['xbox', 'Xbox'], ['switch', 'Switch'], ['mobile', '手機買斷'],
     '|', ['release', '發售'], ['delay', '延期'], ['review', '評測'], ['showcase', '發表會'], ['industry', '產業'], ['rumor', '傳聞']];
+}
+function viewTop() {
+  const items = S.data.news?.items || [];
+  const chips = topChips();
   const list = filterNews(items, S.f.top);
   return `${staleNotice()}${S.data.meta ? briefHTML() : ''}
     ${secHead('頭條', `${items.length ? `共 ${items.length} 則` : ''}`)}
@@ -664,7 +668,7 @@ function viewEvents() {
   }
   if (dealGames.length || spots.length) {
     html += `${secHead('今日特惠與首頁焦點', E.at?.daily ? `${ago(E.at.daily)}更新` : '')}
-      <div class="g-list panel">${dealGames.map((x) => gameRow({ ...x, tags: ['每日特惠', ...(x.tags || []).slice(0, 2)] }, 0, deadline('每日特惠', x.ends))).join('')}
+      <div class="g-list panel">${dealGames.map((x) => gameRow({ ...x, tags: ['每日特惠', ...(x.tags || []).slice(0, 2)] }, 0, deadline('特價', x.ends))).join('')}
       ${spots.map((s) => (s.g ? gameRow({ ...s.g, tags: [s.name, ...(s.g.tags || []).slice(0, 2)] }, 0, deadline(s.name, s.end || s.g.ends))
     : `<a class="g-row spot" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" data-open="spot"><span class="g-art">${s.img ? `<img src="${esc(s.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''}</span><span class="g-main"><span class="name">${esc(s.name)}</span>${deadline(s.name, s.end)}<span class="g-tags"><span>${esc(partner.find((r) => r.vanity && s.sale && r.vanity.toLowerCase() === s.sale.toLowerCase())?.name || s.sale || '')}</span></span></span></a>`)).join('')}</div>`;
   }
@@ -885,7 +889,8 @@ function render() {
   document.querySelectorAll('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'));
   const liveEv = (S.data.events?.live || []).some((e) => e.end && new Date(e.end) > Date.now() && new Date(e.start) <= Date.now());
   $('.nav button[data-tab="events"]')?.classList.toggle('has-live', liveEv);
-  const keep = (S.data.events?.free?.keep || []).length;
+  const E = S.data.events || {};
+  const keep = (E.free?.keep || []).filter((a) => { const end = E.games?.[a]?.ftk_end; return !end || new Date(end) > Date.now(); }).length;
   $('.nav button[data-tab="events"]')?.classList.toggle('has-free', keep > 0);
 }
 function afterRender(v) {
@@ -918,6 +923,7 @@ setInterval(() => {
   document.querySelectorAll('[data-until]').forEach((el) => {
     const ms = new Date(el.dataset.until) - Date.now();
     if (ms > 0) el.innerHTML = el.classList.contains('left') ? `剩 ${span(ms)}` : span(ms);
+    else if (!el.dataset.over) { el.dataset.over = '1'; el.textContent = el.classList.contains('left') ? '已結束' : '0 分鐘'; }
   });
 }, 30000);
 
@@ -1060,6 +1066,11 @@ document.addEventListener('click', (ev) => {
     play(i < 0 ? 'save' : 'unsave');
     if (i < 0) toast('已加入稍後看');
     if (S.f.top === 'saved' || S.f.tech === 'saved') render();
+    else if (S.tab === 'top') {
+      // 只更新篩選列，讓「稍後看」馬上出現（不重畫整頁，捲動位置不變）
+      const row = $('#v-top .chips');
+      if (row) row.outerHTML = chipsHTML('top', topChips());
+    }
     return;
   }
   if (t.dataset.loadmore) { S.shown[t.dataset.loadmore] += 30; play('tick'); render(); return; }
@@ -1143,16 +1154,22 @@ function initSW() {
   navigator.serviceWorker.register('sw.js').then((r) => { SW.reg = r; SW.checked = Date.now(); }).catch(() => {});
 }
 
+// 手機常把 App 放在背景好幾個小時，切回來時當成「新的一次查看」：問候語、新進標記、簡報都重算
+let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     rememberVisit();
+    hiddenAt = Date.now();
     if (S.speakingLine >= 0) { stopSpeak(); S.speakingLine = -1; highlightLine(); }
     return;
   }
   if (SW.updated) { location.reload(); return; }
   if (SW.reg && Date.now() - SW.checked > 30 * 60000) { SW.checked = Date.now(); SW.reg.update().catch(() => {}); }
+  const away = hiddenAt ? Date.now() - hiddenAt : 0;
+  if (away > 10 * 60000) S.lastSeen = hiddenAt;
   const g = S.data.meta?.generated;
   if (g && (Date.now() - new Date(g)) / 60000 > 65) rescan();
+  else if (away > 10 * 60000) render();
 });
 window.addEventListener('pagehide', rememberVisit);
 

@@ -10,7 +10,7 @@
     "\\bsponsored\\b",
     "\\bpartner(?:ed)? content\\b",
     "\\bpaid (?:post|partnership|promotion|content)\\b",
-    "\\bin partnership with\\b",
+    "\\b(?:created|produced|written|presented|made|published|brought to you|is|was)\\s+in partnership with\\b|(?:^|\\n)\\s*in partnership with\\b",
     "\\bbrought to you by\\b",
     "\\badvertorial\\b",
     "#ad\\b",
@@ -71,10 +71,13 @@
     "\\b(?:back )?in stock (?:at|now)\\b",
     "\\brestock(?:ed|s)? (?:at|alert|tracker|now)\\b",
     "\\bis on sale\\b",
-    "^grab\\b",
+    "^grab (?:this|these|a|an|one|yours|it|the|some)\\b",
     "\\bdiscounted (?:\\$|£|€)",
     "\\bfor a discounted\\b",
-    "\\bbundle (?:deal|is)\\b"
+    "\\bbundle (?:deal|is)\\b",
+    "^score (?:a|an|this|these|one|the)\\b",
+    "\\bsaving you (?:\\$|£|€)",
+    "\\bunder (?:\\$|£|€)[\\d,]+ right now\\b"
    ]
   },
   {
@@ -84,7 +87,7 @@
    "fields": "title",
    "patterns": [
     "^how to\\b",
-    "\\bhow to (?:get|find|beat|unlock|fix|solve|complete|farm|catch|craft|make|change|use|start|play|defeat|access|reach|earn|level|upgrade|evolve|cook|build|enable|turn|redeem|claim|join|download|watch|stream|preload|pre-load|romance|recruit|save|tame|breed|survive)\\b",
+    "(?:^|[:：–—|&]\\s*|\\band\\s+)\\bhow to (?:get|find|beat|unlock|fix|solve|complete|farm|catch|craft|make|change|use|start|play|defeat|access|reach|earn|level|upgrade|evolve|cook|build|enable|turn|redeem|claim|join|download|watch|stream|preload|pre-load|romance|recruit|save|tame|breed|survive)\\b",
     "\\bwhere to (?:find|get)\\b",
     "(?<!to )(?<!you )(?<!will )(?<!can )(?<!helps )(?<!help )(?<!and )\\bguide\\b(?! (?:uk|us|eu|studios|developers|devs|players|users|companies|the industry|policy|policies|ai)\\b)",
     "\\bwalkthrough\\b",
@@ -118,12 +121,16 @@
     "圖鑑整理",
     "配裝推薦",
     "陣容推薦",
-    "^all (?:the )?.{0,45}\\b(?:choices|outcomes|endings|weapons|camos|locations|collectibles|achievements|trophies|rewards|recipes|bosses|maps|perks|attachments|operators|skins|carry-forward content|secrets|easter eggs|unlocks|cards|characters and|gear)\\b",
+    "^all (?:the )?.{0,45}\\b(?:choices|outcomes|endings|weapons|camos|locations|collectibles|achievements|trophies|rewards|recipes|bosses|maps|perks|attachments|operators|skins|carry-forward content|secrets|easter eggs|unlocks|cards|codes|characters and|gear)\\b",
     "\\blocations? (?:in|for)\\b",
     "\\bsbc\\b",
     "\\bactually (?:telling|means)\\b",
     "\\bwatch it here\\b",
-    "\\bhow to watch\\b"
+    "\\bhow to watch\\b",
+    "\\b(?:keypad|safe|lockbox|locker|door) codes?\\b",
+    "\\b(?:post|mid|end)-?credits? scenes?\\b",
+    "\\bspoiler[- ]free answer\\b",
+    "\\bcan you (?:identify|guess|name|spot)\\b"
    ]
   },
   {
@@ -132,7 +139,7 @@
    "desc": "抽卡、卡池、角色池、事前登錄、儲值好禮、開服公測這類課金手遊宣傳。",
    "fields": "title+summary",
    "patterns": [
-    "\\bgacha\\b(?!.{0,60}\\b(?:law|laws|regulat\\w*|ban|bans|banned|lawsuit|legislat\\w*|loot ?box))",
+    "^(?![\\s\\S]*\\b(?:laws?|regulat\\w*|ban|bans|banned|lawsuit|legislat\\w*|loot ?box(?:es)?|pegi|esrb|age ratings?|re-?rated|reviews?)\\b)[\\s\\S]*\\bgacha\\b",
     "\\bpre-?regist(?:er|ration|ered|rations)\\b",
     "\\b(?:pull|summon(?:ing)?|drop) rates?\\b",
     "\\bbanners?\\b.{0,40}\\b(?:characters?|rerun|limited|5-star|4-star|ssr|ur)\\b",
@@ -225,7 +232,7 @@
     "嚇壞",
     "崩潰",
     "淚崩",
-    "全網",
+    "全網(?:瘋傳|熱議|爆紅|暴動|炸鍋|震驚|都在|轟動|瘋搶|吵翻|笑翻|朝聖)|(?:震驚|轟動|紅遍|爆紅|笑翻)全網",
     "爆紅",
     "驚呆",
     "看傻",
@@ -515,7 +522,13 @@
     "停止營運",
     "執行長",
     "社長",
-    "股價"
+    "股價",
+    "\\bcourt\\b",
+    "\\bruling\\b",
+    "\\bantitrust\\b",
+    "\\bcompetition law\\b",
+    "\\bhalt(?:s|ed|ing)?\\b.{0,25}\\bdevelopment\\b",
+    "(?<!noise-)(?<!noise )\\bcancel(?:s|ed|led|ing|ling)?\\b"
    ]
   },
   {
@@ -881,5 +894,21 @@
   "首抽",
   "儲值",
   "轉蛋"
- ]
+ ],
+ "block_cats": {
+  "shop": [
+   "deals",
+   "deal",
+   "affiliate",
+   "buying guide",
+   "buying guides"
+  ],
+  "ad": [
+   "sponsored",
+   "partner",
+   "partner content",
+   "promoted",
+   "advertorial"
+  ]
+ }
 }

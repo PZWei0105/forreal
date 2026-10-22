@@ -37,8 +37,15 @@ function spoken(s) {
     .replace(/\s+/g, ' ');
 }
 
+/** 台灣時間的「幾點」（0–23）。不能直接 Number(format())：中文格式會輸出「17時」。 */
+function twHour(d) {
+  const p = fmtHour.formatToParts(d).find((x) => x.type === 'hour');
+  const h = p ? Number(p.value) : NaN;
+  return Number.isFinite(h) ? h % 24 : (d.getUTCHours() + 8) % 24;
+}
+
 export function greeting(now = new Date()) {
-  const h = Number(fmtHour.format(now));
+  const h = twHour(now);
   if (h >= 5 && h < 11) return '早安，PZ';
   if (h >= 11 && h < 14) return '午安，PZ';
   if (h >= 14 && h < 18) return '午後好，PZ';
