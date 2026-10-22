@@ -1,27 +1,27 @@
 [
  {
+  "name": "pz_profile_xml",
+  "url": "https://steamcommunity.com/profiles/76561198618468810/?xml=1",
+  "max": 3000000
+ },
+ {
   "name": "pz_games_xml",
   "url": "https://steamcommunity.com/profiles/76561198618468810/games/?tab=all&xml=1",
   "max": 3000000
  },
  {
-  "name": "pz_wishlist_sorted",
-  "url": "https://api.steampowered.com/IWishlistService/GetWishlistSortedFiltered/v1/?input_json=%7B%22steamid%22%3A%2276561198618468810%22%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_basic_info%22%3Atrue%7D%2C%22start_index%22%3A0%2C%22page_size%22%3A50%7D",
-  "max": 3000000
- },
- {
-  "name": "pz_wishlist2",
+  "name": "pz_wishlist",
   "url": "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?steamid=76561198618468810",
-  "max": 3000000
- },
- {
-  "name": "pz_profile_page",
-  "url": "https://steamcommunity.com/profiles/76561198618468810/",
   "max": 3000000
  },
  {
   "name": "pz_wishlist_page",
   "url": "https://store.steampowered.com/wishlist/profiles/76561198618468810/",
+  "max": 3000000
+ },
+ {
+  "name": "gabe_wishlist_page",
+  "url": "https://store.steampowered.com/wishlist/profiles/76561197960287930/",
   "max": 3000000
  }
 ]
