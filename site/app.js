@@ -32,8 +32,12 @@ const ICON = {
   close: I('<path d="m6 6 12 12M18 6 6 18"/>'),
   gift: I('<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7M12 8.5v12M12 8.5C10.5 5 7 4.5 7 6.6S10 8.5 12 8.5zM12 8.5c1.5-3.5 5-4 5-1.9s-3 1.9-5 1.9z"/>'),
   target: I('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>'),
+  calAdd: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.5v5.5M9.25 15.25h5.5"/>'),
+  copy: I('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
+  ticket: I('<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a2.5 2.5 0 0 0 0 5v2a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5v-2a2.5 2.5 0 0 0 0-5z"/><path d="m10 9.5 4.5 2.5-4.5 2.5z"/>'),
+  pad: I('<path d="M7.5 8h9a4.5 4.5 0 0 1 4.4 5.5l-.8 3.6a2.2 2.2 0 0 1-3.8 1L14.5 16h-5l-1.8 2.1a2.2 2.2 0 0 1-3.8-1l-.8-3.6A4.5 4.5 0 0 1 7.5 8z"/><path d="M8 11v3M6.5 12.5h3M15.5 11.5h.01M17.5 13h.01"/>'),
 };
-const BRIEF_ICON = { top: ICON.top, event: ICON.events, free: ICON.gift, deal: ICON.deals, rel: ICON.rel, follow: ICON.target, filter: ICON.filter };
+const BRIEF_ICON = { top: ICON.top, event: ICON.events, free: ICON.gift, deal: ICON.deals, rel: ICON.rel, follow: ICON.target, filter: ICON.filter, wish: ICON.star, subs: ICON.ticket, console: ICON.pad };
 const TABS = [['top', '簡報'], ['deals', '特價'], ['events', '活動'], ['rel', '上市'], ['tech', '科技'], ['filter', '濾網']];
 
 // ---------- 小工具 ----------
@@ -80,8 +84,8 @@ const S = {
   blocked: null,
   failed: [],
   sub: { deals: local.get('sub.deals', 'steam'), rel: local.get('sub.rel', 'cal') },
-  f: { top: 'all', tech: 'all', blk: 'all', cal: 'all', deals: 'all', pk: 'all' },
-  shown: { top: 30, tech: 30 },
+  f: { top: 'all', tech: 'all', blk: 'all', cal: 'all', deals: 'all', pk: 'all', wish: 'all', con: 'all', subs: 'gp' },
+  shown: { top: 30, tech: 30, con: 30 },
   read: new Set(local.get('read', [])),
   saved: local.get('saved', []),
   follow: local.get('follow', []),
@@ -316,7 +320,11 @@ function viewTech() {
 function viewDeals() {
   const d = S.data.deals || {};
   let body = '';
-  if (S.sub.deals === 'steam') {
+  if (S.sub.deals === 'wish') {
+    body = wishView(d.wish);
+  } else if (S.sub.deals === 'console') {
+    body = consoleView(d.ps);
+  } else if (S.sub.deals === 'steam') {
     const all = d.steam?.items || [];
     const r = d.steam?.rules;
     const f = S.f.deals;
@@ -343,7 +351,92 @@ function viewDeals() {
       ${a.length ? `<div class="panel">${a.map(appRow).join('')}</div>` : '<div class="empty">還沒有排行資料。</div>'}
       ${d.appstore?.at ? `<p class="hint">排行 ${ago(d.appstore.at)}更新</p>` : ''}`;
   }
-  return `${staleNotice()}${segHTML('deals', [['steam', 'Steam 特價'], ['epic', 'Epic 免費'], ['app', '手機付費榜']])}${body}`;
+  return `${staleNotice()}${segHTML('deals', [['wish', '願望清單'], ['steam', 'Steam'], ['console', 'PS'], ['epic', 'Epic'], ['app', '手機']])}${body}`;
+}
+
+// ---------- 主機特價（PlayStation Store 台灣區） ----------
+function psCard(x) {
+  return `<article class="doc deal ps"><a class="deal-in" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="ps">
+    <span class="art">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''}<span class="off num">-${x.disc}%</span>${x.plus ? '<span class="verdict plus">PS Plus</span>' : ''}</span>
+    <span class="info">
+      <span class="name">${esc(x.name)}</span>
+      <span class="price"><b class="now num">${money(x.final)}</b><s class="num">${money(x.orig)}</s></span>
+      ${x.low ? '<span class="lowtag">觀測新低</span>' : ''}
+      <span class="ends">${[...(x.plat || []), x.kind].filter(Boolean).map(esc).join('・')}</span>
+      ${x.plus ? '<span class="ends">PS Plus 會員才有這個價格</span>' : ''}
+    </span></a></article>`;
+}
+function consoleView(ps) {
+  if (!ps || !ps.items) return '<div class="empty">PlayStation Store 特價整理中，下一輪更新會出現。</div>';
+  const all = ps.items;
+  const f = S.f.con;
+  const items = all.filter((x) => (f === 'half' ? x.disc >= 50 : f === 'plus' ? x.plus : f === 'open' ? !x.plus : f === 'low' ? x.low : true));
+  if (f === 'half') items.sort((a, b) => b.disc - a.disc);
+  const shown = S.shown.con || 30;
+  const promos = (ps.promos || []).filter((p) => p.n);
+  return `<p class="hint lead">PlayStation Store 台灣區這週的官方促銷（新台幣），照 Sony 頁面的順序，熱門的在前面。同一款遊戲只列一個版本（標準版優先）；Store 沒有公開優惠截止時間，以官方頁面為準。</p>
+    ${promos.length ? `<div class="promo-row">${promos.map((p) => `<a class="mini" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a>`).join('')}</div>` : ''}
+    ${chipsHTML('con', [['all', '全部', all.length], ['half', '五折以下', all.filter((x) => x.disc >= 50).length], ['open', '人人都能買', all.filter((x) => !x.plus).length], ['plus', 'PS Plus 會員價', all.filter((x) => x.plus).length], ...(all.some((x) => x.low) ? [['low', '觀測新低', all.filter((x) => x.low).length]] : [])])}
+    ${items.length ? `<div class="grid2">${items.slice(0, shown).map(psCard).join('')}</div>${items.length > shown ? `<button class="more-btn" data-loadmore="con">再看 ${Math.min(30, items.length - shown)} 款（共 ${items.length} 款）</button>` : ''}` : '<div class="empty">這個分類目前沒有特價。</div>'}
+    ${ps.at ? `<p class="hint">PlayStation Store 價格 ${ago(ps.at)}更新${ps.stale ? '（這輪沒連上，先顯示上次的資料）' : ''}</p>` : ''}`;
+}
+
+// ---------- Steam 願望清單 ----------
+function relText(x) {
+  const r = x.rel || {};
+  if (!r.soon) return '';
+  if (r.d) return `${Number(r.d.slice(5, 7))}/${Number(r.d.slice(8))} 發售`;
+  return r.t || '即將推出';
+}
+function wishCard(x) {
+  const verdict = x.verdict === 'great' ? `<span class="verdict great">${sealHTML('好價')}好價</span>` : x.verdict === 'good' ? '<span class="verdict good">推薦</span>' : '';
+  const ends = x.ends ? `<span class="ends">特價到 ${fmtFull.format(new Date(x.ends))}</span>` : '';
+  return `<article class="doc deal wish ${x.verdict || ''}"><a class="deal-in" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="wish">
+    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}"><span class="off num">-${x.disc}%</span>${verdict}</span>
+    <span class="info">
+      <span class="name">${esc(x.name)}${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}</span>
+      <span class="price"><b class="now num">${x.final ? money(x.final) : '免費'}</b>${x.orig ? `<s class="num">${money(x.orig)}</s>` : ''}</span>
+      ${x.low ? '<span class="lowtag">觀測新低</span>' : ''}${ends}
+      ${x.pct != null ? `<span class="grade ${gradeClass(x.pct)}"><b class="g num">${x.pct}</b><span>${esc(x.label || '')}<br><span class="num">${thousands(x.n)}</span> 則評論</span></span>` : '<span class="ends">還沒有評價</span>'}
+    </span></a></article>`;
+}
+function wishRow(x) {
+  const r = x.rel || {};
+  const sub = r.soon
+    ? `<span class="word mid">${esc(relText(x))}</span>${x.demo ? '<span class="ty">有試玩版</span>' : ''}`
+    : `<span>${x.free ? '免費遊玩' : x.final != null ? money(x.final) : '尚未開賣'}</span>${x.pct != null ? `<span class="word ${gradeClass(x.pct)}">${x.pct}% 好評</span>` : ''}`;
+  return `<a class="rank-row wish-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="wish">
+    <img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">
+    <span><span class="name">${esc(x.name)}</span>${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}<span class="sub">${sub}</span></span></a>`;
+}
+function wishView(w) {
+  if (!w || !w.setup) {
+    return `<div class="empty">還沒有連結 Steam 帳號。<br>連好之後，這裡每小時自動同步你的願望清單：哪些在特價、哪些快發售，一眼看完；發售日也會自動進「訂閱行事曆」。</div>`;
+  }
+  if (!w.ok) return `<div class="empty">願望清單暫時抓不到。請確認 Steam 隱私設定的「遊戲詳細資料」是公開，下一輪更新會再試一次。</div>`;
+  const all = w.items || [];
+  if (!all.length) {
+    return `<div class="empty">${w.persona ? `已連上 Steam 帳號「${esc(w.persona)}」，但` : ''}讀不到願望清單裡的遊戲。<br>Steam 對「沒公開」和「清單是空的」回的結果一樣：如果你的願望清單有遊戲，請到 Steam →「編輯個人檔案」→「隱私設定」，把<b>「遊戲詳細資料」</b>設成<b>公開</b>（和個人檔案是分開設定的）。設好後，下一輪更新（每小時）就會自動出現。</div>`;
+  }
+  const sale = all.filter((x) => x.disc > 0).sort((a, b) => (b.verdict === 'great') - (a.verdict === 'great') || b.disc - a.disc);
+  const soon = all.filter((x) => x.rel?.soon && !(x.disc > 0)).sort((a, b) => (a.rel.d || '9999').localeCompare(b.rel.d || '9999') || (a.pri ?? 1e4) - (b.pri ?? 1e4));
+  const rest = all.filter((x) => !x.rel?.soon && !(x.disc > 0)).sort((a, b) => (a.pri ?? 1e4) - (b.pri ?? 1e4));
+  const low = sale.filter((x) => x.low);
+  const f = S.f.wish;
+  const head = `<p class="hint lead">${w.persona ? `${esc(w.persona)} 的 ` : ''}Steam 願望清單，共 <b class="num">${all.length}</b> 款。價格是 Steam 台灣區，每小時同步；最上面是正在特價的。</p>`;
+  const chips = chipsHTML('wish', [['all', '全部', all.length], ['sale', '特價中', sale.length], ['soon', '即將推出', soon.length], ...(low.length ? [['low', '觀測新低', low.length]] : [])]);
+  const saleBlock = (list) => (list.length ? `<div class="grid2">${list.map(wishCard).join('')}</div>` : '<div class="empty small">願望清單裡目前沒有遊戲在特價。</div>');
+  const listBlock = (list, empty) => (list.length ? `<div class="panel">${list.map(wishRow).join('')}</div>` : `<div class="empty small">${empty}</div>`);
+  let body;
+  if (f === 'sale') body = saleBlock(sale);
+  else if (f === 'low') body = saleBlock(low);
+  else if (f === 'soon') body = listBlock(soon, '願望清單裡沒有即將推出的遊戲。');
+  else {
+    body = `${secHead('特價中', sale.length ? `${sale.length} 款` : '')}${saleBlock(sale)}
+      ${soon.length ? `${secHead('即將推出', `${soon.length} 款`)}${listBlock(soon, '')}` : ''}
+      ${rest.length ? `${secHead('其他', `${rest.length} 款，照你排的優先順序`)}${listBlock(rest, '')}` : ''}`;
+  }
+  return `${head}${chips}${body}${w.at ? `<p class="hint">願望清單 ${ago(w.at)}同步${w.stale ? '（這輪沒連上，先顯示上次的資料）' : ''}</p>` : ''}`;
 }
 
 function dealCard(x) {
@@ -383,6 +476,7 @@ function viewRel() {
   const r = S.data.releases || {};
   let body = '';
   if (S.sub.rel === 'cal') body = calendar(r.wiki);
+  else if (S.sub.rel === 'subs') body = subsView(r.subs || {});
   else if (S.sub.rel === 'wish') {
     const items = r.steam_upcoming?.items || [];
     body = `<p class="hint lead">Steam 上最多人關注、即將推出的遊戲（依 Steam 熱門程度排序）。</p>
@@ -400,7 +494,59 @@ function viewRel() {
         <span class="grade ${x.pct == null ? '' : gradeClass(x.pct)}"><b class="g num">${x.pct ?? '–'}</b></span></a>`;
       }).join('')}</div>` : '<div class="empty">還沒有資料。</div>'}`;
   }
-  return `${staleNotice()}${segHTML('rel', [['cal', '發售日曆'], ['wish', 'Steam 期待榜'], ['new', '新作口碑']])}${body}`;
+  return `${staleNotice()}${segHTML('rel', [['cal', '發售日曆'], ['subs', '訂閱片單'], ['wish', '期待榜'], ['new', '新作口碑']])}${body}`;
+}
+
+// ---------- 訂閱片單（Xbox Game Pass、PlayStation Plus） ----------
+function dayLabel(d) {
+  if (!d) return '';
+  const today = twDate();
+  const dt = new Date(`${d}T12:00:00+08:00`);
+  const md = `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+  const diff = Math.round((dt - new Date(`${today}T12:00:00+08:00`)) / 864e5);
+  return `${md}（${diff === 0 ? '今天' : diff === 1 ? '明天' : `週${WEEK[dt.getUTCDay()]}`}）`;
+}
+function gpRow(x, kind) {
+  const tiers = (x.tiers || []).length ? `<span class="ty">${x.tiers.map(esc).join('・')}</span>` : '';
+  const when = x.date ? `<span class="word ${kind === 'leaving' ? 'lo' : kind === 'coming' ? 'mid' : 'hi'}">${dayLabel(x.date)}${kind === 'leaving' ? '離開' : '加入'}</span>` : '';
+  const extra = [x.day1 ? '<span class="ty day1">首日加入</span>' : '', x.preview ? '<span class="ty">搶先體驗</span>' : '',
+    kind === 'leaving' && x.price?.final ? `<span>想留著玩：${money(x.price.final)}</span>` : ''].join('');
+  const inner = `${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
+    <span><span class="name">${esc(x.name)}</span>${x.en && x.en !== x.name ? `<span class="en">${esc(x.en)}</span>` : ''}<span class="sub">${when}${extra}${tiers}</span></span>`;
+  return x.url ? `<a class="rank-row sub-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="subs">${inner}</a>` : `<div class="rank-row sub-row">${inner}</div>`;
+}
+function psRow(x, note = '') {
+  const inner = `${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
+    <span><span class="name">${esc(x.name)}</span><span class="sub">${x.genre ? `<span>${esc(x.genre)}</span>` : ''}${note}</span></span>`;
+  return x.url ? `<a class="rank-row sub-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="subs">${inner}</a>` : `<div class="rank-row sub-row">${inner}</div>`;
+}
+function subsView(sb) {
+  const f = S.f.subs === 'ps' ? 'ps' : 'gp';
+  const chips = chipsHTML('subs', [['gp', 'Xbox Game Pass'], ['ps', 'PlayStation Plus']]);
+  const block = (title, aside, rows) => (rows ? `${secHead(title, aside)}<div class="panel">${rows}</div>` : '');
+  if (f === 'gp') {
+    const g = sb.gp || {};
+    if (!g.at) return `${chips}<div class="empty">Game Pass 片單整理中，下一輪更新會出現。</div>`;
+    const today = twDate();
+    const coming = (g.coming || []).filter((x) => !x.date || x.date >= today);
+    const leaving = (g.leaving || []).filter((x) => !x.date || x.date >= today);
+    return `${chips}<p class="hint lead">Xbox 台灣官方片單（遊戲名稱是台灣官方中文名），日期與方案來自 Xbox Wire 每月兩次的公告。</p>
+      ${block('即將加入', coming.length ? `${coming.length} 款` : '', coming.map((x) => gpRow(x, 'coming')).join(''))}
+      ${block('即將離開', leaving.length ? `${leaving.length} 款，離開前可以買下來繼續玩` : '', leaving.map((x) => gpRow(x, 'leaving')).join(''))}
+      ${block('最近加入', '', (g.recent || []).slice(0, 30).map((x) => gpRow(x, 'recent')).join(''))}
+      <p class="hint">片單 ${ago(g.at)}更新${(g.wire || []).length ? `　公告：${g.wire.map((w) => `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer">${esc(w.post.slice(5).replace('-', '/'))}</a>`).join('、')}` : ''}</p>`;
+  }
+  const p = sb.ps || {};
+  if (!p.at) return `${chips}<div class="empty">PS Plus 片單整理中，下一輪更新會出現。</div>`;
+  const m = p.catalog_month;
+  const until = p.monthly_end ? `<span class="word ${p.monthly_end <= twDate(new Date(Date.now() + 3 * 864e5)) ? 'lo' : 'mid'}">${dayLabel(p.monthly_end)}前領取</span>` : '';
+  const catFrom = p.catalog_start ? `<span class="word hi">${dayLabel(p.catalog_start)}起可玩</span>` : '';
+  return `${chips}<p class="hint lead">PlayStation 台灣官網「PS Plus 全新內容」，日期來自 PlayStation Blog 繁體中文版的官方公告。每月遊戲所有方案都能領，領了在會員期間都能玩。</p>
+    ${block('每月遊戲', p.monthly_end ? `${Number(p.monthly_end.slice(5, 7))}/${Number(p.monthly_end.slice(8))} 前領取` : '基本、升級、高級', (p.monthly || []).map((x) => psRow(x, `${until}<span class="ty">所有方案</span>`)).join(''))}
+    ${block(`遊戲目錄${m ? ` ${m} 月` : ''}新增`, '升級、高級', (p.catalog || []).map((x) => psRow(x, catFrom)).join(''))}
+    ${block('經典遊戲目錄', '高級', (p.classics || []).map((x) => psRow(x)).join(''))}
+    ${block('遊戲試玩', '高級會員限時試玩', (p.trials || []).map((x) => psRow(x)).join(''))}
+    <p class="hint">片單 ${ago(p.at)}更新　<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">PS Plus 全新內容</a>${p.monthly_post ? `、<a href="${esc(p.monthly_post)}" target="_blank" rel="noopener noreferrer">每月遊戲公告</a>` : ''}${p.catalog_post ? `、<a href="${esc(p.catalog_post)}" target="_blank" rel="noopener noreferrer">遊戲目錄公告</a>` : ''}</p>`;
 }
 
 const relKey = (x) => `${x.title}|${x.date || ''}`.toLowerCase();
@@ -410,9 +556,10 @@ function calendar(w) {
   if (!all.length) return '<div class="empty">還沒有發售資料。</div>';
   const today = twDate();
   const f = S.f.cal;
-  const pass = (x) => (f === 'all' ? true : f === 'watch' ? S.watch.has(relKey(x)) : f === 'big' ? x.big : f === 'hot' ? (x.big || x.srank) : x.plat.includes(f));
+  const pass = (x) => (f === 'all' ? true : f === 'watch' ? S.watch.has(relKey(x)) : f === 'wl' ? x.wl : f === 'big' ? x.big : f === 'hot' ? (x.big || x.srank) : x.plat.includes(f));
   const items = all.filter((x) => pass(x) && (S.pastDays || !x.date || x.date.length < 10 || x.date >= today));
-  const chips = [['all', '全部'], ...(S.watch.size ? [['watch', '追蹤', all.filter((x) => S.watch.has(relKey(x))).length]] : []), ['hot', '大廠＋Steam 熱門'], ['big', '大廠'], '|', ['pc', 'PC'], ['ps', 'PS'], ['xbox', 'Xbox'], ['switch', 'Switch']];
+  const nWl = all.filter((x) => x.wl).length;
+  const chips = [['all', '全部'], ...(nWl ? [['wl', '願望清單', nWl]] : []), ...(S.watch.size ? [['watch', '追蹤', all.filter((x) => S.watch.has(relKey(x))).length]] : []), ['hot', '大廠＋Steam 熱門'], ['big', '大廠'], '|', ['pc', 'PC'], ['ps', 'PS'], ['xbox', 'Xbox'], ['switch', 'Switch']];
   const byDay = new Map();
   const byMonth = new Map();
   for (const x of items) {
@@ -442,7 +589,8 @@ function calendar(w) {
   if (lastMonth) html += flushMonth(lastMonth);
   for (const ym of [...byMonth.keys()].sort()) html += `<div class="month-head"><span class="num">${Number(ym.slice(0, 4))}</span> 年 <span class="num">${Number(ym.slice(5))}</span> 月</div>${flushMonth(ym)}`;
   return `${chipsHTML('cal', chips)}
-    <p class="hint lead">資料來自 Wikipedia 遊戲發售表（社群維護、附出處）。金框是大廠作品。<button class="mini" data-past="1">${S.pastDays ? '隱藏已發售' : '顯示前 10 天'}</button></p>
+    <div class="cal-sub"><span>${ICON.calAdd}<b>發售日自動進手機行事曆</b><small>大作、Steam 期待榜、願望清單的發售日，加上 Steam 特賣與限時免費</small></span><button class="btn" data-calsub="1">訂閱</button></div>
+    <p class="hint lead">資料來自 Wikipedia 遊戲發售表（社群維護、附出處）。金框是大廠作品；按 ${ICON.calAdd.replace('<svg', '<svg class="inl"')} 把單一遊戲加入行事曆（發售當天早上 9 點提醒）。<button class="mini" data-past="1">${S.pastDays ? '隱藏已發售' : '顯示前 10 天'}</button></p>
     ${html || '<div class="empty">沒有符合的發售。</div>'}`;
 }
 
@@ -453,9 +601,9 @@ function relRow(x) {
   const name = x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="rel">${esc(label)}</a>` : esc(label);
   return `<div class="rel${x.big ? ' big' : ''}">
     <div class="name">${name}${x.zh ? `<span class="en">${esc(x.title)}</span>` : ''}</div>
-    <button class="star" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on ? '取消追蹤' : '追蹤'}">${ICON.star}</button>
+    <span class="rel-act">${x.ics ? `<a class="star cal" href="data/ics/${esc(x.ics)}.ics" target="_blank" rel="noopener" data-ics="1" aria-label="把《${esc(label)}》的發售日加入行事曆">${ICON.calAdd}</a>` : ''}<button class="star" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on ? '取消追蹤' : '追蹤'}">${ICON.star}</button></span>
     <div class="sub">${x.big ? '<span class="bigmark">大廠</span>' : ''}${x.plat.map((p) => `<span class="p ${p}">${PLAT[p]}</span>`).join('')}
-      <span>${esc([zhType(x.type || ''), zhGenre(x.genre || '')].filter(Boolean).join('／'))}</span><span>${esc(x.pub || x.dev)}</span>${x.srank ? `<span class="ty">Steam 期待第 ${x.srank} 名</span>` : ''}</div>
+      <span>${esc([zhType(x.type || ''), zhGenre(x.genre || '')].filter(Boolean).join('／'))}</span><span>${esc(x.pub || x.dev)}</span>${x.wl ? '<span class="ty wl">願望清單</span>' : ''}${x.srank ? `<span class="ty">Steam 期待第 ${x.srank} 名</span>` : ''}</div>
   </div>`;
 }
 
@@ -801,9 +949,31 @@ function settingsHTML() {
     <p class="hint">設定只存在這支手機。資料每小時自動更新，不需要手動整理。</p>
   </div>`;
 }
-function openSheet() {
+// ---------- 行事曆訂閱 ----------
+const CALS = [
+  ['releases', '玩真的・發售日', '大廠作品、Steam 期待榜、你的 Steam 願望清單裡有確切日期的發售日。'],
+  ['deals', '玩真的・特賣與免費', 'Steam 季節特賣、新品節、主題節的起訖，Steam／Epic 限時免費與 PS Plus 每月遊戲的截止，Game Pass 離開日。'],
+];
+function calURL(id, scheme = location.protocol) {
+  const base = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+  return `${base.replace(/^https?:/, scheme)}data/cal/${id}.ics`;
+}
+function calSubHTML() {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const iosBox = `<div class="set-group"><div class="cal-how"><b>iPhone</b><small>按「訂閱」，iPhone 會問要不要加入，按「訂閱」再按「完成」。之後行事曆會自己定期更新。</small></div>
+      ${CALS.map(([id, name, desc]) => `<a class="set-row as-btn" href="${esc(calURL(id, 'webcal:'))}"><span class="set-t"><b>${name}</b><small>${desc}</small></span><span class="btn">訂閱</span></a>`).join('')}</div>`;
+  const andBox = `<div class="set-group"><div class="cal-how"><b>Android（Google 日曆）</b><small>Google 日曆的手機 App 不能直接訂閱，要用電腦做一次：複製下面的網址 → 電腦開 Google 日曆 → 左邊「其他日曆」旁的「＋」→「加入日曆網址」→ 貼上。手機上的 Google 日曆就會自動出現、自己更新。</small></div>
+      ${CALS.map(([id, name]) => `<button class="set-row as-btn" data-copy="${esc(calURL(id, 'https:'))}"><span class="set-t"><b>${name}</b><small class="mono">${esc(calURL(id, 'https:'))}</small></span><span class="btn">${ICON.copy}複製</span></button>`).join('')}</div>`;
+  return `<div class="sheet-in" role="dialog" aria-modal="true" aria-label="訂閱行事曆">
+    <div class="sheet-h"><h2 class="serif">訂閱行事曆</h2><button class="ibtn" data-close="sheet" aria-label="關閉">${ICON.close}</button></div>
+    <p class="hint">訂閱一次就好：發售日改了、Steam 公布新活動，手機行事曆會自己跟著更新（每小時整理一次，手機多久抓一次由手機決定）。</p>
+    ${ios ? iosBox + andBox : andBox + iosBox}
+    <p class="hint">只想加單一遊戲？在「發售日曆」按遊戲旁的行事曆按鈕就好。</p>
+  </div>`;
+}
+function openSheet(html = settingsHTML()) {
   const el = $('#sheet');
-  el.innerHTML = settingsHTML();
+  el.innerHTML = html;
   el.hidden = false;
   requestAnimationFrame(() => el.classList.add('on'));
   play('open');
@@ -839,8 +1009,11 @@ function resultsHTML(q) {
   const group = (title, rows) => (rows ? `<h3 class="res-h">${title}</h3><div class="panel">${rows}</div>` : '');
   html += group('新聞', r.news.map((e) => `<a class="res" href="${esc(e.u)}" target="_blank" rel="noopener noreferrer" data-open="${esc(e.id)}"><span class="res-t">${esc(e.tz || e.t)}</span><span class="res-s">${esc(srcName(e.src))}　${ago(e.at)}</span></a>`).join(''));
   html += group('特價', r.deals.map(({ kind, x }) => {
-    const sub = kind === 'steam' ? `Steam　-${x.disc}%　${money(x.final)}` : kind === 'epic' ? 'Epic 現在免費領' : `App Store 付費榜第 ${x.rank} 名　${money(x.price)}`;
-    return `<a class="res" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(x.name)}</span><span class="res-s">${sub}</span></a>`;
+    const sub = kind === 'steam' ? `Steam　-${x.disc}%　${money(x.final)}` : kind === 'epic' ? 'Epic 現在免費領'
+      : kind === 'wish' ? `願望清單　${x.disc ? `-${x.disc}%　${money(x.final)}` : x.rel?.soon ? relText(x) : x.final != null ? money(x.final) : ''}`
+      : kind === 'ps' || kind === 'ns' ? `${kind === 'ps' ? 'PlayStation Store' : 'Nintendo eShop'}　-${x.disc}%　${money(x.final)}`
+      : kind === 'sub' ? x.sub : `App Store 付費榜第 ${x.rank} 名　${money(x.price)}`;
+    return `<a class="res" href="${esc(x.url || '#')}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(x.name)}</span><span class="res-s">${esc(sub)}</span></a>`;
   }).join(''));
   html += group('Steam 活動', r.events.map((o) => (o.sale
     ? `<a class="res" href="${esc(o.sale.url)}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(o.sale.name)}</span><span class="res-s">特賣活動　共 ${thousands(o.sale.count)} 款</span></a>`
@@ -992,7 +1165,7 @@ document.addEventListener('keydown', (ev) => {
 });
 
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder');
+  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],[data-calsub],[data-copy],[data-ics],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder');
   if (!t) return;
   if (t.classList.contains('sheet') || t.classList.contains('finder')) { if (ev.target === t) closeOverlay(t.id); return; }
   if (t.dataset.open !== undefined) {
@@ -1004,6 +1177,15 @@ document.addEventListener('click', (ev) => {
   if (t.id === 'sync' || t.dataset.scan) { rescan(); return; }
   if (t.id === 'btn-search') { openFinder(); return; }
   if (t.id === 'btn-set') { openSheet(); return; }
+  if (t.dataset.calsub) { openSheet(calSubHTML()); return; }
+  if (t.dataset.ics) { play('save'); return; }
+  if (t.dataset.copy) {
+    const v = t.dataset.copy;
+    const done = () => { play('save'); toast('已複製網址，到電腦的 Google 日曆貼上就好。'); };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(v).then(done, () => window.prompt('複製這個網址', v));
+    else window.prompt('複製這個網址', v);
+    return;
+  }
   if (t.id === 'btn-sound') {
     setSound({ on: !sound.on });
     t.setAttribute('aria-pressed', String(sound.on));

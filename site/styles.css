@@ -641,3 +641,38 @@ input[type="range"] { accent-color: var(--uv); width: 52%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- 行事曆：加入／訂閱 ---------- */
+.rel-act { display: flex; gap: 6px; align-items: flex-start; }
+a.star.cal { text-decoration: none; }
+a.star.cal:active { color: var(--uv); border-color: var(--uv); }
+svg.inl { width: 14px; height: 14px; vertical-align: -2px; color: var(--paper-2); }
+.cal-sub { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; padding: 11px 12px; border-radius: 12px;
+  border: 1px solid var(--line-2); background: linear-gradient(120deg, rgba(160, 139, 255, 0.12), rgba(160, 139, 255, 0.02)); }
+.cal-sub > span { flex: 1; display: grid; grid-template-columns: auto 1fr; gap: 1px 9px; align-items: center; min-width: 0; }
+.cal-sub > span svg { grid-row: span 2; width: 22px; height: 22px; color: var(--uv); }
+.cal-sub b { font-size: 14px; }
+.cal-sub small { color: var(--paper-3); font-size: 12px; line-height: 1.45; }
+.cal-sub .btn { padding: 8px 14px; flex: none; }
+.cal-how { padding: 12px 13px 10px; display: grid; gap: 4px; }
+.cal-how b { font-size: 14.5px; }
+.cal-how small { color: var(--paper-3); font-size: 12.5px; line-height: 1.6; }
+.set-row .btn { padding: 7px 12px; font-size: 13px; flex: none; }
+.set-row small.mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; word-break: break-all; color: var(--paper-3); }
+a.set-row { text-decoration: none; color: inherit; }
+
+/* ---------- 願望清單 ---------- */
+.deal .name .en, .rank-row .en { display: block; font-size: 11.5px; font-weight: 400; color: var(--paper-3); margin-top: 1px; -webkit-line-clamp: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.deal .ends { font-size: 11.5px; color: var(--paper-3); }
+.rank-row.wish-row { grid-template-columns: 120px 1fr; }
+.ty.wl { background: transparent; color: var(--gold); border: 1px solid rgba(244, 199, 107, 0.55); font-weight: 700; }
+
+/* ---------- 訂閱片單 ---------- */
+.rank-row.sub-row { grid-template-columns: 120px 1fr; }
+.rank-row .ph { width: 120px; aspect-ratio: 16 / 9; border-radius: 6px; background: var(--ink-3); }
+.ty.day1 { background: var(--xbox); color: #062012; font-weight: 700; }
+
+/* ---------- 主機特價 ---------- */
+.verdict.plus { background: #f5c518; color: #1d1606; padding-left: 8px; font-weight: 800; }
+.deal.ps .art img { object-fit: cover; }
+.promo-row { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 10px; }

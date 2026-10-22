@@ -414,6 +414,18 @@
    "tier": 2,
    "cat": "store",
    "home": "https://en.wikipedia.org/wiki/2026_in_video_games"
+  },
+  "xbox": {
+   "name": "Xbox Game Pass 台灣（官方片單＋Xbox Wire）",
+   "tier": 1,
+   "cat": "store",
+   "home": "https://www.xbox.com/zh-TW/xbox-game-pass/games"
+  },
+  "playstation": {
+   "name": "PlayStation 台灣（PS Plus、PlayStation Store）",
+   "tier": 1,
+   "cat": "store",
+   "home": "https://store.playstation.com/zh-hant-tw/pages/deals"
   }
  }
 }

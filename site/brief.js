@@ -33,7 +33,7 @@ function spoken(s) {
     .replace(/NT\$([\d,]+)/g, (_, n) => `${n.replace(/,/g, '')} 元`)
     .replace(/-(\d+)%/g, (_, p) => { const z = (100 - Number(p)) / 10; return `打 ${Number.isInteger(z) ? z : z.toFixed(1)} 折`; })
     .replace(/(\d{1,2})\/(\d{1,2})/g, '$1月$2日')
-    .replace(/[《》「」]/g, '')
+    .replace(/[《》「」®™©]/g, '')
     .replace(/\s+/g, ' ');
 }
 
@@ -72,6 +72,15 @@ export function searchAll(D, q, { limit = 12, sinceH = null } = {}) {
   for (const x of D.deals?.steam?.items || []) if (hit(x.name)) out.deals.push({ kind: 'steam', x });
   for (const x of D.deals?.epic?.now || []) if (hit(x.name)) out.deals.push({ kind: 'epic', x });
   for (const x of D.deals?.appstore?.items || []) if (hit(x.name)) out.deals.push({ kind: 'app', x });
+  for (const x of D.deals?.wish?.items || []) if (hit(x.name, x.en)) out.deals.push({ kind: 'wish', x });
+  for (const x of D.deals?.ps?.items || []) if (hit(x.name)) out.deals.push({ kind: 'ps', x });
+  const SB = D.releases?.subs || {};
+  for (const [k, label] of [['coming', 'Game Pass 即將加入'], ['recent', 'Game Pass 最近加入'], ['leaving', 'Game Pass 即將離開']]) {
+    for (const x of SB.gp?.[k] || []) if (hit(x.name, x.en)) out.deals.push({ kind: 'sub', x: { ...x, sub: `${label}${x.date ? `　${x.date.slice(5).replace('-', '/')}` : ''}` } });
+  }
+  for (const [k, label] of [['monthly', 'PS Plus 每月遊戲'], ['catalog', 'PS Plus 遊戲目錄新增'], ['classics', 'PS Plus 經典遊戲'], ['trials', 'PS Plus 遊戲試玩']]) {
+    for (const x of SB.ps?.[k] || []) if (hit(x.name)) out.deals.push({ kind: 'sub', x: { ...x, sub: label } });
+  }
   const E = D.events || {};
   const seen = new Set();
   for (const [id, g] of Object.entries(E.games || {})) {
@@ -168,6 +177,38 @@ export function buildBrief(D, { follow = [], lastSeen = 0, now = new Date() } = 
   // 7 天內發售
   const today = twDay(now);
   const until = twDay(new Date(t + 7 * 864e5));
+
+  // 願望清單：特價中的、7 天內發售的
+  const W = D.deals?.wish;
+  if (W?.ok && (W.items || []).length) {
+    const sale = W.items.filter((x) => x.disc > 0).sort((a, b) => (b.verdict === 'great') - (a.verdict === 'great') || b.disc - a.disc);
+    const soon = W.items.filter((x) => x.rel?.soon && x.rel.d && x.rel.d >= today && x.rel.d <= until).sort((a, b) => a.rel.d.localeCompare(b.rel.d));
+    const bits = [];
+    if (sale.length) bits.push(`${sale.length} 款特價中${sale.length > 1 ? '，最划算' : ''}《${sale[0].name}》-${sale[0].disc}% ${money(sale[0].final)}${sale[0].low ? '（觀測新低）' : ''}`);
+    if (soon.length) bits.push(`《${soon[0].name}》${soon[0].rel.d === today ? '今天' : `${Number(soon[0].rel.d.slice(5, 7))}/${Number(soon[0].rel.d.slice(8))}`}發售${soon.length > 1 ? `，7 天內共 ${soon.length} 款` : ''}`);
+    if (bits.length) {
+      const s = `你的願望清單：${bits.join('；')}`;
+      lines.push({ icon: 'wish', html: esc(s), say: spoken(`${s}。`), go: { tab: 'deals', seg: 'deals:wish' } });
+    }
+  }
+
+  // 訂閱片單：Game Pass 7 天內加入／離開、PS Plus 換新片單的那一週
+  const SB = D.releases?.subs || {};
+  const md = (d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+  const gpIn = (SB.gp?.coming || []).filter((x) => x.date && x.date >= today && x.date <= until);
+  const gpOut = (SB.gp?.leaving || []).filter((x) => x.date && x.date >= today && x.date <= until);
+  const psSince = SB.ps?.monthly_start ? new Date(`${SB.ps.monthly_start}T00:00:00+08:00`).getTime() : SB.ps?.monthly_since ? new Date(SB.ps.monthly_since).getTime() : 0;
+  const psNew = (SB.ps?.monthly || []).length && psSince && psSince <= t && t - psSince < 7 * 864e5;
+  const psEnd = SB.ps?.monthly_end && SB.ps.monthly_end >= today && SB.ps.monthly_end <= twDay(new Date(t + 3 * 864e5)) ? SB.ps.monthly_end : null;
+  const subBits = [];
+  if (gpIn.length) subBits.push(`Game Pass ${md(gpIn[0].date)} 加入《${gpIn[0].name}》${gpIn.length > 1 ? `，7 天內共 ${gpIn.length} 款` : ''}`);
+  if (gpOut.length) subBits.push(`《${gpOut[0].name}》${md(gpOut[0].date)} 離開 Game Pass${gpOut.length > 1 ? `（共 ${gpOut.length} 款）` : ''}`);
+  if (psNew) subBits.push(`PS Plus 換新每月遊戲《${SB.ps.monthly[0].name}》${SB.ps.monthly.length > 1 ? `等 ${SB.ps.monthly.length} 款` : ''}`);
+  else if (psEnd) subBits.push(`PS Plus 每月遊戲《${SB.ps.monthly[0].name}》${SB.ps.monthly.length > 1 ? `等 ${SB.ps.monthly.length} 款` : ''}${psEnd === today ? '今天' : ` ${md(psEnd)} `}截止領取`);
+  if (subBits.length) {
+    const s = `訂閱片單：${subBits.join('；')}`;
+    lines.push({ icon: 'subs', html: esc(s), say: spoken(`${s}。`), go: { tab: 'rel', seg: 'rel:subs', chip: `subs:${psNew || psEnd ? 'ps' : 'gp'}` } });
+  }
   const rel = (D.releases?.wiki?.items || []).filter((x) => x.prec === 'day' && x.date >= today && x.date <= until && (x.big || x.srank));
   if (rel.length) {
     const seenT = new Set();

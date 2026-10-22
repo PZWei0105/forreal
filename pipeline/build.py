@@ -334,6 +334,31 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                     x['sp'] = True
     print('[forreal] events', {k: len(v) for k, v in events.items() if isinstance(v, (list, dict))}, ev_stats, flush=True)
 
+    # Steam 願望清單（config/steam.json 設定了個人檔案才會做）
+    try:
+        from . import events as steam_events, wishlist
+        deals['wish'] = wishlist.build(http, st, cache, health, t0, ROOT, steam_events.build_tags(http, cache, health, t0))
+        print('[forreal] wishlist', {k: (len(v) if isinstance(v, list) else v) for k, v in deals['wish'].items() if k != 'persona'}, flush=True)
+    except Exception:  # noqa: BLE001
+        errors.append('wishlist: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+
+    # 訂閱片單：Xbox Game Pass、PlayStation Plus
+    try:
+        from . import subs
+        releases['subs'] = subs.build(http, cache, health, t0, list(store.values()))
+    except Exception:  # noqa: BLE001
+        errors.append('subs: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+
+    # 主機特價：PlayStation Store 台灣區
+    try:
+        from . import console
+        deals['ps'] = console.build_ps(http, st, cache, health, t0)
+    except Exception:  # noqa: BLE001
+        errors.append('console: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+
     link_steam_ranks(releases)
     if namer is not None:
         try:
@@ -349,7 +374,8 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     src_meta = {s['id']: {'name': s['name'], 'tier': s.get('tier', 3), 'cat': s.get('cat', 'game'),
                           'home': s.get('home')} for s in sources}
     src_meta.update({k: dict(v, store=True) for k, v in cfg.get('stores', {}).items()})
-    store_keys = {'steam_deals': 'steam', 'steam_upcoming': 'steam', 'steam_new': 'steam', 'epic': 'epic',
+    store_keys = {'wishlist': 'steam', 'subs_gp': 'xbox', 'subs_ps': 'playstation', 'ps_deals': 'playstation',
+                  'steam_deals': 'steam', 'steam_upcoming': 'steam', 'steam_new': 'steam', 'epic': 'epic',
                   'appstore': 'appstore', 'wiki': 'wiki', 'ev_schedule': 'steam_events', 'ev_official': 'steam_events',
                   'ev_partner': 'steam_events', 'ev_daily': 'steam_events', 'ev_tags': 'steam_events',
                   'ev_free': 'steam_events'}
@@ -360,6 +386,13 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     meta = {'generated': iso(t0), 'build': build_id, 'stats': stats, 'rules': rules.describe(),
             'sources': src_meta, 'health': health_out,
             'translate': {k: tr_stats.get(k) for k in ('ok', 'model', 'done', 'cached', 'pending')}}
+    # 行事曆（.ics）：單一遊戲的發售日＋兩份可訂閱的行事曆（發售日、特賣與免費）
+    try:
+        from . import ical
+        stats['ical'] = ical.write_all(data_dir, releases, events, deals, t0)
+    except Exception:  # noqa: BLE001
+        errors.append('ical: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
     outputs = {'news.json': {'generated': iso(t0), 'items': game},
                'tech.json': {'generated': iso(t0), 'items': tech},
                'blocked.json': {'generated': iso(t0), 'items': blocked},
@@ -408,6 +441,12 @@ def run(mode: str) -> bool:
             if p.exists():
                 data_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy(p, data_dir / name)
+        try:   # 行事曆檔不存 state 分支，用上一輪的資料重新產生
+            from . import ical
+            load = lambda n: json.loads((state_dir / 'out' / n).read_text(encoding='utf-8')) if (state_dir / 'out' / n).exists() else {}  # noqa: E731
+            ical.write_all(data_dir, load('releases.json'), load('events.json'), load('deals.json'), t0)
+        except Exception:  # noqa: BLE001
+            traceback.print_exc()
         print('[forreal] deploy only, build', build_id, flush=True)
         return True
     execute(Http(), st, t0, data_dir, build_id)
