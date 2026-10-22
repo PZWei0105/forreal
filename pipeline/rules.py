@@ -43,8 +43,12 @@ class Rules:
         self.boosts = [dict(b, rx=_compile(b['patterns'])) for b in taste.get('boost', [])]
         self.follow = [g.strip() for g in taste.get('follow', []) if g.strip()]
         self.follow_rx = [re.compile(re.escape(g), re.IGNORECASE) for g in self.follow]
-        # 依來源自己標的分類擋下（例如 The Verge 的 deals）
-        self.block_cats = {k: {c.lower() for c in v} for k, v in data.get('block_cats', {}).items()}
+        # 依來源自己標的分類擋下（例如 The Verge 的 deals）。「* movies」這種寫法代表結尾是「 movies」的分類都算
+        self.block_cats = {k: {c.lower() for c in v if not c.startswith('*')} for k, v in data.get('block_cats', {}).items()}
+        self.block_cat_suffix = {k: tuple(c[1:].lower() for c in v if c.startswith('*'))
+                                 for k, v in data.get('block_cats', {}).items()}
+        # 有提到遊戲的跡象（一般字眼＋遊戲作品名）：影視分類的新聞只要有這些就照常收錄
+        self.game_signal = _compile(data.get('game_signal', []))
         self.label = {r['id']: r['label'] for r in data['block'] + data['soft'] + data['types']}
         self.label['mobile_f2p'] = '一般手遊（非買斷）'
 
@@ -114,6 +118,11 @@ class Rules:
                 hit = sorted(low_cats & self.block_cats.get(rid, set()))
                 if not blocks and tier != 1 and hit:
                     blocks.append({'r': rid, 'm': '分類：' + hit[0]})
+            # 遊戲媒體順便刊的電影、影集、漫畫新聞：來源標了影視分類、內容又完全沒提到遊戲才擋
+            if not blocks and tier != 1 and section == 'game':
+                hit = self.cat_hit('film_tv', it.get('cats'))
+                if hit and not _first(self.game_words, body) and not _first(self.game_signal, body):
+                    blocks.append({'r': 'film_tv', 'm': '分類：' + hit})
             # 只出現手機平台的消息：產業新聞（判決、裁員、收購、停止開發…）不算手遊宣傳
             if not blocks and section == 'game' and plat and set(plat) <= {'mobile'} and not {'hardware', 'industry'} & set(types):
                 f2p = _first(self.f2p, title)
@@ -136,6 +145,15 @@ class Rules:
         return {'sec': section, 'plat': plat, 'types': types, 'soft': soft,
                 'blocks': blocks, 'boost': boost, 'boost_labels': boost_labels,
                 'followed': followed}
+
+    def cat_hit(self, rid: str, cats) -> str | None:
+        """來源標的分類裡，第一個列在 block_cats[rid] 的（保留原本的大小寫，給濾網頁顯示）。"""
+        exact, suffix = self.block_cats.get(rid, set()), self.block_cat_suffix.get(rid, ())
+        for c in cats or []:
+            low = c.strip().lower()
+            if low in exact or (suffix and low.endswith(suffix)):
+                return c.strip()
+        return None
 
     def type_points(self, types, soft):
         pts = 0

@@ -7,7 +7,7 @@ const TZ = 'Asia/Taipei';
 const PLAT = { pc: 'PC', ps: 'PS', xbox: 'Xbox', switch: 'Switch', mobile: '手機', vr: 'VR' };
 const TYPE = { showcase: '發表會', delay: '延期', release: '發售', review: '評測', industry: '產業', trailer: '預告', sub: '訂閱制', free: '限免', patch: '更新', hardware: '硬體', ai: 'AI' };
 const SOFT = { rumor: '傳聞', opinion: '評論', buzz: '話題', media: '影視', merch: '周邊' };
-const BLOCK_SHORT = { ad: '業配', shop: '導購', guide: '農場', gacha: '課金', bait: '標題黨', mobile_f2p: '手遊' };
+const BLOCK_SHORT = { ad: '業配', shop: '導購', guide: '農場', gacha: '課金', bait: '標題黨', mobile_f2p: '手遊', film_tv: '影視' };
 const TIER = { 1: '官方來源', 2: '可信媒體', 3: '一般媒體' };
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 
