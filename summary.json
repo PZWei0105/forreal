@@ -1,0 +1,57 @@
+{
+ "started": "2026-10-22T11:56:56.663345+00:00",
+ "python": "3.12.15",
+ "results": [
+  {
+   "name": "pz_profile_xml",
+   "url": "https://steamcommunity.com/profiles/76561198618468810/?xml=1",
+   "status": 200,
+   "final_url": "https://steamcommunity.com/profiles/76561198618468810/?xml=1",
+   "size": 1104,
+   "content_type": "text/xml; charset=utf-8",
+   "last_modified": "Thu, 22 Oct 2026 11:00:00 GMT",
+   "elapsed": 0.17
+  },
+  {
+   "name": "pz_games_xml",
+   "url": "https://steamcommunity.com/profiles/76561198618468810/games/?tab=all&xml=1",
+   "status": 200,
+   "final_url": "https://steamcommunity.com/login/?redir=https%3A%2F%2Fsteamcommunity.com%2Fprofiles%2F76561198618468810%2Fgames%2F%3Ftab%3Dall%26xml%3D1",
+   "size": 52622,
+   "content_type": "text/html; charset=UTF-8",
+   "last_modified": null,
+   "elapsed": 0.2
+  },
+  {
+   "name": "pz_wishlist",
+   "url": "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?steamid=76561198618468810",
+   "status": 200,
+   "final_url": "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?steamid=76561198618468810",
+   "size": 15,
+   "content_type": "application/json; charset=UTF-8",
+   "last_modified": null,
+   "elapsed": 0.15
+  },
+  {
+   "name": "pz_wishlist_page",
+   "url": "https://store.steampowered.com/wishlist/profiles/76561198618468810/",
+   "status": 200,
+   "final_url": "https://store.steampowered.com/wishlist/profiles/76561198618468810/",
+   "size": 203368,
+   "content_type": "text/html; charset=utf-8",
+   "last_modified": null,
+   "elapsed": 0.16
+  },
+  {
+   "name": "gabe_wishlist_page",
+   "url": "https://store.steampowered.com/wishlist/profiles/76561197960287930/",
+   "status": 200,
+   "final_url": "https://store.steampowered.com/wishlist/profiles/76561197960287930/",
+   "size": 202426,
+   "content_type": "text/html; charset=utf-8",
+   "last_modified": null,
+   "elapsed": 0.09
+  }
+ ],
+ "finished": "2026-10-22T11:57:05.716960+00:00"
+}

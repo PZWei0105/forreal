@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><profile>
+	<steamID64>76561198618468810</steamID64>
+	<steamID><![CDATA[痞子葳]]></steamID>
+	<onlineState>offline</onlineState>
+	<stateMessage><![CDATA[Offline]]></stateMessage>
+	<privacyState>public</privacyState>
+	<visibilityState>3</visibilityState>
+	<avatarIcon><![CDATA[https://avatars.fastly.steamstatic.com/aae3870d4f8eb8a111eb162e8670e886d7ef5f70.jpg]]></avatarIcon>
+	<avatarMedium><![CDATA[https://avatars.fastly.steamstatic.com/aae3870d4f8eb8a111eb162e8670e886d7ef5f70_medium.jpg]]></avatarMedium>
+	<avatarFull><![CDATA[https://avatars.fastly.steamstatic.com/aae3870d4f8eb8a111eb162e8670e886d7ef5f70_full.jpg]]></avatarFull>
+	<vacBanned>0</vacBanned>
+	<tradeBanState>None</tradeBanState>
+	<isLimitedAccount>1</isLimitedAccount>
+	<customURL><![CDATA[]]></customURL>
+	<memberSince>October 20</memberSince>
+	<steamRating></steamRating>
+	<hoursPlayed2Wk>0.0</hoursPlayed2Wk>
+	<headline><![CDATA[]]></headline>
+	<location><![CDATA[Taiwan]]></location>
+	<realname><![CDATA[痞子葳]]></realname>
+	<summary><![CDATA[]]></summary>
+
+
+</profile>
