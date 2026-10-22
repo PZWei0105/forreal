@@ -416,7 +416,10 @@ function wishView(w) {
   if (!w.ok) return `<div class="empty">願望清單暫時抓不到。請確認 Steam 隱私設定的「遊戲詳細資料」是公開，下一輪更新會再試一次。</div>`;
   const all = w.items || [];
   if (!all.length) {
-    return `<div class="empty">${w.persona ? `已連上 Steam 帳號「${esc(w.persona)}」，但` : ''}讀不到願望清單裡的遊戲。<br>Steam 對「沒公開」和「清單是空的」回的結果一樣：如果你的願望清單有遊戲，請到 Steam →「編輯個人檔案」→「隱私設定」，把<b>「遊戲詳細資料」</b>設成<b>公開</b>（和個人檔案是分開設定的）。設好後，下一輪更新（每小時）就會自動出現。</div>`;
+    const who = w.persona ? `Steam 帳號「${esc(w.persona)}」` : '你的 Steam 帳號';
+    return w.private
+      ? `<div class="empty">已連上${who}，但願望清單沒有公開。<br>請到 Steam →「編輯個人檔案」→「隱私設定」，把<b>「遊戲詳細資料」</b>設成<b>公開</b>（和個人檔案是分開設定的）。設好後，下一輪更新（每小時）就會自動出現。</div>`
+      : `<div class="empty">已連上${who}，願望清單目前是空的。<br>在 Steam 商店的遊戲頁按<b>「加入願望清單」</b>，下一輪更新（每小時）就會出現在這裡：特價、發售日、小真的提醒和訂閱行事曆都會跟著更新。</div>`;
   }
   const sale = all.filter((x) => x.disc > 0).sort((a, b) => (b.verdict === 'great') - (a.verdict === 'great') || b.disc - a.disc);
   const soon = all.filter((x) => x.rel?.soon && !(x.disc > 0)).sort((a, b) => (a.rel.d || '9999').localeCompare(b.rel.d || '9999') || (a.pri ?? 1e4) - (b.pri ?? 1e4));

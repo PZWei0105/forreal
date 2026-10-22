@@ -15,6 +15,9 @@ import time
 from .util import hours_since, iso, parse_iso
 
 WISHLIST = 'https://api.steampowered.com/IWishlistService/GetWishlist/v1/?steamid={sid}'
+# 清單是空的時候，用商店的願望清單頁分辨「沒公開」和「真的是空的」：沒公開時頁面會寫這句錯誤訊息
+WISHLIST_PAGE = 'https://store.steampowered.com/wishlist/profiles/{sid}/?l=tchinese'
+PRIVATE_TEXT = '無法載入使用者的願望清單'
 PROFILE_XML = 'https://steamcommunity.com/{path}/?xml=1'
 INTERVAL_H = 0.9
 RESOLVE_TTL_H = 24
@@ -151,7 +154,14 @@ def build(http, st, cache, health, t0, root, tagnames: dict) -> dict:
         x['verdict'] = _verdict(x, DEAL_RULES)
         out.append(x)
     st.save('prices.json', prices)
-    data = {'setup': True, 'ok': True, 'persona': p.get('persona') or '', 'private': p.get('privacy') not in ('', 'public'),
+    private = p.get('privacy') not in ('', 'public')
+    if not rows and not private:
+        try:
+            r = http.get(WISHLIST_PAGE.format(sid=p['sid']), timeout=30)
+            private = r.status_code == 200 and PRIVATE_TEXT in r.text
+        except Exception:  # noqa: BLE001 — 分不出來就當成空的
+            pass
+    data = {'setup': True, 'ok': True, 'persona': p.get('persona') or '', 'private': private,
             'n': len(rows), 'items': out, 'at': iso(t0)}
     if not rows:
         data['empty'] = True
