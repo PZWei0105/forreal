@@ -1,98 +1,51 @@
 [
  {
-  "name": "ps_exp_deals",
-  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=getExperience&variables=%7B%22clientId%22%3A%22b6de8d4d-bf9b-11ee-ad2a-aea73dc1ea43%22%2C%22alias%22%3A%22deals%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22b5078800ed1bdebee9800979f9306abeadc5169030263f7095fe573b12e52270%22%7D%7D",
+  "name": "ns_sales_tw",
+  "url": "https://ec.nintendo.com/api/TW/zh/search/sales?count=30&offset=0",
+  "max": 8000000
+ },
+ {
+  "name": "ns_sales_hk",
+  "url": "https://ec.nintendo.com/api/HK/zh/search/sales?count=30&offset=0",
+  "max": 8000000
+ },
+ {
+  "name": "ns_sales_jp",
+  "url": "https://ec.nintendo.com/api/JP/ja/search/sales?count=30&offset=0",
+  "max": 8000000
+ },
+ {
+  "name": "ns_new_tw",
+  "url": "https://ec.nintendo.com/api/TW/zh/search/new?count=30&offset=0",
+  "max": 8000000
+ },
+ {
+  "name": "ns_tw_software",
+  "url": "https://www.nintendo.com/tw/software/",
+  "max": 8000000
+ },
+ {
+  "name": "ms_en_1",
+  "url": "https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9P7S9F02293J,9PKZRN4RJRC9,9NQVHHW88XW9,9P861V1542BL,9P2FF14JZLL3,9PPF72ZH6RP8,9N72DFC6GL91,9NFB47H2SDRX,9P5QV5XX8S9H,9N4PT8HGCDHQ,9PM3J18QM4Q3,9N944N1WP67T,9PLH7R84GJWP,9PJ6FV3130QZ,9NXSNQR7CM1Q,9PK0DZ68LGC0,9PK8PHLCQDF6,9P402RWR63H4,9N034X5G08B7,9NSM674QVLBS&market=TW&languages=en-us&MS-CV=DGU1mcuYo0WMMp+F.1",
+  "max": 8000000
+ },
+ {
+  "name": "ms_zh_1",
+  "url": "https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9P7S9F02293J,9PKZRN4RJRC9,9NQVHHW88XW9,9P861V1542BL,9P2FF14JZLL3,9PPF72ZH6RP8,9N72DFC6GL91,9NFB47H2SDRX,9P5QV5XX8S9H,9N4PT8HGCDHQ,9PM3J18QM4Q3,9N944N1WP67T,9PLH7R84GJWP,9PJ6FV3130QZ,9NXSNQR7CM1Q,9PK0DZ68LGC0,9PK8PHLCQDF6,9P402RWR63H4,9N034X5G08B7,9NSM674QVLBS&market=TW&languages=zh-tw&MS-CV=DGU1mcuYo0WMMp+F.1",
+  "max": 8000000
+ },
+ {
+  "name": "ps_alldeals_p4",
+  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=categoryStrandRetrieve&variables=%7B%22id%22%3A%223f772501-f6f8-49b7-abac-874a88ca4897%22%2C%22pageArgs%22%3A%7B%22size%22%3A100%2C%22offset%22%3A300%7D%2C%22maxResults%22%3A3000%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227d944fd25a1d2218ca1de4d48f59dc6077a3e08c74533d3980a70c184b048712%22%7D%7D",
   "headers": {
    "x-psn-store-locale-override": "zh-hant-tw",
    "content-type": "application/json"
   },
-  "max": 6000000
+  "max": 8000000
  },
  {
-  "name": "ps_strand_plain",
-  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=categoryStrandRetrieve&variables=%7B%22id%22%3A%22e41a8c76-2db9-4878-8896-34beb0bf8d4f%22%2C%22pageArgs%22%3A%7B%22size%22%3A100%2C%22offset%22%3A0%7D%2C%22maxResults%22%3A100%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227d944fd25a1d2218ca1de4d48f59dc6077a3e08c74533d3980a70c184b048712%22%7D%7D",
-  "max": 6000000
- },
- {
-  "name": "ps_strand_tw",
-  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=categoryStrandRetrieve&variables=%7B%22id%22%3A%22e41a8c76-2db9-4878-8896-34beb0bf8d4f%22%2C%22pageArgs%22%3A%7B%22size%22%3A100%2C%22offset%22%3A0%7D%2C%22maxResults%22%3A100%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227d944fd25a1d2218ca1de4d48f59dc6077a3e08c74533d3980a70c184b048712%22%7D%7D",
-  "headers": {
-   "x-psn-store-locale-override": "zh-hant-tw",
-   "content-type": "application/json"
-  },
-  "max": 6000000
- },
- {
-  "name": "ps_strand_alldeals_tw",
-  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=categoryStrandRetrieve&variables=%7B%22id%22%3A%223f772501-f6f8-49b7-abac-874a88ca4897%22%2C%22pageArgs%22%3A%7B%22size%22%3A100%2C%22offset%22%3A0%7D%2C%22maxResults%22%3A300%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227d944fd25a1d2218ca1de4d48f59dc6077a3e08c74533d3980a70c184b048712%22%7D%7D",
-  "headers": {
-   "x-psn-store-locale-override": "zh-hant-tw",
-   "content-type": "application/json"
-  },
-  "max": 6000000
- },
- {
-  "name": "ps_strand_halloween_tw",
-  "url": "https://web.np.playstation.com/api/graphql/v1/op?operationName=categoryStrandRetrieve&variables=%7B%22id%22%3A%225c3b22b6-5d93-46ed-a6f9-4eaf9269de57%22%2C%22pageArgs%22%3A%7B%22size%22%3A100%2C%22offset%22%3A100%7D%2C%22maxResults%22%3A300%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227d944fd25a1d2218ca1de4d48f59dc6077a3e08c74533d3980a70c184b048712%22%7D%7D",
-  "headers": {
-   "x-psn-store-locale-override": "zh-hant-tw",
-   "content-type": "application/json"
-  },
-  "max": 6000000
- },
- {
-  "name": "ns_price_tw2",
-  "url": "https://api.ec.nintendo.com/v1/price?country=TW&lang=zh&ids=70010000130795,70010000125148",
-  "max": 6000000
- },
- {
-  "name": "ns_price_hk2",
-  "url": "https://api.ec.nintendo.com/v1/price?country=HK&lang=zh&ids=70010000130795,70010000125148",
-  "max": 6000000
- },
- {
-  "name": "ns_store_hk",
-  "url": "https://store.nintendo.com.hk/",
-  "max": 6000000
- },
- {
-  "name": "ns_store_hk_gql",
-  "url": "https://store.nintendo.com.hk/graphql?query=%7Bproducts(search%3A%22%22%2CpageSize%3A5)%7Btotal_count%20items%7Bname%20sku%7D%7D%7D",
-  "max": 6000000
- },
- {
-  "name": "ns_tw_soft_api",
-  "url": "https://www.nintendo.com/tw/api/top/software_pickup",
-  "max": 6000000
- },
- {
-  "name": "psblog_en_plus",
-  "url": "https://blog.playstation.com/tag/playstation-plus/feed/",
-  "max": 6000000
- },
- {
-  "name": "psblog_en_search",
-  "url": "https://blog.playstation.com/?s=PlayStation+Plus&feed=rss2",
-  "max": 6000000
- },
- {
-  "name": "psblog_zh_search",
-  "url": "https://blog.zh-hant.playstation.com/?s=PlayStation+Plus&feed=rss2",
-  "max": 6000000
- },
- {
-  "name": "psblog_zh_cat",
+  "name": "psblog_zh_plus_cat",
   "url": "https://blog.zh-hant.playstation.com/category/ps-plus/feed/",
-  "max": 6000000
- },
- {
-  "name": "ms_catalog_2lang",
-  "url": "https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9NK039GWVTVC,9PNRLJNDPP4G,9MXWL7VJ2SJW&market=TW&languages=zh-tw,en-us&MS-CV=DGU1mcuYo0WMMp+F.1",
-  "max": 6000000
- },
- {
-  "name": "xbox_wire_feed_gp",
-  "url": "https://news.xbox.com/en-us/feed/?s=Game+Pass",
-  "max": 6000000
+  "max": 8000000
  }
 ]
