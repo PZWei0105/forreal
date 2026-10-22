@@ -190,6 +190,9 @@ _MONEY_ZH = re.compile(r'(US\$|NT\$|\$|£|€|¥)?\s?(\d[\d,]*(?:\.\d+)?|[' + _Z
                        r'(美元|美金|新台幣|台幣|港幣|加幣|澳幣|人民幣|韓元|韓圜|英鎊|歐元|日圓|日元|円|元)?')
 # 中文的大數字（不帶幣別）：百萬人、2 億畫素…；「數百萬」「上萬」「萬聖節」「千萬不要」這類不算
 _MAG_ZH = re.compile(r'(?<![數幾上近逾])(\d[\d,]*(?:\.\d+)?|[' + _ZH_NUM + r']+)\s*([十百千]?[萬億])(?![不別要聖代一富火])')
+# 原標題講的是實體版：中文標題也要寫出來（不然「PS5 實體版 2027 年推出」會變成「遊戲 2027 年發售」）
+_PHYSICAL = re.compile(r'\bphysical (?:editions?|releases?|versions?|copies|copy|launch|games?)\b|'
+                       r'\bphysical(?= (?:ps5|ps4|switch|xbox)\b)', re.I)
 # 範例答案裡才有的字句：原文沒提到卻出現在翻譯，就是模型把範例抄進來了
 _EXAMPLE_LEAK = [('頭目連戰', r'boss rush|ボスラッシュ'), ('大量難度選項', r'difficult|難易度'),
                  ('Liquid Swords', r'liquid swords'), ('沒領到薪水', r'paid|salar|wage|給与|給料|未払'),
@@ -327,7 +330,10 @@ def check(src_title: str, src_body: str, out_t: str, out_s: str) -> list[str]:
             continue   # 金額在上面查過了
         if not _close(v, nums):
             probs.append(f'「{m.group(0).strip()}」數字不對，請照原文的數字寫')
-    # 4. 抄到範例答案
+    # 4. 實體版
+    if _PHYSICAL.search(src_title) and '實體' not in out_t:
+        probs.append('原標題講的是實體版，中文標題要寫出「實體版」')
+    # 5. 抄到範例答案
     for zh, rx in _EXAMPLE_LEAK:
         if zh in out and not re.search(rx, src, re.I):
             probs.append(f'「{zh}」是範例裡的內容，原文沒有，不要抄範例')

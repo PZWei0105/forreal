@@ -766,7 +766,7 @@ function viewFilter() {
     <div class="panel rule-list">
       ${(m.rules?.block || []).map((r) => `<div><b><span class="stamp sm">${BLOCK_SHORT[r.id] || '攔截'}</span>${esc(r.label)}</b>${esc(r.desc)}</div>`).join('')}
       ${(m.rules?.soft || []).map((r) => `<div><b>${esc(r.label)}（保留、往後排）</b>${esc(r.desc)}</div>`).join('')}
-      <div><b>翻譯與摘要</b>外文新聞在每小時更新時，先由開源模型${m.translate?.model ? `（${esc(m.translate.model)}）` : ''}翻成繁體中文標題並寫一到兩句摘要，再放進 App。卡片上灰色小字是原文標題。來不及翻的會先標「翻譯中」，下一輪補上。</div>
+      <div><b>翻譯與摘要</b>外文新聞在每小時更新時，先由開源模型${m.translate?.model ? `（${esc(m.translate.model)}）` : ''}翻成繁體中文標題並寫一到兩句摘要，再放進 App。翻好會自動對照原文：金額、大數字、固定譯名的人名（例如櫻井政博）對不上就重翻，對不上的不會放進來。卡片上灰色小字是原文標題。來不及翻的會先標「翻譯中」，下一輪補上。</div>
       <div><b>遊戲中文名</b>遊戲名稱優先用 Steam 台灣商店的官方中文名，查不到再用維基百科的台灣譯名；兩邊都查不到、或名稱對不上，就保留原文，寧可不換也不換錯。</div>
       <div><b>「真」字全像印</b>只蓋在官方來源、三家以上獨立報導的消息、特價頁的好價，以及 Steam 官方活動上。</div>
       <div><b>排序</b>官方來源與可信媒體優先；同一件事被越多家獨立報導越前面；越新越前面；發售、延期、發表會、評測加分。${(m.rules?.boost || []).length ? `你的口味也會加分：${(m.rules.boost || []).map((b) => esc(b.label)).join('、')}。` : ''}</div>
