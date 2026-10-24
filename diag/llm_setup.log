@@ -1,0 +1,16 @@
+== setup 2026-10-24T18:50:49Z cpu=4 mem=15G disk=81G
+/home/runner/.cache/forreal-llm:
+total 4909968
+drwxr-xr-x 3 runner runner       4096 Oct 20 02:32 .
+drwxr-xr-x 4 runner runner       4096 Oct 24 18:50 ..
+drwxr-xr-x 2 runner runner       4096 Oct 20 02:14 bin
+-rw-r--r-- 1 runner runner 5027783488 Oct 20 02:32 model.gguf
+-rw-r--r-- 1 runner runner         16 Oct 20 02:32 model.txt
+
+/home/runner/.cache/forreal-llm/bin:
+total 19048
+drwxr-xr-x 2 runner runner     4096 Oct 20 02:14 .
+drwxr-xr-x 3 runner runner     4096 Oct 20 02:32 ..
+-rwxr-xr-x 1 runner runner 19495832 Oct 20 02:14 llama-server
+translator files ready: Qwen3-8B-Q4_K_M
+translator ready after 4x2s
