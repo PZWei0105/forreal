@@ -351,15 +351,6 @@
    "home": "https://www.engadget.com/"
   },
   {
-   "id": "hn300",
-   "name": "Hacker News 熱門",
-   "kind": "hn",
-   "url": "https://hnrss.org/frontpage?points=300",
-   "tier": 2,
-   "cat": "tech",
-   "home": "https://news.ycombinator.com/"
-  },
-  {
    "id": "technews",
    "name": "科技新報",
    "url": "https://technews.tw/feed/",
