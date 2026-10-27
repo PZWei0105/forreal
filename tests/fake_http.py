@@ -44,3 +44,17 @@ class FakeHttp:
 def news_routes():
     src = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'config' / 'sources.json').read_text(encoding='utf-8'))
     return [(s['url'], s['id']) for s in src['news']]
+
+
+def probe_now():
+    """測試用的「現在」：NOW 環境變數（ISO），沒設就用 probe 抓資料的時間。
+
+    新聞在 state 只保留 120 小時，用真正的現在跑舊的 probe 會什麼都不剩，測不到東西。
+    """
+    from pipeline.util import now, parse_iso
+    if os.environ.get('NOW'):
+        return parse_iso(os.environ['NOW'])
+    try:
+        return parse_iso(json.loads((RAW.parent / 'summary.json').read_text(encoding='utf-8'))['started'])
+    except (OSError, ValueError, KeyError):
+        return now()

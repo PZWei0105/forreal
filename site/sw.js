@@ -4,7 +4,7 @@ const BUILD = '__BUILD__';
 const SHELL = `forreal-shell-${BUILD}`;
 const DATA = 'forreal-data';
 const V = `?v=${BUILD}`;
-const SHELL_FILES = ['./', 'index.html', `styles.css${V}`, `app.js${V}`, `sfx.js${V}`, `fx.js${V}`, `brief.js${V}`, 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
+const SHELL_FILES = ['./', 'index.html', `styles.css${V}`, `app.js${V}`, `sfx.js${V}`, `fx.js${V}`, `brief.js${V}`, `updates.js${V}`, 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
   // cache: 'reload'：不要拿到瀏覽器 HTTP 快取裡的舊檔

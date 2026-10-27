@@ -54,14 +54,69 @@ export function greeting(now = new Date()) {
 }
 
 // ---------------------------------------------------------------- 搜尋（全 App）
-const norm = (s) => String(s || '').toLowerCase().replace(/[\s\-_:：・·.,，、!！?？'’"“”《》「」()（）™®©]/g, '');
+/** 小寫、去掉變音符號（Pokémon → pokemon）。 */
+const fold = (s) => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const norm = (s) => fold(s).replace(/[\s\-_:：・·.,，、!！?？'’"“”《》「」()（）™®©]/g, '');
 
-/** 在新聞、特價、活動、發售日曆裡找同一個關鍵字。回傳依類別分組的結果。 */
+// 遊戲的中英文名對照：商店多半只寫英文名（Resident Evil 4），新聞翻譯用台灣官方中文名（惡靈古堡4）。
+// 來源：每輪查到的官方中文名（meta.alias）＋發售日曆、Game Pass、願望清單自己帶的中英文名。
+const STEM = /[\s:：\-–—]*(?:\d{1,2}|[IVX]{1,4}|[Ⅱ-Ⅻ])(?:\s*(?:重製版|remake|remastered))?$/iu;
+/** 英文名要整個字對上（CoD 不會對到 CODE VEIN）。 */
+function wordRx(s) {
+  const t = fold(s).match(/[a-z0-9]+/g);
+  return t ? new RegExp(`(?<![a-z0-9])${t.join('[^a-z0-9]*')}(?![a-z0-9])`) : null;
+}
+let aliasMemo = { key: null, pairs: [] };
+function aliasPairs(D) {
+  const key = [D.meta, D.releases, D.deals];
+  if (aliasMemo.key && key.every((x, i) => x === aliasMemo.key[i])) return aliasMemo.pairs;
+  const pairs = [];
+  const add = (en, zh) => {
+    if (!en || !zh) return;
+    const a = norm(en);
+    const b = norm(zh);
+    if (a.length < 3 || b.length < 2 || a === b) return;
+    pairs.push({ en: a, zh: b, rx: wordRx(en) });
+    // 系列名：「Resident Evil 2 ↔ 惡靈古堡2」也記一組「Resident Evil ↔ 惡靈古堡」，搜系列名就能找到每一代
+    const se = String(en).replace(STEM, '');
+    const sz = String(zh).replace(STEM, '');
+    if (norm(se) !== a && norm(sz) !== b && norm(se).length >= 3 && norm(sz).length >= 2) pairs.push({ en: norm(se), zh: norm(sz), rx: wordRx(se) });
+  };
+  for (const [en, zh] of D.meta?.alias || []) add(en, zh);
+  for (const x of D.releases?.wiki?.items || []) add(x.title, x.zh);
+  for (const k of ['coming', 'recent', 'leaving']) for (const x of D.releases?.subs?.gp?.[k] || []) add(x.en, x.name);
+  for (const x of D.deals?.wish?.items || []) add(x.en, x.name);
+  aliasMemo = { key, pairs };
+  return pairs;
+}
+/** 要找的寫法：原本的關鍵字（部分符合即可），加上對照到的另一種語言的名稱（最多 40 組）。 */
+function matcher(D, k) {
+  const subs = new Set([k]);
+  const rxs = [];
+  const cjk = /[\u3400-\u9fff]/.test(k);
+  for (const p of aliasPairs(D)) {
+    if (subs.size + rxs.length >= 40) break;
+    if (cjk && p.zh.includes(k) && p.rx) rxs.push(p.rx);   // 輸入中文名 → 也找英文名
+    else if (!cjk && k.length >= 4 && p.en.includes(k)) subs.add(p.zh);   // 輸入英文名 → 也找中文名
+  }
+  const list = [...subs];
+  return (x) => {
+    const t = norm(x);
+    if (!t) return false;
+    if (list.some((kk) => t.includes(kk))) return true;
+    if (!rxs.length) return false;
+    const f = fold(x);
+    return rxs.some((r) => r.test(f));
+  };
+}
+
+/** 在新聞、特價、活動、發售日曆裡找同一個關鍵字（中文名、英文名都可以）。回傳依類別分組的結果。 */
 export function searchAll(D, q, { limit = 12, sinceH = null } = {}) {
   const k = norm(q);
   const out = { news: [], deals: [], events: [], rel: [] };
   if (k.length < 2) return out;
-  const hit = (...xs) => xs.some((x) => norm(x).includes(k));
+  const m = matcher(D, k);
+  const hit = (...xs) => xs.some(m);
   const now = Date.now();
   for (const sec of ['news', 'tech']) {
     for (const e of D[sec]?.items || []) {
@@ -143,7 +198,8 @@ export function buildBrief(D, { follow = [], lastSeen = 0, now = new Date() } = 
     const name = `${ev.name}${ev.edition ? ` ${ev.edition}` : ''}`;
     const left = leftText(new Date(ev.end).getTime() - t);
     const extra = g ? `，${list.label}：《${g.name}》` : '';
-    lines.push({ icon: 'event', html: `${esc(name)}進行中，還剩 ${left}${esc(extra)}`, say: `${name}進行中，還剩 ${left}${extra}。`, go: { tab: 'events' } });
+    const sp = /[A-Za-z0-9]$/.test(name) ? ' ' : '';   // 「尖叫節 V 進行中」：英數字和中文之間空一格
+    lines.push({ icon: 'event', html: `${esc(name)}${sp}進行中，還剩 ${left}${esc(extra)}`, say: `${name}進行中，還剩 ${left}${extra}。`, go: { tab: 'events' } });
   } else {
     const next = (E.schedule || []).filter((e) => e.start && new Date(e.start).getTime() > t).sort((a, b) => a.start.localeCompare(b.start))[0];
     if (next) {

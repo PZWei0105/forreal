@@ -73,10 +73,17 @@ def _money(s) -> float | None:
     return float(m.group(0).replace(',', '')) if m else None
 
 
+# 名稱結尾的平台字樣（平台另外顯示）：「PS4 & PS5」「PS4™ & PS5™」「(PS4 & PS5)」「| PS4 & PS5」「（PS4™）」「(PlayStation®5)」
+_PS = r'(?:PS ?[45]|PlayStation\s?®?\s?[45])[™®]?'
+PLAT_SUFFIX = re.compile(r'\s*(?:[|\-–—]\s*)?[(（\[]?\s*' + _PS + r'(?:\s*(?:&|＆|和|及|與|/|and)\s*' + _PS + r')?\s*[)）\]]?\s*$', re.I)
+SKIP_NAME = re.compile(r'\bhentai\b', re.I)   # 和 Steam 那邊一樣，不收成人向小品
+
+
 def _clean_name(name: str) -> str:
-    """「霧鎖王國 (Enshrouded) (簡體中文, 韓文, 英文, 繁體中文)」→ 去掉最後的語言清單。"""
+    """「霧鎖王國 (Enshrouded) (簡體中文, 韓文, 英文, 繁體中文)」→ 去掉最後的語言清單；「Maneater PS4 & PS5」→ 去掉平台。"""
     name = re.sub(r'\s*\((?:[^()]*?(?:中文|英文|日文|韓文|泰文)[^()]*)\)\s*$', '', name or '').strip()
-    name = re.sub(r'^《(.*)》$', r'\1', name)   # 有些商品名稱自己帶書名號
+    name = PLAT_SUFFIX.sub('', name).strip() or name
+    name = re.sub(r'^《([^《》]*)》$', r'\1', name)   # 有些商品名稱自己帶書名號
     return re.sub(r'\s+', ' ', name)
 
 
@@ -125,7 +132,7 @@ def build_ps(http, st, cache, health, t0) -> dict:
                 price = p.get('price') or {}
                 base, now = _money(price.get('basePrice')), _money(price.get('discountedPrice'))
                 cls = p.get('storeDisplayClassification') or ''
-                if base is None or now is None or now >= base or (cls and cls not in KEEP_CLASS):
+                if base is None or now is None or now >= base or (cls and cls not in KEEP_CLASS) or SKIP_NAME.search(p.get('name') or ''):
                     continue
                 x = items.get(p['id'])
                 if x:

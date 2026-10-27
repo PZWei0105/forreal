@@ -557,6 +557,14 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 .set-t { display: grid; gap: 2px; min-width: 0; }
 .set-t b { font-weight: 650; font-size: 14.5px; }
 .set-t small { color: var(--paper-3); font-size: 12px; line-height: 1.45; }
+.log-entry { padding: 12px 14px 13px; border-top: 1px solid var(--line); }
+.log-entry:first-child { border-top: 0; }
+.log-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.log-h b { font-weight: 700; font-size: 15px; line-height: 1.4; }
+.log-h time { flex: none; font-size: 13px; color: var(--paper-3); }
+.log-entry ul { margin: 8px 0 0; padding-left: 1.2em; color: var(--paper-2); font-size: 13.5px; line-height: 1.65; }
+.log-entry li + li { margin-top: 5px; }
+.log-entry li::marker { color: var(--uv); }
 .tgl { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 48px; height: 28px; margin: 0; border-radius: 999px; background: var(--ink-4); border: 1px solid var(--line-2); cursor: pointer; transition: background 0.2s; }
 .tgl::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--paper-2); transition: transform 0.2s; }
 .tgl:checked { background: var(--uv); border-color: var(--uv); box-shadow: 0 0 12px var(--uv-glow); }

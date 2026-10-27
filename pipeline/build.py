@@ -14,7 +14,7 @@ import traceback
 from .cluster import Clusterer, item_time
 from .feeds import fetch_feed
 from .rules import Rules, score
-from .util import Http, hours_since, iso, now, parse_iso
+from .util import Http, hours_since, iso, now
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 KEEP_HOURS = 120          # 新聞在 state 裡保留多久
@@ -112,6 +112,36 @@ def load_ai_notes():
         return json.loads(p.read_text(encoding='utf-8')).get('items', {})
     except ValueError:
         return {}
+
+
+_MARK_GLUE = re.compile(r'[™®©](?=[0-9A-Za-z])')   # MotoGP™23 → MotoGP 23、PlayStation®5 → PlayStation 5
+_MARKS = re.compile(r'\s*[™®©]')
+_NAME_KEYS = {'t', 'tz', 's', 'sz', 'name', 'en', 'zh', 'title'}
+
+
+def _clean_text(s: str, whole_name: bool) -> str:
+    s = _MARKS.sub('', _MARK_GLUE.sub(' ', s))
+    if whole_name:
+        s = re.sub(r'^《([^《》]+)》$', r'\1', s.strip())   # 有些商店名稱自己帶書名號
+    return re.sub(r'  +', ' ', s)
+
+
+def clean_names(*objs):
+    """輸出前統一整理名稱與標題：拿掉 ™ ® ©（台灣媒體與玩家都不會寫），整個名稱被《》包住的去掉書名號。"""
+    def walk(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if isinstance(v, str):
+                    if k in _NAME_KEYS and v:
+                        o[k] = _clean_text(v, whole_name=(k == 'name'))
+                elif isinstance(v, (dict, list)):
+                    walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                if isinstance(v, (dict, list)):
+                    walk(v)
+    for o in objs:
+        walk(o)
 
 
 def process_news(store: dict, src_by_id: dict, rules: Rules, t0):
@@ -360,16 +390,19 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
         traceback.print_exc()
 
     link_steam_ranks(releases)
+    alias = []
     if namer is not None:
         try:
             from . import names
             names.localize_calendar((releases.get('wiki') or {}).get('items') or [], namer)
             namer.save()
             name_stats = namer.stats
+            alias = names.alias_pairs(namer.cache)
         except Exception:  # noqa: BLE001
             errors.append('names: ' + traceback.format_exc()[-400:])
             traceback.print_exc()
     print('[forreal] names', name_stats, flush=True)
+    clean_names(game, tech, deals, releases, events)
 
     src_meta = {s['id']: {'name': s['name'], 'tier': s.get('tier', 3), 'cat': s.get('cat', 'game'),
                           'home': s.get('home')} for s in sources}
@@ -385,7 +418,8 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
             health_out[k] = dict(health[k], owner=owner)
     meta = {'generated': iso(t0), 'build': build_id, 'stats': stats, 'rules': rules.describe(),
             'sources': src_meta, 'health': health_out,
-            'translate': {k: tr_stats.get(k) for k in ('ok', 'model', 'done', 'cached', 'pending')}}
+            'translate': {k: tr_stats.get(k) for k in ('ok', 'model', 'done', 'cached', 'pending')},
+            'alias': alias}
     # 行事曆（.ics）：單一遊戲的發售日＋兩份可訂閱的行事曆（發售日、特賣與免費）
     try:
         from . import ical

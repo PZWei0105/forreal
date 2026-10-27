@@ -2,6 +2,7 @@
 import { play, sound, setSound, unlock, whenUnlocked } from './sfx.js?v=__BUILD__';
 import { fx, setFx, rosette, initHolo, enableTilt, scanSweep, countUp, decrypt, toast, boot } from './fx.js?v=__BUILD__';
 import { buildBrief, searchAll, speak, stopSpeak, canSpeak } from './brief.js?v=__BUILD__';
+import { UPDATES } from './updates.js?v=__BUILD__';
 
 const TZ = 'Asia/Taipei';
 const PLAT = { pc: 'PC', ps: 'PS', xbox: 'Xbox', switch: 'Switch', mobile: '手機', vr: 'VR' };
@@ -71,10 +72,11 @@ const thousands = (v) => (v == null ? '' : Number(v).toLocaleString('en-US'));
 function imgFallback(cap) {
   return cap ? `if(this.dataset.f){this.style.visibility='hidden'}else{this.dataset.f=1;this.src='${esc(cap)}'}` : "this.style.visibility='hidden'";
 }
-const REL_TYPE = { original: '新作', port: '移植', remaster: '重製版', remake: '重製', 'early access': '搶先體驗', 'full release': '正式版', expansion: '資料片', compilation: '合輯', dlc: 'DLC', 'enhanced port': '強化移植', unknown: '' };
-const GENRE = { action: '動作', 'action-adventure': '動作冒險', adventure: '冒險', rpg: '角色扮演', 'action rpg': '動作角色扮演', jrpg: '日式 RPG', 'tactical rpg': '戰略 RPG', fps: '第一人稱射擊', tps: '第三人稱射擊', "shoot 'em up": '射擊', 'survival horror': '生存恐怖', horror: '恐怖', puzzle: '解謎', platformer: '平台', metroidvania: '銀河惡魔城', roguelike: 'Roguelike', roguelite: 'Roguelite', 'deck building': '牌組構築', strategy: '策略', rts: '即時戰略', tbs: '回合策略', '4x': '4X', simulation: '模擬', 'life sim': '生活模擬', 'city builder': '城市建造', survival: '生存', sandbox: '沙盒', sports: '運動', racing: '賽車', fighting: '格鬥', 'visual novel': '視覺小說', cozy: '療癒', stealth: '潛行', mmorpg: 'MMORPG', moba: 'MOBA', 'battle royale': '大逃殺', rhythm: '節奏', 'beat \'em up': '清版動作', soulslike: '魂系', 'hack and slash': '砍殺', party: '派對', 'card game': '卡牌', idle: '放置', farming: '農場', 'open world': '開放世界', 'tower defense': '塔防', 'turn-based': '回合制', 'dungeon crawl': '地城探索', otome: '乙女', cms: '經營模擬' };
-const zhType = (t) => t.split(/,\s*/).map((x) => REL_TYPE[x.toLowerCase()] ?? x).filter(Boolean).join('、');
-const zhGenre = (g) => g.split(/,\s*/).map((x) => GENRE[x.toLowerCase()] || x).join('、');
+const REL_TYPE = { original: '新作', port: '移植', remaster: '重製版', remake: '重製', 'early access': '搶先體驗', 'full release': '正式版', expansion: '資料片', compilation: '合輯', dlc: 'DLC', 'enhanced port': '強化移植', rerelease: '再發行', 're-release': '再發行', unknown: '' };
+const GENRE = { action: '動作', 'action-adventure': '動作冒險', adventure: '冒險', rpg: '角色扮演', 'action rpg': '動作角色扮演', jrpg: '日式 RPG', 'tactical rpg': '戰略 RPG', fps: '第一人稱射擊', tps: '第三人稱射擊', "shoot 'em up": '射擊', 'survival horror': '生存恐怖', horror: '恐怖', puzzle: '解謎', platformer: '平台', metroidvania: '銀河惡魔城', roguelike: 'Roguelike', roguelite: 'Roguelite', 'deck building': '牌組構築', strategy: '策略', rts: '即時戰略', tbs: '回合策略', '4x': '4X', simulation: '模擬', 'life sim': '生活模擬', 'city builder': '城市建造', survival: '生存', sandbox: '沙盒', sports: '運動', racing: '賽車', fighting: '格鬥', 'visual novel': '視覺小說', cozy: '療癒', stealth: '潛行', mmorpg: 'MMORPG', moba: 'MOBA', 'battle royale': '大逃殺', rhythm: '節奏', 'beat \'em up': '清版動作', soulslike: '魂系', 'hack and slash': '砍殺', party: '派對', 'card game': '卡牌', idle: '放置', farming: '農場', 'open world': '開放世界', 'tower defense': '塔防', 'turn-based': '回合制', 'dungeon crawl': '地城探索', otome: '乙女', cms: '經營模擬', mmo: 'MMO', brawler: '清版格鬥', 'puzzle-platformer': '解謎平台', 'interactive film': '互動電影', 'bullet heaven': '割草射擊', rougelike: 'Roguelike', 'scrolling shooter': '捲軸射擊', 'vehicle sim': '載具模擬', pinball: '彈珠台', 'dating sim': '戀愛模擬', 'graphic adventure': '圖像冒險', 'tile matching': '三消', 'vehicular combat': '載具戰鬥', 'digital tabletop': '數位桌遊', 'sports management': '運動經營', 'narrative adventure': '劇情冒險', pca: '點擊冒險', 'point-and-click': '點擊冒險', cooking: '料理', fitness: '健身', 'auto battler': '自走棋', 'government sim': '治國模擬', 'social sim': '社交模擬', dccg: '數位卡牌', ccg: '卡牌', shooter: '射擊', 'hero shooter': '英雄射擊', 'extraction shooter': '撤離射擊', 'twin-stick shooter': '雙搖桿射擊', 'bullet hell': '彈幕射擊', 'walking sim': '步行模擬', 'flight sim': '飛行模擬', 'grand strategy': '大戰略', tactics: '戰術', 'monster taming': '魔物收集', 'social deduction': '社交推理', music: '音樂', golf: '高爾夫', wrestling: '摔角', mecha: '機甲' };
+const zhType = (t) => t.split(/\s*[,/+]\s*/).map((x) => REL_TYPE[x.toLowerCase()] ?? x).filter(Boolean).join('、');
+const zhGenre = (g) => g.split(/,\s*/).map((x) => x.trim()).filter((x) => x && !/^[—–-]*\s*(?:n\/?a|tba|tbd)?$/i.test(x))
+  .map((x) => GENRE[x.toLowerCase()] || GENRE[x.replace(/\s*\(.*\)$/, '').toLowerCase()] || x).join('、');
 const gradeClass = (p) => (p >= 85 ? 'hi' : p >= 70 ? 'mid' : 'lo');
 
 // ---------- 狀態 ----------
@@ -187,9 +189,11 @@ function secHead(title, aside = '') {
 }
 
 // ---------- 新聞卡 ----------
+/** 「真」印：官方來源，或三家以上獨立報導（傳聞、爆料就算很多家在傳，也不算證實）。 */
+const isVerified = (e) => Boolean(e.flags?.includes('official') || (e.flags?.includes('multi') && !e.soft?.includes('rumor')));
 function card(e, { hero = false, img = false } = {}) {
   const official = e.flags?.includes('official');
-  const verified = official || e.flags?.includes('multi');
+  const verified = isVerified(e);
   const rumor = e.soft?.includes('rumor');
   const tier = srcMeta(e.src)?.tier || 3;
   const softTags = (e.soft || []).filter((s) => s !== 'rumor').map((s) => `<span class="tag">${SOFT[s] || s}</span>`).join('');
@@ -250,7 +254,7 @@ function filterNews(items, f) {
   if (f === 'follow') return items.filter(followHit);
   if (f === 'saved') return S.saved;
   if (f === 'new') return items.filter(isNew);
-  if (f === 'verified') return items.filter((e) => e.flags?.length);
+  if (f === 'verified') return items.filter(isVerified);
   if (f === 'rumor') return items.filter((e) => e.soft?.includes('rumor'));
   if (f === 'mobile') return items.filter((e) => e.plat?.includes('mobile'));
   if (PLAT[f]) return items.filter((e) => e.plat?.includes(f));
@@ -416,7 +420,7 @@ function wishView(w) {
   if (!w.ok) return `<div class="empty">願望清單暫時抓不到。請確認 Steam 隱私設定的「遊戲詳細資料」是公開，下一輪更新會再試一次。</div>`;
   const all = w.items || [];
   if (!all.length) {
-    const who = w.persona ? `Steam 帳號「${esc(w.persona)}」` : '你的 Steam 帳號';
+    const who = w.persona ? ` Steam 帳號「${esc(w.persona)}」` : '你的 Steam 帳號';
     return w.private
       ? `<div class="empty">已連上${who}，但願望清單沒有公開。<br>請到 Steam →「編輯個人檔案」→「隱私設定」，把<b>「遊戲詳細資料」</b>設成<b>公開</b>（和個人檔案是分開設定的）。設好後，下一輪更新（每小時）就會自動出現。</div>`
       : `<div class="empty">已連上${who}，願望清單目前是空的。<br>在 Steam 商店的遊戲頁按<b>「加入願望清單」</b>，下一輪更新（每小時）就會出現在這裡：特價、發售日、小真的提醒和訂閱行事曆都會跟著更新。</div>`;
@@ -460,7 +464,7 @@ function freeCard(x, now) {
   const start = x.start ? new Date(x.start) : null;
   const when = now ? (end ? `免費到 ${fmtFull.format(end)}` : '') : (start ? `${fmtFull.format(start)} 開始免費` : '');
   return `<article class="doc free"><a class="free-in" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="free">
-    ${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<span></span>'}
+    ${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : '<span></span>'}
     <span class="free-info"><span class="name">${esc(x.name)}</span><span class="when">${when}</span>
     ${x.orig ? `<span class="when">原價 ${typeof x.orig === 'number' ? money(x.orig) : esc(String(x.orig).replace('$', 'NT$'))}</span>` : ''}</span></a></article>`;
 }
@@ -469,7 +473,7 @@ function appRow(x) {
   const mv = x.new ? '<span class="mv new">新進榜</span>' : x.move > 0 ? `<span class="mv up">▲${x.move}</span>` : x.move < 0 ? `<span class="mv down">▼${-x.move}</span>` : '';
   return `<a class="app" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="app">
     <span class="rk num">${x.rank}</span>
-    <img src="${esc(x.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">
+    <img src="${esc(x.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">
     <span><span class="name">${esc(x.name)}</span><span class="by">${esc(x.by)}</span></span>
     <span class="right"><span class="num">${money(x.price)}</span><span>${x.rating ? `★ ${x.rating}（${thousands(x.ratings)}）` : '尚無評分'} ${mv}</span></span></a>`;
 }
@@ -488,7 +492,7 @@ function viewRel() {
         <span><span class="name">${esc(x.name)}</span><span class="sub">${esc(x.text || '未定')}</span></span></a>`).join('')}</div>` : '<div class="empty">還沒有資料。</div>'}`;
   } else {
     const items = (r.steam_new?.items || []).slice().sort((a, b) => a.rank - b.rank);
-    body = `<p class="hint lead">最近 45 天內發售、正在 Steam 熱銷榜上的新作。左邊是熱銷名次，右邊是全球玩家好評率。</p>
+    body = `<p class="hint lead">最近 45 天內發售、正在 Steam 熱銷榜上的新作。左邊是熱銷名次，右邊是全球玩家好評率（評論還太少的顯示「–」）。</p>
       ${items.length ? `<div class="panel">${items.map((x) => {
         const word = x.pct == null ? '' : x.pct >= 85 ? '<span class="word hi">口碑佳</span>' : x.pct >= 70 ? '<span class="word mid">普通</span>' : '<span class="word lo">口碑差</span>';
         return `<a class="rank-row new-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="new">
@@ -910,7 +914,7 @@ function viewFilter() {
       <span class="why">${esc(srcName(x.src))}　命中「${esc(x.why)}」</span></a>`).join('')}</div>` : '<div class="empty">沒有被攔下的內容。</div>'}
     ${secHead('我的追蹤')}
     <div class="panel">
-      <form class="follow-box" id="follow-form"><input id="follow-in" placeholder="輸入遊戲或關鍵字，例如 Hollow Knight" maxlength="40" aria-label="追蹤關鍵字"><button class="btn">追蹤</button></form>
+      <form class="follow-box" id="follow-form"><input id="follow-in" placeholder="輸入遊戲或關鍵字，例如 惡靈古堡" maxlength="40" aria-label="追蹤關鍵字"><button class="btn">追蹤</button></form>
       <div class="follow-tags">${S.follow.map((k) => `<button data-unfollow="${esc(k)}" aria-label="取消追蹤 ${esc(k)}">${esc(k)}${ICON.close}</button>`).join('') || '<span class="hint">提到這些字的新聞會排在頭條最前面，小真的簡報也會幫你整理它們的新聞、特價與發售日。只存在這支手機。</span>'}</div>
     </div>
     ${secHead('規則', '同樣的新聞永遠得到同樣的判斷')}
@@ -949,8 +953,29 @@ function settingsHTML() {
         <span class="seg mini">${[[0.9, '慢'], [1.05, '標準'], [1.25, '快']].map(([v, l]) => `<button data-rate="${v}" aria-pressed="${Math.abs(fx.rate - v) < 0.01}">${l}</button>`).join('')}</span></div>
       <button class="set-row as-btn" data-testvoice="1"><span class="set-t"><b>試聽播報</b><small>手機切成靜音時可能聽不到</small></span>${ICON.play}</button>
     </div>` : ''}
+    ${UPDATES.length ? `<div class="set-group"><button class="set-row as-btn" data-updates="all"><span class="set-t"><b>更新紀錄</b><small>最近一次：${esc(UPDATES[0].date.slice(5).replace('-', '/'))}　${esc(UPDATES[0].title)}</small></span>${ICON.play}</button></div>` : ''}
     <p class="hint">設定只存在這支手機。資料每小時自動更新，不需要手動整理。</p>
   </div>`;
+}
+// ---------- 更新紀錄 ----------
+function updatesHTML(list, fresh = false) {
+  return `<div class="sheet-in" role="dialog" aria-modal="true" aria-label="${fresh ? '這次更新' : '更新紀錄'}">
+    <div class="sheet-h"><h2 class="serif">${fresh ? '這次更新' : '更新紀錄'}</h2><button class="ibtn" data-close="sheet" aria-label="關閉">${ICON.close}</button></div>
+    <div class="set-group">${list.map((u) => `<section class="log-entry">
+      <div class="log-h"><b>${esc(u.title)}</b><time class="num" datetime="${esc(u.date)}">${esc(u.date.replace(/-/g, '/'))}</time></div>
+      <ul>${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}</div>
+    ${fresh ? '<p class="hint">之後想再看，在「設定」最下面的「更新紀錄」。</p>' : ''}
+  </div>`;
+}
+/** App 打開時，有還沒看過的更新就跳出來一次（最多列三次更新）。 */
+function showNewUpdates() {
+  const latest = UPDATES[0];
+  if (!latest || !$('#sheet').hidden) return;
+  try { if (sessionStorage.getItem('fr.updshown')) return; sessionStorage.setItem('fr.updshown', '1'); } catch { /* 私密模式 */ }
+  const seen = local.get('updseen', '');
+  if (seen === latest.id) return;
+  local.set('updseen', latest.id);
+  openSheet(updatesHTML(UPDATES.filter((u) => !seen || u.id > seen).slice(0, 3), true), { quiet: true });
 }
 // ---------- 行事曆訂閱 ----------
 const CALS = [
@@ -974,12 +999,12 @@ function calSubHTML() {
     <p class="hint">只想加單一遊戲？在「發售日曆」按遊戲旁的行事曆按鈕就好。</p>
   </div>`;
 }
-function openSheet(html = settingsHTML()) {
+function openSheet(html = settingsHTML(), { quiet = false } = {}) {
   const el = $('#sheet');
   el.innerHTML = html;
   el.hidden = false;
   requestAnimationFrame(() => el.classList.add('on'));
-  play('open');
+  if (!quiet) play('open');
 }
 function closeOverlay(id) {
   const el = $(`#${id}`);
@@ -1168,7 +1193,7 @@ document.addEventListener('keydown', (ev) => {
 });
 
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],[data-calsub],[data-copy],[data-ics],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder');
+  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],[data-calsub],[data-copy],[data-ics],[data-updates],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder');
   if (!t) return;
   if (t.classList.contains('sheet') || t.classList.contains('finder')) { if (ev.target === t) closeOverlay(t.id); return; }
   if (t.dataset.open !== undefined) {
@@ -1279,6 +1304,7 @@ document.addEventListener('click', (ev) => {
   if (t.dataset.followq) { addFollow(t.dataset.followq); $('#results').innerHTML = resultsHTML($('#q').value); return; }
   if (t.dataset.fxlevel) { setFx({ level: t.dataset.fxlevel }); play('select'); $('#sheet').innerHTML = settingsHTML(); return; }
   if (t.dataset.rate) { setFx({ rate: Number(t.dataset.rate) }); play('select'); $('#sheet').innerHTML = settingsHTML(); return; }
+  if (t.dataset.updates) { $('#sheet').innerHTML = updatesHTML(UPDATES); play('select'); return; }
   if (t.dataset.testvoice) {
     if (S.speakingLine >= 0) { S.speakingLine = -1; highlightLine(); }
     if (speak(['你好，PZ。我是小真，這是播報的語速。'], { rate: fx.rate, onFail: voiceFail })) play('speak');
@@ -1384,6 +1410,7 @@ async function bootApp() {
   setTab(S.tab, { push: false });
   if (shown || firstOpen) whenUnlocked(() => play('boot'));
   initSW();
+  setTimeout(showNewUpdates, shown ? 400 : 900);
 }
 
 bootApp();

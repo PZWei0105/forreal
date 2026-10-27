@@ -51,9 +51,11 @@ class Clusterer:
         self.assign_t = assign_t
         self.merge_t = merge_t
         self.win = window_h * 3600
+        self.centrality = {}
 
     def run(self, items: list[dict]) -> list[list[dict]]:
         """items 需含 title、summary、_t（發布時間）。回傳 [[成員…], …]。"""
+        self.centrality = {}   # 沒有新聞時也要有（以前提早 return 會讓整輪當掉）
         n = len(items)
         if not n:
             return []

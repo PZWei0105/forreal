@@ -1,16 +1,14 @@
 """離線測試新聞管線：用 probe 的原始回應跑抓取、濾網、合併、排序並印出結果。"""
 import collections
-import json
 import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from pipeline import build  # noqa: E402
 from pipeline.rules import Rules  # noqa: E402
-from pipeline.util import now  # noqa: E402
-from tests.fake_http import FakeHttp, news_routes  # noqa: E402
+from tests.fake_http import FakeHttp, news_routes, probe_now  # noqa: E402
 
-t0 = now()
+t0 = probe_now()
 sources = build._sources()
 src_by_id = {s['id']: s for s in sources}
 http = FakeHttp(news_routes())

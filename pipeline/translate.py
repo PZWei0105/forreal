@@ -14,7 +14,7 @@ import time
 
 import requests
 
-from .util import cjk_ratio, hours_since, iso, parse_iso
+from .util import hours_since, iso, parse_iso
 
 ENDPOINT = os.environ.get('FORREAL_LLM', 'http://127.0.0.1:8088')
 KEEP_DAYS = 8

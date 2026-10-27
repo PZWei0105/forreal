@@ -15,7 +15,6 @@ PlayStation Plus
 import datetime as dt
 import email.utils
 import html as htmllib
-import json
 import re
 import time
 import urllib.parse

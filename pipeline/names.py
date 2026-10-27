@@ -11,6 +11,7 @@ import concurrent.futures as cf
 import html
 import re
 import time
+import unicodedata
 import urllib.parse
 
 from .util import hours_since, iso, parse_iso
@@ -41,8 +42,13 @@ MIN_STEAM_REVIEWS = 100
 WIKI_LINK = re.compile(r'^https://en\.wikipedia\.org/wiki/([^#]+)$')
 
 
+def fold(s: str) -> str:
+    """去掉拉丁字母的變音符號：Yōtei → Yotei、Pokémon → Pokemon（新聞常常省略，維基百科會保留）。"""
+    return ''.join(c for c in unicodedata.normalize('NFKD', s) if not unicodedata.combining(c))
+
+
 def key(name: str) -> str:
-    s = name.lower().replace('&', 'and')
+    s = fold(name).lower().replace('&', 'and')
     s = re.sub(r'[®™©]', '', s)
     return re.sub(r'[^0-9a-zÀ-ɏ]+', '', s)
 
@@ -78,7 +84,7 @@ IGNORE_WORDS = {'the', 'a', 'an', 'of', 'and', 'in', 'on', 'for', 'to', 'edition
 
 
 def words(name: str) -> list:
-    name = PLATFORM_WORDS.sub(' ', EN_DISAMBIG.sub('', name))
+    name = PLATFORM_WORDS.sub(' ', EN_DISAMBIG.sub('', fold(name)))
     toks = re.findall(r'[a-z]+|\d+', re.sub(r"[’']s\b", '', name.lower()))
     out = []
     for i, t in enumerate(toks):
@@ -116,6 +122,7 @@ class Namer:
         self.t0 = t0
         self.deadline = time.time() + budget_s
         self.cache = st.load('names.json', {})
+        self._rekey()
         self.stats = {'steam': 0, 'wiki': 0, 'miss': 0, 'lookups': 0}
         try:
             from opencc import OpenCC
@@ -124,6 +131,18 @@ class Namer:
             self._s2tw = None
         from .translate import SIMPLIFIED_ONLY
         self._simp = SIMPLIFIED_ONLY
+
+    def _rekey(self):
+        """鍵的算法改過（例如去掉變音符號）時，舊快取換成新鍵；同一個鍵有查到的優先於沒查到的。"""
+        for k in [k for k in self.cache if not k.startswith('wiki:')]:
+            v = self.cache[k]
+            nk = key(v.get('en') or '') if isinstance(v, dict) else ''
+            if not nk or nk == k:
+                continue
+            self.cache.pop(k)
+            cur = self.cache.get(nk)
+            if not cur or (v.get('zh') and not cur.get('zh')):
+                self.cache[nk] = v
 
     # ---------- 整理中文名 ----------
     def clean(self, zh: str, en: str, strip_series: bool = False):
@@ -308,6 +327,22 @@ class Namer:
         for k in old:
             del self.cache[k]
         self.st.save('names.json', self.cache)
+
+
+def alias_pairs(cache: dict, limit: int = 2000) -> list[list[str]]:
+    """查到台灣官方中文名的遊戲：[[英文名, 中文名], …]。App 的搜尋用它把「惡靈古堡」也對到 Resident Evil。"""
+    out, seen = [], set()
+    for k, v in sorted(cache.items(), key=lambda kv: kv[1].get('at') or '', reverse=True):
+        if not isinstance(v, dict) or v.get('v') != VERSION or not v.get('zh') or not v.get('en'):
+            continue
+        en, zh = EN_DISAMBIG.sub('', v['en']).strip(), v['zh'].strip()
+        if key(en) == key(zh) or (key(en), zh) in seen:
+            continue
+        seen.add((key(en), zh))
+        out.append([en, zh])
+        if len(out) >= limit:
+            break
+    return sorted(out)
 
 
 def _swap(text, namer):

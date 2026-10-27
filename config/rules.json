@@ -938,7 +938,11 @@
    "entertainment",
    "anime shows",
    "* movies",
-   "* tv shows"
+   "* tv shows",
+   "movies & tv",
+   "tv & movies",
+   "film/tv",
+   "* shows"
   ]
  },
  "game_signal": [
@@ -949,7 +953,7 @@
   "\\bps[45]\\b",
   "\\bpc\\b",
   "\\bpatch(?:es)?\\b",
-  "\\b(?:cyberpunk|edgerunners|mass effect|bioware|dragon age|street fighter|resident evil|final fantasy|pok[eé]mon|elden ring|marvel rivals|zelda|super mario|mario kart|sonic the hedgehog|minecraft|fallout|the last of us|halo|god of war|uncharted|tomb raider|assassin'?s creed|the witcher|life is strange|dead by daylight|kingdom hearts|metal gear|silent hill|mortal kombat|tekken|devil may cry|monster hunter|death stranding|kojima|five nights at freddy'?s|fnaf|sekiro|bloodborne|baldur'?s gate|dungeons (?:&|and) dragons|warhammer|league of legends|arcane|valorant|overwatch|diablo|warcraft|starcraft|half-life|borderlands|bioshock|elder scrolls|skyrim|starfield|gears of war|forza|splatoon|kirby|metroid|donkey kong|animal crossing|fire emblem|smash bros|tetris|pac-man|yakuza|like a dragon|ace attorney|persona \\d|nier|dragon quest|ghost of (?:tsushima|y[oō]tei)|marvel's spider-man|angry birds|umamusume|genshin|hoyoverse|cygames|twisted metal|until dawn|alan wake|max payne|hitman|splinter cell|far cry|watch dogs|prince of persia|rayman|onimusha|okami|castlevania|bayonetta|nintendo|sega)\\b",
+  "\\b(?:danganronpa|steins;? ?gate|clair obscur|expedition 33|cuphead|disco elysium|firewatch|call of duty|battlefield|grand theft auto|the sims|gran turismo|helldivers|days gone|sleeping dogs|sifu|split fiction|it takes two|mega ?man|crash bandicoot|spyro|ratchet (?:&|and) clank|sackboy|horizon (?:zero dawn|forbidden west)|duke nukem|sonic|pikachu|space invaders|king of fighters|fatal fury|cyberpunk|edgerunners|mass effect|bioware|dragon age|street fighter|resident evil|final fantasy|pok[eé]mon|elden ring|marvel rivals|zelda|super mario|mario kart|sonic the hedgehog|minecraft|fallout|the last of us|halo|god of war|uncharted|tomb raider|assassin'?s creed|the witcher|life is strange|dead by daylight|kingdom hearts|metal gear|silent hill|mortal kombat|tekken|devil may cry|monster hunter|death stranding|kojima|five nights at freddy'?s|fnaf|sekiro|bloodborne|baldur'?s gate|dungeons (?:&|and) dragons|warhammer|league of legends|arcane|valorant|overwatch|diablo|warcraft|starcraft|half-life|borderlands|bioshock|elder scrolls|skyrim|starfield|gears of war|forza|splatoon|kirby|metroid|donkey kong|animal crossing|fire emblem|smash bros|tetris|pac-man|yakuza|like a dragon|ace attorney|persona \\d|nier|dragon quest|ghost of (?:tsushima|y[oō]tei)|marvel's spider-man|angry birds|umamusume|genshin|hoyoverse|cygames|twisted metal|until dawn|alan wake|max payne|hitman|splinter cell|far cry|watch dogs|prince of persia|rayman|onimusha|okami|castlevania|bayonetta|nintendo|sega)\\b",
   "\\bdoom\\b(?! patrol)"
  ]
 }

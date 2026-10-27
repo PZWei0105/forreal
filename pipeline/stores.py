@@ -10,7 +10,7 @@ import time
 
 from bs4 import BeautifulSoup
 
-from .util import TW, hours_since, iso, now, parse_iso
+from .util import TW, hours_since, iso, parse_iso
 
 STEAM_SEARCH = ('https://store.steampowered.com/search/results/?query=&start={start}&count=100'
                 '&{extra}&category1=998&cc=tw&l=tchinese&infinite=1')

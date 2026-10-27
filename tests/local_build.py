@@ -7,8 +7,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from pipeline import build  # noqa: E402
-from pipeline.util import now  # noqa: E402
-from tests.fake_http import FakeHttp, news_routes  # noqa: E402
+from tests.fake_http import FakeHttp, news_routes, probe_now  # noqa: E402
 
 STORE_ROUTES = [
     ('specials=1&sort_by=Reviews_DESC', None),  # 依 start 分流，見下面
@@ -41,7 +40,7 @@ state = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else '/tmp/claude-0/-home-
 state.mkdir(parents=True, exist_ok=True)
 build_id = build.copy_site(out)
 http = Http([r for r in STORE_ROUTES if r[1]] + news_routes())
-outputs = build.execute(http, build.State(state), now(), out / 'data', build_id)
+outputs = build.execute(http, build.State(state), probe_now(), out / 'data', build_id)
 d = outputs['deals.json']
 r = outputs['releases.json']
 print('steam deals', len(d['steam']['items']), 'epic now', len(d['epic']['now']), 'next', len(d['epic']['next']),
