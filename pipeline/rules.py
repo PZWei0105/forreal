@@ -21,8 +21,8 @@ def _compile(patterns):
 def _first(pats, text):
     for p in pats:
         m = p.search(text)
-        if m:
-            return m.group(0).strip()
+        if m:   # 規則有 (?P<hit>…) 就只回報命中的關鍵字（前面的排除條件不算）
+            return (m.group('hit') if 'hit' in p.groupindex else m.group(0)).strip()
     return None
 
 

@@ -31,6 +31,15 @@
    ]
   },
   {
+   "id": "adult",
+   "label": "成人內容",
+   "desc": "R18／18 禁的成人遊戲、成人平台限免這類內容。談法規、下架、金流政策的產業新聞不擋。",
+   "fields": "title+summary",
+   "patterns": [
+    "^(?![\\s\\S]*(?:\\b(?:laws?|regulat\\w*|bans?|banned|lawsuits?|legislat\\w*|payments?|processors?|banks?|banking|visa|mastercard|polic(?:y|ies)|censor\\w*|remov\\w*|delist\\w*|age verification|revenue)\\b|法規|禁止|下架|審查|金流|政策|信用卡|支付|移除|銀行|金融|營收|拒收|收款))[\\s\\S]*?(?P<hit>\\bR-?18\\b|18禁|\\bhentai\\b|\\beroge\\b|\\bnsfw\\b|\\bporn\\w*|\\bsex games?\\b|\\badult (?:games?|visual novels?|content)\\b|禁尻|紳士(?:遊戲|向|作品)|成人(?:向|遊戲|作品|動畫)|エロ)"
+   ]
+  },
+  {
    "id": "shop",
    "label": "導購文",
    "desc": "新聞網站的購物折扣文（多含分潤連結）。真正的特價請看「特價」頁，那裡直接用官方商店價格。官方來源的特賣公告不受影響。",
@@ -139,7 +148,7 @@
    "desc": "抽卡、卡池、角色池、事前登錄、儲值好禮、開服公測這類課金手遊宣傳。",
    "fields": "title+summary",
    "patterns": [
-    "^(?![\\s\\S]*\\b(?:laws?|regulat\\w*|ban|bans|banned|lawsuit|legislat\\w*|loot ?box(?:es)?|pegi|esrb|age ratings?|re-?rated|reviews?)\\b)[\\s\\S]*\\bgacha\\b",
+    "^(?![\\s\\S]*\\b(?:laws?|regulat\\w*|ban|bans|banned|lawsuit|legislat\\w*|loot ?box(?:es)?|pegi|esrb|age ratings?|re-?rated|reviews?)\\b)[\\s\\S]*?(?P<hit>\\bgacha\\b)",
     "\\bpre-?regist(?:er|ration|ered|rations)\\b",
     "\\b(?:pull|summon(?:ing)?|drop) rates?\\b",
     "\\bbanners?\\b.{0,40}\\b(?:characters?|rerun|limited|5-star|4-star|ssr|ur)\\b",
@@ -942,7 +951,9 @@
    "movies & tv",
    "tv & movies",
    "film/tv",
-   "* shows"
+   "* shows",
+   "animation",
+   "sci-fi"
   ]
  },
  "game_signal": [
