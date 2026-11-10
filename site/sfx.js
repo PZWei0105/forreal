@@ -7,7 +7,7 @@ export const sound = {
   on: saved.on ?? true,          // 音效
   music: saved.music ?? true,    // 背景音樂
   vol: saved.vol ?? 0.7,
-  mvol: saved.mvol ?? 0.45,      // 音樂音量（相對於總音量）
+  mvol: saved.mvol ?? 0.34,      // 音樂音量（相對於總音量）：背景，不蓋過點擊音效
   haptic: saved.haptic ?? true,
 };
 
@@ -191,15 +191,15 @@ function boom({ t = 0, f0 = 120, f1 = 38, dur = 0.5, gain = 0.4 }) {
 const C5 = 523.25; const E5 = 659.25; const G5 = 783.99; const A5 = 880; const B5 = 987.77;
 const C6 = 1046.5; const D6 = 1174.66; const E6 = 1318.51; const G6 = 1567.98; const A6 = 1760; const C7 = 2093;
 const LIB = {
-  tick() { tone({ f0: 2600, f1: 1800, dur: 0.045, gain: 0.06 }); },
+  tick() { tone({ f0: 2600, f1: 1800, dur: 0.045, gain: 0.07 }); },
   move() { tone({ type: 'triangle', f0: 1760, f1: 2100, dur: 0.05, gain: 0.035 }); },
   select() {
-    tone({ type: 'triangle', f0: 880, f1: 1320, dur: 0.08, gain: 0.08 });
-    tone({ f0: 3520, dur: 0.14, gain: 0.02, t: 0.02 });
+    tone({ type: 'triangle', f0: 880, f1: 1320, dur: 0.08, gain: 0.09 });
+    tone({ f0: 3520, dur: 0.14, gain: 0.025, t: 0.02 });
   },
   tab(dir = 0) {
-    hiss({ dur: 0.22, gain: 0.08, f0: 420, f1: 3600, q: 0.8, pan: dir * 0.5 });
-    tone({ f0: 1480, f1: 2220, dur: 0.07, gain: 0.045, t: 0.06, pan: dir * 0.3 });
+    hiss({ dur: 0.22, gain: 0.1, f0: 420, f1: 3600, q: 0.8, pan: dir * 0.5 });
+    tone({ f0: 1480, f1: 2220, dur: 0.07, gain: 0.055, t: 0.06, pan: dir * 0.3 });
   },
   whoosh(dir = 0) {
     hiss({ dur: 0.34, gain: 0.07, f0: 300, f1: 2600, q: 0.7, pan: dir * 0.6, attack: 0.12 });

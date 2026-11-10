@@ -77,7 +77,7 @@ button { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; margin-right: auto; min-width: 0; }
 .brand .seal { --s: 32px; border-radius: 8px; }
 .brand-word { display: grid; line-height: 1; }
-.brand-word .serif { font-size: 21px; letter-spacing: 0.05em; }
+.brand-word .serif { font-size: 21px; letter-spacing: 0.05em; white-space: nowrap; }
 .brand-en { font-family: var(--num); font-stretch: 125%; font-weight: 600; font-size: 9px; letter-spacing: 0.32em; color: var(--paper-3); margin-top: 4px; }
 .sync {
   display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px;
@@ -258,7 +258,7 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 @keyframes talk { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.5); opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .who { margin: 0; font-size: 12px; color: var(--uv); letter-spacing: 0.06em; }
-.hello { margin: 2px 0 4px; font-size: 27px; line-height: 1.2; letter-spacing: 0.04em; }
+.hello { margin: 2px 0 4px; font-size: 27px; line-height: 1.2; letter-spacing: 0.04em; word-break: keep-all; }
 .since { margin: 0; font-size: 13.5px; color: var(--paper-2); line-height: 1.6; }
 .since b { color: var(--paper); font-size: 16px; }
 .brief-list { list-style: none; margin: 14px -4px 0; padding: 0; display: grid; gap: 1px; }
@@ -331,14 +331,14 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 14px calc(var(--nav-h) + 
 .mv { font-size: 11.5px; } .mv.up { color: var(--live); } .mv.down { color: var(--intercept); } .mv.new { color: var(--gold); font-weight: 700; }
 
 /* ---------- 上市 ---------- */
-.day { display: grid; grid-template-columns: 54px 1fr; gap: 10px; margin-bottom: 12px; }
+.day { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; margin-bottom: 12px; }
 .day .date { position: sticky; top: calc(env(safe-area-inset-top) + 70px); align-self: start; text-align: center; padding-top: 4px; display: grid; }
 .day .date .d { font-size: 34px; line-height: 0.95; }
 .day .date .w { font-size: 12px; color: var(--paper-3); }
 .day.today .date .d { color: var(--uv); text-shadow: 0 0 14px var(--uv-glow); }
 .day .list { display: grid; gap: 8px; }
 .rel { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 9px 11px; border-radius: 10px; background: var(--ink-2); border: 1px solid var(--line-2); }
-.rel .name { font-weight: 650; font-size: 14.5px; line-height: 1.38; }
+.rel .name { font-weight: 650; font-size: 14.5px; line-height: 1.38; min-width: 0; overflow-wrap: anywhere; }
 .rel .name a { text-decoration: none; }
 .rel .name .en { display: block; margin-top: 1px; font-size: 12px; font-weight: 400; color: var(--paper-3); }
 .rel .sub { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 12px; color: var(--paper-3); }
@@ -1025,4 +1025,19 @@ button.rel-go:hover { text-decoration-color: var(--uv); }
 @media (prefers-reduced-motion: reduce) {
   .st-img, .gs-img { transform: none !important; }
   .wall-row, .boss-wall { animation: none !important; }
+}
+
+/* ---------- 很窄的手機（iPhone SE 這類 320px） ---------- */
+@media (max-width: 359px) {
+  .hdr-row { gap: 4px; }
+  .brand { gap: 7px; }
+  .brand .seal { --s: 28px; }
+  .brand-en { display: none; }
+  .brand-word .serif { font-size: 19px; }
+  .sync { padding: 0 8px; gap: 5px; }
+  .upd-w { display: none; }
+  .ibtn { width: 34px; height: 34px; }
+  .st-title.t-xl { font-size: 30px; } .st-title.t-l { font-size: 25px; } .st-title.t-m { font-size: 21px; }
+  .box { width: 112px; }
+  .hello { font-size: 22px; }
 }

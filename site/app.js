@@ -144,7 +144,7 @@ function setAV(next) {
 
 function updHeader() {
   const g = S.data.meta?.generated;
-  $('#upd').textContent = g ? `${fmtHM.format(new Date(g))} 同步` : '讀取中';
+  $('#upd').innerHTML = g ? `${fmtHM.format(new Date(g))}<span class="upd-w"> 同步</span>` : '讀取中';
   const old = g && (Date.now() - new Date(g)) / 3.6e6 > 3;
   $('#sync').classList.toggle('stale', Boolean(old));
 }
