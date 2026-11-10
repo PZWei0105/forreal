@@ -1,0 +1,62 @@
+{
+ "started": "2026-11-10T09:03:02.881055+00:00",
+ "python": "3.12.16",
+ "results": [
+  {
+   "name": "cors_master",
+   "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_master.m3u8?t=1707455738",
+   "status": 200,
+   "final_url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_master.m3u8?t=1707455738",
+   "size": 706,
+   "content_type": "application/vnd.apple.mpegurl",
+   "last_modified": "Tue, 24 Jun 2025 06:31:18 GMT",
+   "cors": "*",
+   "elapsed": 0.12
+  },
+  {
+   "name": "cors_video_pl",
+   "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_2_video.m3u8?t=1707455738",
+   "status": 200,
+   "final_url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_2_video.m3u8?t=1707455738",
+   "size": 1394,
+   "content_type": "application/vnd.apple.mpegurl",
+   "last_modified": "Tue, 24 Jun 2025 06:31:18 GMT",
+   "cors": "*",
+   "elapsed": 0.36
+  },
+  {
+   "name": "cors_audio_pl",
+   "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_4_audio.m3u8?t=1707455738",
+   "status": 200,
+   "final_url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_4_audio.m3u8?t=1707455738",
+   "size": 1394,
+   "content_type": "application/vnd.apple.mpegurl",
+   "last_modified": "Tue, 24 Jun 2025 06:31:17 GMT",
+   "cors": "*",
+   "elapsed": 0.27
+  },
+  {
+   "name": "cors_mt",
+   "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/microtrailer.mp4?t=1707455738",
+   "status": 200,
+   "final_url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/microtrailer.mp4?t=1707455738",
+   "size": 2458134,
+   "content_type": "video/mp4",
+   "last_modified": "Tue, 24 Jun 2025 06:31:18 GMT",
+   "cors": "*",
+   "elapsed": 0.68
+  },
+  {
+   "name": "cors_img",
+   "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/library_hero.jpg",
+   "status": 200,
+   "final_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/library_hero.jpg",
+   "size": 250815,
+   "content_type": "image/jpeg",
+   "last_modified": "Wed, 28 Sep 2022 02:02:18 GMT",
+   "cors": "*",
+   "elapsed": 0.19
+  }
+ ],
+ "finished": "2026-11-10T09:03:12.617028+00:00"
+}
