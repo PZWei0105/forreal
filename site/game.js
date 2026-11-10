@@ -81,7 +81,7 @@ function priceBlock(g) {
   const r = rarity({ disc: p.disc, pct: g.rv.pct, n: g.rv.n, low: p.low, verdict: p.verdict || undefined }, g.rules);
   return `<div class="gs-price${r ? ` r-${r}` : ''}">
       ${p.disc ? `<span class="gs-off num">-${p.disc}%</span>` : ''}<b class="gs-now num">${money(p.final)}</b>${p.disc && p.orig ? `<s class="num">${money(p.orig)}</s>` : ''}
-      ${r ? `<span class="gs-rar">${RARITY[r]}${r === 'legend' ? '・好價' : r === 'epic' ? '・推薦' : ''}</span>` : ''}
+      ${r && r !== 'common' ? `<span class="gs-rar">${RARITY[r]}${r === 'legend' ? '・好價' : r === 'epic' ? '・推薦' : ''}</span>` : ''}
       ${g.rel?.soon ? '<span class="gs-pre">預購</span>' : ''}
     </div>
     <p class="gs-ends">${[p.disc && p.ends ? `特價到 <b class="num">${fmtFull.format(new Date(p.ends))}</b>（還剩 <span data-until="${esc(p.ends)}">${leftText(new Date(p.ends) - Date.now())}</span>）` : '',

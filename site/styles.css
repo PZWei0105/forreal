@@ -1,7 +1,7 @@
 /* 玩真的 FOR REAL — 遊戲情報中樞（2026/11 超級大更新）
    視覺語言：防偽印刷（扭索紋、全像箔、紫外線掃描光、凹版印章）＋遊戲主機的待機畫面、寶箱稀有度、魔王血條。
    全像箔只出現在「經證實」的東西上（真字印、Steam 官方活動、好價），加上作用中的分頁與小真核心。
-   稀有度色（傳說金、史詩紫、稀有藍）只用在特價：傳說＝好價、史詩＝推薦、稀有＝觀測新低或六折以下。 */
+   稀有度色（傳說金、史詩紫、稀有藍）只用在特價：傳說＝好價、史詩＝推薦、稀有＝觀測新低或四折以下（-60% 以上）。 */
 :root {
   --ink: #0a0f24;          /* 防偽油墨藍黑（底） */
   --ink-2: #111836;        /* 面板 */
@@ -869,7 +869,7 @@ button.deal-in { width: 100%; border: 0; padding: 0; margin: 0; background: none
 .rar-tag.r-rare { color: var(--r-rare); box-shadow: 0 0 0 1px rgba(79, 182, 255, 0.6); }
 .rar-tag.r-common { display: none; }
 .deal .art { overflow: hidden; }
-.loot-grid.reveal .loot { animation: lootIn 0.6s cubic-bezier(0.2, 1.25, 0.4, 1) both; animation-delay: calc(min(var(--k, 0), 12) * 45ms); }
+.loot-grid.reveal .loot { animation: lootIn 0.6s cubic-bezier(0.2, 1.25, 0.4, 1) both; animation-delay: calc(var(--k, 0) * 45ms); }
 .loot-grid.reveal .loot.r-legend { animation-name: lootLegend; animation-duration: 0.9s; }
 @keyframes lootIn { from { opacity: 0; transform: translateY(22px) scale(0.95); } to { opacity: 1; transform: none; } }
 @keyframes lootLegend { 0% { opacity: 0; transform: translateY(26px) scale(0.9); filter: brightness(2.2); } 55% { opacity: 1; transform: translateY(-3px) scale(1.02); filter: brightness(1.5); } 100% { transform: none; filter: none; } }

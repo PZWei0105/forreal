@@ -7,9 +7,9 @@ import { canVideo, reduced } from './fx.js?v=__BUILD__';
 const DUR = 7000;   // 每張停留時間（毫秒）
 
 // ---------------------------------------------------------------- 稀有度
-/** 特價的稀有度（和特價頁的「好價／推薦」同一套門檻）：傳說＝好價、史詩＝推薦、稀有＝觀測新低或六折以下。 */
+/** 特價的稀有度（和特價頁的「好價／推薦」同一套門檻）：傳說＝好價、史詩＝推薦、稀有＝觀測新低或四折以下（-60% 以上）。 */
 export function rarity(x, rules) {
-  if (!x || !(x.disc > 0)) return '';
+  if (!x || !(x.disc > 0) || x.final === 0 || x.ftk) return '';   // 免費領取不算寶箱
   const g = rules?.great || { discount: 50, pct: 90, reviews: 5000 };
   const gd = rules?.good || { discount: 40, pct: 85 };
   const v = x.verdict ?? (x.pct != null && x.disc >= g.discount && x.pct >= g.pct && (x.n || 0) >= g.reviews ? 'great'
@@ -374,7 +374,7 @@ export function shelvesHTML(D, M) {
   const soon = (D.releases?.steam_upcoming?.items || []).filter((x) => x.prec === 'day' && x.date >= today && daysTo(x.date, now) <= 21)
     .sort((a, b) => a.date.localeCompare(b.date) || a.rank - b.rank).slice(0, 14);
   const hits = (D.releases?.steam_new?.items || []).slice().sort((a, b) => a.rank - b.rank).slice(0, 14);
-  const dealCards = deals.map((x) => { const r = rarity(x, rules); return boxCard(x, M, { rar: r, badge: `<b class="num">-${x.disc}%</b>`, sub: `<b class="num">${money(x.final)}</b><span class="rar">${RARITY[r] || ''}</span>`, label: `${x.name}，${RARITY[r]}，-${x.disc}%，${money(x.final)}` }); });
+  const dealCards = deals.map((x) => { const r = rarity(x, rules); return boxCard(x, M, { rar: r, badge: `<b class="num">-${x.disc}%</b>`, sub: `<b class="num">${money(x.final)}</b>${r && r !== 'common' ? `<span class="rar">${RARITY[r]}</span>` : ''}`, label: `${x.name}，${r && r !== 'common' ? `${RARITY[r]}，` : ''}-${x.disc}%，${money(x.final)}` }); });
   const soonCards = soon.map((x) => { const d = daysTo(x.date, now); return boxCard(x, M, { badge: d === 0 ? '<b>今天</b>' : `<b class="num">D-${d}</b>`, sub: `<span class="num">${md(x.date)}</span> 發售`, label: `${x.name}，${md(x.date)} 發售` }); });
   const hitCards = hits.map((x) => boxCard(x, M, { badge: `<b class="num">#${x.rank}</b>`, sub: x.pct != null ? `<span class="sc ${x.pct >= 85 ? 'hi' : x.pct >= 70 ? 'mid' : 'lo'}"><b class="num">${x.pct}%</b> 好評</span>` : '評價累積中', label: `${x.name}，熱銷第 ${x.rank} 名` }));
   return `${shelf('寶箱：本週好價', deals.length ? '依折扣和口碑排序' : '', dealCards, { tab: 'deals', seg: 'deals:steam' })}

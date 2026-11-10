@@ -346,7 +346,7 @@ function viewDeals() {
         <li>至少打 ${(100 - r.min_discount) / 10} 折，全球玩家好評率 ${r.min_pct}% 以上、評論 ${thousands(r.min_reviews)} 則以上。</li>
         <li><b>傳說（好價）</b>：折扣 ${r.great.discount}% 以上、好評率 ${r.great.pct}% 以上、評論 ${thousands(r.great.reviews)} 則以上，金框，蓋上「真」字全像印。</li>
         <li><b>史詩（推薦）</b>：折扣 ${r.good.discount}% 以上、好評率 ${r.good.pct}% 以上，紫框。</li>
-        <li><b>稀有</b>：觀測新低或六折以下，藍框。其他是普通。</li>
+        <li><b>稀有</b>：觀測新低或四折以下（-60% 以上），藍框。其他是普通。</li>
         <li><b>觀測新低</b>：本 App 開始記錄滿 ${r.low_days} 天後，價格等於或低於記錄中的最低價。</li>
         <li>價格為 Steam 台灣區（新台幣），評價是 Steam 全球所有語言的玩家評論。</li></ul></details>` : ''}
       ${chipsHTML('deals', [['all', '全部', all.length], ['great', '傳說', all.filter((x) => x.verdict === 'great').length], ['good', '史詩以上', all.filter((x) => x.verdict).length], ['half', '五折以下', all.filter((x) => x.disc >= 50).length], ['low', '觀測新低', all.filter((x) => x.low).length]])}
@@ -405,7 +405,7 @@ function relText(x) {
 function wishCard(x, i = 0) {
   const r = rarity(x, S.data.deals?.steam?.rules);
   const ends = x.ends ? `<span class="ends">特價到 ${fmtFull.format(new Date(x.ends))}</span>` : '';
-  return `<article class="doc deal wish loot r-${r}" style="--k:${i}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}">
+  return `<article class="doc deal wish loot r-${r}" style="--k:${Math.min(i, 12)}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}">
     <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}"><span class="off num">-${x.disc}%</span>${rarTag(r)}${r === 'legend' ? '<i class="shine" aria-hidden="true"></i>' : ''}</span>
     <span class="info">
       <span class="name">${esc(x.name)}${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}</span>
@@ -456,13 +456,13 @@ function wishView(w) {
   return `${head}${chips}${body}${w.at ? `<p class="hint">願望清單 ${ago(w.at)}同步${w.stale ? '（這輪沒連上，先顯示上次的資料）' : ''}</p>` : ''}`;
 }
 
-/** 特價卡（寶箱）：稀有度＝傳說（好價）、史詩（推薦）、稀有（觀測新低或六折以下）、普通。點了打開遊戲情報卡。 */
+/** 特價卡（寶箱）：稀有度＝傳說（好價）、史詩（推薦）、稀有（觀測新低或四折以下（-60% 以上））、普通。點了打開遊戲情報卡。 */
 function rarTag(r) {
   return r ? `<span class="rar-tag r-${r}">${r === 'legend' ? sealHTML('好價') : ''}${RARITY[r]}</span>` : '';
 }
 function dealCard(x, i = 0) {
   const r = rarity(x, S.data.deals?.steam?.rules);
-  return `<article class="doc deal loot r-${r}" style="--k:${i}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}，${RARITY[r] || ''}，-${x.disc}%，${money(x.final)}">
+  return `<article class="doc deal loot r-${r}" style="--k:${Math.min(i, 12)}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}，${r && r !== 'common' ? `${RARITY[r]}，` : ''}-${x.disc}%，${money(x.final)}">
     <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.capsule)}"><span class="off num">-${x.disc}%</span>${rarTag(r)}${r === 'legend' ? '<i class="shine" aria-hidden="true"></i>' : ''}</span>
     <span class="info">
       <span class="name">${esc(x.name)}</span>
