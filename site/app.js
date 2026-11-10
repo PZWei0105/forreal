@@ -12,6 +12,12 @@ import { gameModel, gameSheetHTML, lightboxHTML } from './game.js?v=__BUILD__';
 const TYPE = { showcase: '發表會', delay: '延期', release: '發售', review: '評測', industry: '產業', trailer: '預告', sub: '訂閱制', free: '限免', patch: '更新', hardware: '硬體', ai: 'AI' };
 const SOFT = { rumor: '傳聞', opinion: '評論', buzz: '話題', media: '影視', merch: '周邊' };
 const BLOCK_SHORT = { ad: '業配', shop: '導購', guide: '農場', gacha: '課金', bait: '標題黨', mobile_f2p: '手遊', film_tv: '影視', adult: '成人' };
+// 開場畫面：被擋下的是哪幾類（照數量多到少，最多三類），例如「農場、影視、導購等消息」
+function blockMix(by) {
+  const top = Object.entries(by || {}).filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]).map(([k]) => BLOCK_SHORT[k]).filter(Boolean);
+  if (!top.length) return '不收的消息';
+  return `${top.slice(0, 3).join('、')}${top.length > 3 ? '等' : ''}消息`;
+}
 const TIER = { 1: '官方來源', 2: '可信媒體', 3: '一般媒體' };
 
 const BRIEF_ICON = { top: ICON.top, event: ICON.events, free: ICON.gift, deal: ICON.deals, rel: ICON.rel, follow: ICON.target, filter: ICON.filter, wish: ICON.star, subs: ICON.ticket, console: ICON.pad };
@@ -834,7 +840,7 @@ function viewEvents() {
   if (dealGames.length || spots.length) {
     html += `${secHead('今日特惠與首頁焦點', E.at?.daily ? `${ago(E.at.daily)}更新` : '')}
       <div class="g-list panel">${dealGames.map((x) => gameRow({ ...x, tags: ['每日特惠', ...(x.tags || []).slice(0, 2)] }, 0, deadline('特價', x.ends))).join('')}
-      ${spots.map((s) => (s.g ? gameRow({ ...s.g, tags: [s.name, ...(s.g.tags || []).slice(0, 2)] }, 0, deadline(s.name, s.end || s.g.ends))
+      ${spots.map((s) => (s.g ? gameRow({ ...s.g, tags: [s.name, ...(s.g.tags || []).slice(0, 2)] }, 0, s.g.ends ? deadline('特價', s.g.ends) : deadline(s.name, s.end))
     : `<a class="g-row spot" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" data-open="spot"><span class="g-art">${s.img ? `<img src="${esc(s.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''}</span><span class="g-main"><span class="name">${esc(s.name)}</span>${deadline(s.name, s.end)}<span class="g-tags"><span>${esc(partner.find((r) => r.vanity && s.sale && r.vanity.toLowerCase() === s.sale.toLowerCase())?.name || s.sale || '')}</span></span></span></a>`)).join('')}</div>`;
   }
   if (partner.length) {
@@ -1619,7 +1625,7 @@ async function bootApp() {
       const arts = [...new Set(pick.map((x) => M[x.appid]?.wide || x.img))];
       ctl.fill([
         `連線 <b class="num">${nSrc || '…'}</b> 個情報來源`,
-        m.stats ? `濾網就緒：過去 24 小時攔下 <b class="num x">${m.stats.blocked24}</b> 則業配、農場與課金宣傳` : '濾網就緒',
+        m.stats ? `濾網就緒：過去 24 小時攔下 <b class="num x">${m.stats.blocked24}</b> 則${blockMix(m.stats.by)}` : '濾網就緒',
         m.generated ? `資料同步於 <b class="num">${fmtHM.format(new Date(m.generated))}</b>` : '同步資料中',
         `${esc(buildBrief(S.data, {}).hello)}，小真上線`,
       ], arts);
