@@ -217,8 +217,9 @@ export function mountStage(root, { onMove, onIndex } = {}) {
       v.setAttribute('muted', '');
       v.setAttribute('aria-hidden', 'true');
       v.preload = 'auto';
-      if (s.dataset.webm) v.insertAdjacentHTML('beforeend', `<source src="${esc(s.dataset.webm)}" type="video/webm">`);
+      // mp4（H.264）放前面：iPhone 一定播得了；webm 當備援
       if (s.dataset.mp4) v.insertAdjacentHTML('beforeend', `<source src="${esc(s.dataset.mp4)}" type="video/mp4">`);
+      if (s.dataset.webm) v.insertAdjacentHTML('beforeend', `<source src="${esc(s.dataset.webm)}" type="video/webm">`);
       v.addEventListener('playing', () => s.classList.add('vid'));
       v.addEventListener('error', () => v.remove(), true);
       s.querySelector('.st-art').appendChild(v);
@@ -362,7 +363,7 @@ function shelf(title, aside, cards, go) {
   if (!cards.length) return '';
   return `<section class="shelf">
     <div class="shelf-h"><h2>${title}</h2>${aside ? `<span class="aside">${aside}</span>` : ''}${go ? `<button class="mini" data-go="${esc(JSON.stringify(go))}">全部${ICON.right}</button>` : ''}</div>
-    <div class="shelf-row" role="list">${cards.join('')}</div>
+    <div class="shelf-row">${cards.join('')}</div>
   </section>`;
 }
 export function shelvesHTML(D, M) {

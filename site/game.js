@@ -119,7 +119,7 @@ function newsBlock(g, D, srcName) {
 export function gameSheetHTML(g, { D, srcName = (s) => s, followed = false } = {}) {
   const heroImg = g.hero || (g.shots[0] ? shot(g.shots[0], '1920x1080') : g.img);
   const vid = g.vid && canVideo() ? `<video class="gs-vid" muted playsinline loop autoplay preload="auto" aria-hidden="true" poster="${esc(heroImg)}">
-      ${g.vid.webm ? `<source src="${esc(g.vid.webm)}" type="video/webm">` : ''}${g.vid.mp4 ? `<source src="${esc(g.vid.mp4)}" type="video/mp4">` : ''}</video>` : '';
+      ${g.vid.mp4 ? `<source src="${esc(g.vid.mp4)}" type="video/mp4">` : ''}${g.vid.webm ? `<source src="${esc(g.vid.webm)}" type="video/webm">` : ''}</video>` : '';
   const badges = [g.zh === 'tc' ? '<span class="gb tc">繁體中文</span>' : g.zh === 'sc' ? '<span class="gb">簡體中文</span>' : '',
     g.demo ? '<span class="gb demo">有試玩版</span>' : '', g.rel?.ea ? '<span class="gb">搶先體驗</span>' : '', g.dlc ? '<span class="gb">DLC</span>' : ''].join('');
   // 完整預告是 HLS 串流：iPhone、Android 直接播，電腦瀏覽器用 hls.js（點了才載入）
