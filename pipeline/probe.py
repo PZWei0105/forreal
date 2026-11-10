@@ -41,7 +41,8 @@ def run():
             raw = r.content
             meta.update(status=r.status_code, final_url=r.url, size=len(raw),
                         content_type=r.headers.get('content-type'),
-                        last_modified=r.headers.get('last-modified'))
+                        last_modified=r.headers.get('last-modified'),
+                        cors=r.headers.get('access-control-allow-origin'))
             (out / 'raw' / f'{name}.txt').write_bytes(raw[:t.get('max', DEFAULT_MAX)])
         except Exception as e:  # noqa: BLE001 — 開發探測，記錄所有錯誤
             meta['error'] = repr(e)[:500]
