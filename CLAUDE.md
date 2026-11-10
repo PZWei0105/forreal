@@ -15,6 +15,7 @@
 
 ## 怎麼運作
 - GitHub Actions（`.github/workflows/forreal.yml`）每小時跑 `pipeline/build.py`：抓 `config/sources.json` 的新聞來源、Steam／Epic／App Store、Wikipedia 發售表 → 過濾、合併同一件事、排序 → 輸出 `public/data/*.json` 並部署 GitHub Pages。
+- 每小時一輪靠「接力」：GitHub 的排程 2026/11/6 起常常 4～11 小時才來一次（新聞、特價跟著停更），所以每一輪結束後由 workflow 的 `next` 工作等到這一輪開始後約 58 分鐘，自己用 workflow_dispatch 發出下一輪 build（GITHUB_TOKEN 發的 workflow_dispatch 會觸發新的執行）。已經有比自己新的一輪（排程、推送、別的接力）就不發，所以同一時間只有最新的那條接力；`run` 工作才有 concurrency（state 只能一個人寫），`next` 在等的時候不會擋住推送。每小時第 23 分的排程留著當備援，接力斷掉時靠它接回來。做法和冷眼的盤中接力一樣。
 - 跨輪次資料（新聞暫存、價格紀錄、評論快取、來源狀態）存在 `state` 分支，每次只保留一個 commit。`state` 分支的 `out/` 是最近一次輸出，`runs.json` 是執行紀錄。
 - 推到 `main` 時執行 `control/job.json` 指定的工作：`build`（抓資料＋發布）／`deploy`（只改介面時用）／`probe`（實測候選來源，原始回應存到 `probe-results` 分支）。
 - 雲端 Claude 工作環境連不到這些網站，要實測新來源就用 `probe`。
