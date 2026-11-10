@@ -1,32 +1,67 @@
 [
  {
-  "name": "gi_media",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A2050650%7D%2C%7B%22appid%22%3A381210%7D%2C%7B%22appid%22%3A1086940%7D%2C%7B%22appid%22%3A2358720%7D%2C%7B%22appid%22%3A1145360%7D%2C%7B%22appid%22%3A3489700%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_assets%22%3Atrue%2C%22include_screenshots%22%3Atrue%2C%22include_trailers%22%3Atrue%2C%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D",
-  "max": 4000000
- },
- {
-  "name": "gi_media_en",
-  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A2050650%7D%2C%7B%22appid%22%3A381210%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22english%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_assets%22%3Atrue%2C%22include_screenshots%22%3Atrue%2C%22include_trailers%22%3Atrue%2C%22include_basic_info%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D",
-  "max": 4000000
- },
- {
-  "name": "appdetails_re4",
-  "url": "https://store.steampowered.com/api/appdetails?appids=2050650&cc=tw&l=tchinese",
-  "max": 4000000
- },
- {
-  "name": "appdetails_dbd",
-  "url": "https://store.steampowered.com/api/appdetails?appids=381210&cc=tw&l=tchinese",
-  "max": 4000000
- },
- {
-  "name": "hero_legacy_re4",
-  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/library_hero.jpg",
+  "name": "mt_steamapps",
+  "url": "https://video.akamai.steamstatic.com/store_trailers/steam/apps/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/microtrailer.mp4?t=1707455738",
   "max": 200
  },
  {
-  "name": "hero_legacy_dbd",
-  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/381210/library_hero.jpg",
+  "name": "mt_plain",
+  "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/microtrailer.mp4?t=1707455738",
   "max": 200
+ },
+ {
+  "name": "mt_webm_steamapps",
+  "url": "https://video.akamai.steamstatic.com/store_trailers/steam/apps/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/microtrailer.webm?t=1707455738",
+  "max": 200
+ },
+ {
+  "name": "hls_steamapps",
+  "url": "https://video.akamai.steamstatic.com/store_trailers/steam/apps/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_master.m3u8?t=1707455738",
+  "max": 4000
+ },
+ {
+  "name": "hls_plain",
+  "url": "https://video.akamai.steamstatic.com/store_trailers/2050650/657561/3a67fb6f4d4b620f8c2c95413bd4d6e24b66eaed/1750745237/hls_264_master.m3u8?t=1707455738",
+  "max": 4000
+ },
+ {
+  "name": "poster_full",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256998140/movie_full.jpg?t=1707455738",
+  "max": 200
+ },
+ {
+  "name": "poster_600",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257336144/a6b5c1f58b14644a0952432bcb64fee417cd73de/movie_600x337.jpg?t=1778767162",
+  "max": 200
+ },
+ {
+  "name": "shot_1920",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/381210/5355ac410e985cac27f04b877280a984be4d28a6/ss_5355ac410e985cac27f04b877280a984be4d28a6.1920x1080.jpg?t=1793724618",
+  "max": 200
+ },
+ {
+  "name": "shot_600",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/381210/5355ac410e985cac27f04b877280a984be4d28a6/ss_5355ac410e985cac27f04b877280a984be4d28a6.600x338.jpg?t=1793724618",
+  "max": 200
+ },
+ {
+  "name": "hero_hashed",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/381210/2a0e583484963cb4d45c1f22cbf7a80123f27618/library_hero.jpg?t=1793724618",
+  "max": 200
+ },
+ {
+  "name": "box_tc",
+  "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2358720/library_600x900_tchinese.jpg?t=1760601605",
+  "max": 200
+ },
+ {
+  "name": "reviews_api",
+  "url": "https://store.steampowered.com/appreviews/2050650?json=1&language=all&purchase_type=all&num_per_page=0",
+  "max": 4000
+ },
+ {
+  "name": "gi_reviews",
+  "url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=%7B%22ids%22%3A%5B%7B%22appid%22%3A2050650%7D%5D%2C%22context%22%3A%7B%22language%22%3A%22tchinese%22%2C%22country_code%22%3A%22TW%22%2C%22steam_realm%22%3A1%7D%2C%22data_request%22%3A%7B%22include_reviews%22%3Atrue%2C%22include_release%22%3Atrue%7D%7D",
+  "max": 8000
  }
 ]

@@ -149,29 +149,55 @@ def steam_search(http, extra: str, pages: int = 1) -> list[dict]:
     return out
 
 
-def steam_reviews(http, appids, reviews_cache: dict, t0, budget: int = 160) -> dict:
-    """全球（所有語言）評論統計，快取 72 小時。"""
-    calls = 0
+def steam_reviews(http, appids, reviews_cache: dict, t0, budget: int = 160, rows=None) -> dict:
+    """全球（所有語言）評論統計，快取 72 小時。
+
+    用商店的 GetItems（一次 40 款，和「活動」頁同一個來源，評價文字是中文，例如「極度好評」）。
+    2026/11 起 appreviews 逐款查詢常常全部失敗、特價頁整個變空，所以只當最後備援；
+    再不行就用搜尋結果自己附的評價（`rows` 的 review_zh）。
+    """
+    from .events import get_items   # 延後載入，避免互相 import
+    due = []
     for appid in appids:
-        k = str(appid)
-        c = reviews_cache.get(k)
+        c = reviews_cache.get(str(appid))
         if c and hours_since(parse_iso(c['at']), t0) < REVIEW_TTL_H:
             continue
-        if calls >= budget:
-            break
-        try:
-            r = http.get(STEAM_REVIEWS.format(appid=appid), timeout=20, retries=0)
-            calls += 1
-            if r.status_code != 200:
-                continue
-            q = r.json().get('query_summary') or {}
-            total = q.get('total_reviews') or 0
-            pos = q.get('total_positive') or 0
-            reviews_cache[k] = {'at': iso(t0), 'n': total, 'pct': round(pos * 100 / total) if total else None,
-                                'desc': q.get('review_score_desc') or ''}
-        except Exception:  # noqa: BLE001 — 單一遊戲失敗就略過
+        if appid not in due:
+            due.append(appid)
+    due = due[:max(budget, 1) * 3]
+    items = get_items(http, due, full=False) if due else {}
+    missing = []
+    for appid in due:
+        it = items.get(appid)
+        if it is None:
+            missing.append(appid)
             continue
-        time.sleep(0.25)
+        rv = (it.get('reviews') or {}).get('summary_filtered') or {}
+        n = rv.get('review_count') or 0
+        reviews_cache[str(appid)] = {'at': iso(t0), 'n': n, 'pct': rv.get('percent_positive') if n else None,
+                                     'desc': rv.get('review_score_label') or ''}
+    calls = 0
+    zh = {x['appid']: x.get('review_zh') for x in rows or []}
+    for appid in missing:
+        k = str(appid)
+        if calls < min(budget, 20):
+            try:
+                r = http.get(STEAM_REVIEWS.format(appid=appid), timeout=20, retries=0)
+                calls += 1
+                q = (r.json().get('query_summary') or {}) if r.status_code == 200 else {}
+                total = q.get('total_reviews') or 0
+                if total:
+                    reviews_cache[k] = {'at': iso(t0), 'n': total,
+                                        'pct': round((q.get('total_positive') or 0) * 100 / total),
+                                        'desc': q.get('review_score_desc') or ''}
+                    continue
+            except Exception:  # noqa: BLE001 — 單一遊戲失敗就略過
+                pass
+        z = zh.get(appid) or {}
+        if z.get('pct') is not None and z.get('n'):
+            # 搜尋結果的評價：不寫進快取（下輪再用 GetItems 查一次）
+            reviews_cache[k] = {'at': iso(t0 - dt.timedelta(hours=REVIEW_TTL_H)), 'n': z['n'], 'pct': z['pct'],
+                                'desc': z.get('desc') or ''}
     for k in [k for k, v in reviews_cache.items() if hours_since(parse_iso(v['at']), t0) > 24 * 14]:
         del reviews_cache[k]
     return reviews_cache
@@ -227,7 +253,7 @@ def build_steam_deals(http, st, cache, health, t0):
     cand = [x for x in rows if x['discount'] >= DEAL_RULES['min_discount'] and x['final'] is not None
             and not (x['review_zh'] and x['review_zh'].get('pct') is not None and x['review_zh']['pct'] < 60)]
     reviews = st.load('reviews.json', {})
-    steam_reviews(http, [x['appid'] for x in cand], reviews, t0)
+    steam_reviews(http, [x['appid'] for x in cand], reviews, t0, rows=cand)
     st.save('reviews.json', reviews)
     prices = st.load('prices.json', {})
     out = []
@@ -302,7 +328,7 @@ def build_steam_new(http, st, cache, health, t0):
         if 0 <= (today - d).days <= 45:
             fresh.append(dict(x, date=date, rank=rank))
     reviews = st.load('reviews.json', {})
-    steam_reviews(http, [x['appid'] for x in fresh], reviews, t0, budget=40)
+    steam_reviews(http, [x['appid'] for x in fresh], reviews, t0, budget=40, rows=fresh)
     st.save('reviews.json', reviews)
     out = []
     for x in fresh:

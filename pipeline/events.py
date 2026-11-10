@@ -385,12 +385,14 @@ def build_tags(http, cache, health, t0):
         return _fail(cache, health, key, f'{type(e).__name__}: {e}', t0).get('data') or {}
 
 
-def get_items(http, appids, *, full=True, chunk=40):
-    """台灣區的商店資料（含價格、折扣、評價、標籤、簡介、語言）。"""
+def get_items(http, appids, *, full=True, chunk=40, media=False):
+    """台灣區的商店資料（含價格、折扣、評價、標籤、簡介、語言）。media：再加截圖與預告片（media.py 用）。"""
     dr = {'include_release': True, 'include_reviews': True}
     if full:
         dr.update(include_basic_info=True, include_assets=True, include_tag_count=10, include_platforms=False,
                   include_supported_languages=True)
+    if media:
+        dr.update(include_screenshots=True, include_trailers=True)
     out, ids = {}, []
     for a in appids:
         if a and a not in ids:

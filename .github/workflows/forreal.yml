@@ -32,6 +32,7 @@ jobs:
     outputs:
       deploy: ${{ steps.pipe.outputs.deploy }}
       t0: ${{ steps.t0.outputs.t0 }}
+      mode: ${{ steps.mode.outputs.mode }}
     steps:
       - id: t0
         run: echo "t0=$(date +%s)" >> "$GITHUB_OUTPUT"
@@ -115,8 +116,9 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # 接力：GitHub 的每小時排程 2026/11 起常常 4～11 小時才來一次，所以每一輪自己排好下一輪——
-  # 這一輪開始後約 58 分鐘發出下一輪（build）。已經有比自己新的一輪（排程、推送或別的接力）就交給它，不重複發；
-  # 推送、probe、deploy 結束後也會接上。GitHub 偶爾回 502：隔 20 秒再試，最多 4 次，每次重試前再確認一次。
+  # 上一次「抓資料」（build）開始後約 58 分鐘發出下一輪。已經有比自己新的一輪（排程、推送或別的接力）就交給它，不重複發；
+  # probe、deploy 這種不抓資料的推送也會接上，但時間照上一次 build 算（state 分支 runs.json 最後一筆），新聞不會因此晚更新。
+  # GitHub 偶爾回 502：隔 20 秒再試，最多 4 次，每次重試前再確認一次。
   next:
     needs: run
     if: ${{ !cancelled() }}
@@ -125,6 +127,11 @@ jobs:
     steps:
       - run: |
           t0="${T0:-$(date +%s)}"
+          if [ "${MODE}" != "build" ]; then
+            last=$(gh api "repos/${REPO}/contents/runs.json?ref=state" --jq '.content' 2>/dev/null | base64 -d 2>/dev/null \
+              | python3 -c "import json,sys,datetime as d; r=json.load(sys.stdin); print(int(d.datetime.fromisoformat(r[-1]['at'].replace('Z','+00:00')).timestamp()))" 2>/dev/null || true)
+            if [ -n "${last}" ] && [ "${last}" -lt "${t0}" ]; then echo "這一輪是 ${MODE}，時間照上一次 build 算"; t0="${last}"; fi
+          fi
           wait=$(( t0 + 3480 - $(date +%s) ))
           if [ "$wait" -gt 0 ]; then echo "等 ${wait} 秒再發出下一輪"; sleep "$wait"; fi
           newer() {
@@ -144,3 +151,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           T0: ${{ needs.run.outputs.t0 }}
+          MODE: ${{ needs.run.outputs.mode }}

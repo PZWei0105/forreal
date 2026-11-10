@@ -21,7 +21,7 @@ KEEP_HOURS = 120          # 新聞在 state 裡保留多久
 SHOW_HOURS = 72           # App 顯示多久內的新聞
 BLOCKED_SHOW_HOURS = 48
 MAX_GAME, MAX_TECH, MAX_BLOCKED = 240, 160, 320
-OUT_FILES = ('news.json', 'tech.json', 'blocked.json', 'deals.json', 'releases.json', 'events.json', 'meta.json')
+OUT_FILES = ('news.json', 'tech.json', 'blocked.json', 'deals.json', 'releases.json', 'events.json', 'media.json', 'meta.json')
 
 
 # ---------------------------------------------------------------- state
@@ -254,19 +254,32 @@ def _norm_title(s: str) -> str:
 
 
 def link_steam_ranks(releases: dict):
-    """發售日曆裡的遊戲若也在 Steam 期待榜上，標上名次（中文名對不上的就算了）。"""
+    """發售日曆裡的遊戲若也在 Steam 期待榜上，標上名次與 Steam appid（中文名對不上的就算了）。"""
     ranks = {}
     for x in (releases.get('steam_upcoming') or {}).get('items') or []:
         for key in (_norm_title(x['name']), _norm_title(re.sub(r'[^\x00-\x7f]+', ' ', x['name']))):
             if len(key) >= 4:
-                ranks.setdefault(key, x['rank'])
+                ranks.setdefault(key, (x['rank'], x.get('appid')))
     for w in (releases.get('wiki') or {}).get('items') or []:
         n = _norm_title(w['title'])
         r = ranks.get(n)
         if r is None and len(n) >= 6:
             r = next((v for k, v in ranks.items() if len(k) >= 6 and (n.startswith(k) or k.startswith(n))), None)
         if r:
-            w['srank'] = r
+            w['srank'] = r[0]
+            if r[1]:
+                w['appid'] = r[1]
+
+
+def link_calendar_appids(releases: dict, name_cache: dict):
+    """發售日曆的遊戲：遊戲中文名查詢時在 Steam 台灣商店對到的（英文名完全相同），記下 appid，App 才拿得到封面與預告。"""
+    from .names import key
+    for w in (releases.get('wiki') or {}).get('items') or []:
+        if w.get('appid'):
+            continue
+        c = name_cache.get(key(w['title'])) or {}
+        if c.get('appid') and c.get('via') == 'steam':
+            w['appid'] = c['appid']
 
 
 # ---------------------------------------------------------------- 網站
@@ -398,11 +411,33 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
             namer.save()
             name_stats = namer.stats
             alias = names.alias_pairs(namer.cache)
+            link_calendar_appids(releases, namer.cache)
         except Exception:  # noqa: BLE001
             errors.append('names: ' + traceback.format_exc()[-400:])
             traceback.print_exc()
     print('[forreal] names', name_stats, flush=True)
-    clean_names(game, tech, deals, releases, events)
+
+    # 遊戲展示素材：寬幅主視覺、直式封面、截圖、預告短片（焦點輪播、遊戲情報卡用）
+    media, media_stats = {'at': None, 'games': {}}, {}
+    try:
+        from . import events as steam_events, media as gmedia
+        media = gmedia.build(http, st, health, t0, deals, releases, events, steam_events.build_tags(http, cache, health, t0))
+        try:
+            from . import translate
+            jobs = gmedia.translation_jobs(media, set((events.get('games') or {}).keys()))
+            done, media_stats = translate.run_extra(jobs, st, t0, budget_s=100) if jobs else ({}, {})
+        except Exception:  # noqa: BLE001
+            done = {}
+            errors.append('media translate: ' + traceback.format_exc()[-400:])
+            traceback.print_exc()
+        gmedia.apply_translations(media, done, events)
+    except Exception:  # noqa: BLE001
+        errors.append('media: ' + traceback.format_exc()[-400:])
+        traceback.print_exc()
+        for x in (media.get('games') or {}).values():
+            x.pop('_en', None)
+    print('[forreal] media', len(media.get('games') or {}), media_stats, flush=True)
+    clean_names(game, tech, deals, releases, events, media)
 
     src_meta = {s['id']: {'name': s['name'], 'tier': s.get('tier', 3), 'cat': s.get('cat', 'game'),
                           'home': s.get('home')} for s in sources}
@@ -411,7 +446,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                   'steam_deals': 'steam', 'steam_upcoming': 'steam', 'steam_new': 'steam', 'epic': 'epic',
                   'appstore': 'appstore', 'wiki': 'wiki', 'ev_schedule': 'steam_events', 'ev_official': 'steam_events',
                   'ev_partner': 'steam_events', 'ev_daily': 'steam_events', 'ev_tags': 'steam_events',
-                  'ev_free': 'steam_events'}
+                  'ev_free': 'steam_events', 'media': 'steam'}
     health_out = {k: v for k, v in health.items() if k in src_meta}
     for k, owner in store_keys.items():
         if k in health:
@@ -433,6 +468,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
                'deals.json': dict(deals, generated=iso(t0)),
                'releases.json': dict(releases, generated=iso(t0)),
                'events.json': dict(events, generated=iso(t0)),
+               'media.json': dict(media, generated=iso(t0)),
                'meta.json': meta}
     for name, obj in outputs.items():
         write_json(data_dir, name, obj)
@@ -441,7 +477,7 @@ def execute(http, st: State, t0, data_dir: pathlib.Path, build_id: str):
     runs = st.load('runs.json', [])
     runs.append({'at': iso(t0), 'secs': round((now() - t0).total_seconds(), 1), 'calls': http.calls,
                  'game': len(game), 'tech': len(tech), 'blocked': len(blocked), 'store': len(store),
-                 'translate': tr_stats, 'names': name_stats, 'events': ev_stats,
+                 'translate': tr_stats, 'names': name_stats, 'events': ev_stats, 'media': len(media.get('games') or {}),
                  'live': [e.get('name') for e in events.get('live') or []], 'partner': len(events.get('partner') or []),
                  'errors': errors[:5]})
     st.save('runs.json', runs[-80:])
