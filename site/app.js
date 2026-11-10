@@ -1,83 +1,28 @@
-// 玩真的 FOR REAL — PZ 的遊戲情報鑑定所（純靜態前端，資料由 GitHub Actions 每小時更新到 data/）
-import { play, sound, setSound, unlock, whenUnlocked } from './sfx.js?v=__BUILD__';
-import { fx, setFx, rosette, initHolo, enableTilt, scanSweep, countUp, decrypt, toast, boot } from './fx.js?v=__BUILD__';
+// 玩真的 FOR REAL — 痞子葳的遊戲情報中樞（純靜態前端，資料由 GitHub Actions 每小時更新到 data/）
+// 2026/11 超級大更新：開場畫面、焦點舞台、遊戲貨架、遊戲情報卡、稀有度寶箱、魔王血條、背景音樂與全套聲光。
+import { play, sound, setSound, unlock, whenUnlocked, duck, suspendAudio } from './sfx.js?v=__BUILD__';
+import { startMusic, stopMusic, pauseMusic, resumeMusic, setMood, musicPlaying } from './music.js?v=__BUILD__';
+import { fx, setFx, calm, rosette, initHolo, enableTilt, scanSweep, countUp, decrypt, toast, title, burst, swapIn, flash } from './fx.js?v=__BUILD__';
 import { buildBrief, searchAll, speak, stopSpeak, canSpeak } from './brief.js?v=__BUILD__';
 import { UPDATES } from './updates.js?v=__BUILD__';
+import { $, esc, local, fmtMD, fmtHM, fmtFull, fmtWD, ago, twDate, money, thousands, imgFallback, gradeClass, span, bigImg, PLAT, WEEK, ICON } from './kit.js?v=__BUILD__';
+import { buildSlides, stageHTML, mountStage, unmountStage, stageCtl, shelvesHTML, rarity, RARITY } from './stage.js?v=__BUILD__';
+import { gameModel, gameSheetHTML, lightboxHTML } from './game.js?v=__BUILD__';
 
-const TZ = 'Asia/Taipei';
-const PLAT = { pc: 'PC', ps: 'PS', xbox: 'Xbox', switch: 'Switch', mobile: '手機', vr: 'VR' };
 const TYPE = { showcase: '發表會', delay: '延期', release: '發售', review: '評測', industry: '產業', trailer: '預告', sub: '訂閱制', free: '限免', patch: '更新', hardware: '硬體', ai: 'AI' };
 const SOFT = { rumor: '傳聞', opinion: '評論', buzz: '話題', media: '影視', merch: '周邊' };
 const BLOCK_SHORT = { ad: '業配', shop: '導購', guide: '農場', gacha: '課金', bait: '標題黨', mobile_f2p: '手遊', film_tv: '影視', adult: '成人' };
 const TIER = { 1: '官方來源', 2: '可信媒體', 3: '一般媒體' };
-const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 
-const I = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
-const ICON = {
-  top: I('<path d="M4 5.5h16M4 10h16M4 14.5h10M4 19h7"/><circle cx="18.5" cy="17" r="2.6"/>'),
-  deals: I('<path d="M3.5 12.6V4.5a1 1 0 0 1 1-1h8.1a1 1 0 0 1 .7.3l7.2 7.2a1.5 1.5 0 0 1 0 2.1l-7.4 7.4a1.5 1.5 0 0 1-2.1 0l-7.2-7.2a1 1 0 0 1-.3-.7z"/><circle cx="8.3" cy="8.3" r="1.6"/>'),
-  events: I('<path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h14a1.5 1.5 0 0 1 1.5 1.5v2.2a2.3 2.3 0 0 0 0 4.6v2.2A1.5 1.5 0 0 1 19 18H5a1.5 1.5 0 0 1-1.5-1.5v-2.2a2.3 2.3 0 0 0 0-4.6z"/><path d="M14.5 6.5v1.8M14.5 11.1v1.8M14.5 15.7v1.8"/>'),
-  rel: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2.5M13.5 14H16M8 17h2.5"/>'),
-  tech: I('<rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M10 10h4v4h-4zM9 3v3.5M15 3v3.5M9 17.5V21M15 17.5V21M3 9h3.5M3 15h3.5M17.5 9H21M17.5 15H21"/>'),
-  filter: I('<path d="M12 3.2 19.5 6v5.6c0 4.4-3.1 8-7.5 9.2-4.4-1.2-7.5-4.8-7.5-9.2V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.6"/>'),
-  search: I('<circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.6 15.6 4.9 4.9"/>'),
-  soundOn: I('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
-  soundOff: I('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>'),
-  gear: I('<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>'),
-  save: I('<path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1z"/>'),
-  star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.5l6-.8z"/></svg>',
-  ext: I('<path d="M14 4.5h5.5V10M19.5 4.5 11 13M18 14v4.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H10"/>'),
-  play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>',
-  stop: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>',
-  scan: I('<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M4 12h16"/>'),
-  close: I('<path d="m6 6 12 12M18 6 6 18"/>'),
-  gift: I('<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7M12 8.5v12M12 8.5C10.5 5 7 4.5 7 6.6S10 8.5 12 8.5zM12 8.5c1.5-3.5 5-4 5-1.9s-3 1.9-5 1.9z"/>'),
-  target: I('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>'),
-  calAdd: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.5v5.5M9.25 15.25h5.5"/>'),
-  copy: I('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
-  ticket: I('<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a2.5 2.5 0 0 0 0 5v2a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5v-2a2.5 2.5 0 0 0 0-5z"/><path d="m10 9.5 4.5 2.5-4.5 2.5z"/>'),
-  pad: I('<path d="M7.5 8h9a4.5 4.5 0 0 1 4.4 5.5l-.8 3.6a2.2 2.2 0 0 1-3.8 1L14.5 16h-5l-1.8 2.1a2.2 2.2 0 0 1-3.8-1l-.8-3.6A4.5 4.5 0 0 1 7.5 8z"/><path d="M8 11v3M6.5 12.5h3M15.5 11.5h.01M17.5 13h.01"/>'),
-};
 const BRIEF_ICON = { top: ICON.top, event: ICON.events, free: ICON.gift, deal: ICON.deals, rel: ICON.rel, follow: ICON.target, filter: ICON.filter, wish: ICON.star, subs: ICON.ticket, console: ICON.pad };
 const TABS = [['top', '簡報'], ['deals', '特價'], ['events', '活動'], ['rel', '上市'], ['tech', '科技'], ['filter', '濾網']];
 
 // ---------- 小工具 ----------
-const $ = (s, el = document) => el.querySelector(s);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const local = {
-  get(k, d) { try { const v = localStorage.getItem('fr.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('fr.' + k, JSON.stringify(v)); } catch { /* 私密模式 */ } },
-};
-const fmt = (opt) => new Intl.DateTimeFormat('zh-TW', { timeZone: TZ, ...opt });
-const fmtMD = fmt({ month: 'numeric', day: 'numeric' });
-const fmtHM = fmt({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-const fmtFull = fmt({ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-const fmtWD = fmt({ weekday: 'short' });
-function ago(iso) {
-  if (!iso) return '';
-  const t = new Date(iso);
-  const m = (Date.now() - t.getTime()) / 60000;
-  if (m < 1) return '剛剛';
-  if (m < 60) return `${Math.floor(m)} 分鐘前`;
-  if (m < 60 * 24) return `${Math.floor(m / 60)} 小時前`;
-  if (m < 60 * 48) return `昨天 ${fmtHM.format(t)}`;
-  return fmtMD.format(t);
-}
-function twDate(d = new Date()) {
-  const p = Object.fromEntries(fmt({ year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d).map((x) => [x.type, x.value]));
-  return `${p.year}-${p.month}-${p.day}`;
-}
-const money = (v) => (v == null ? '' : `NT$${Math.round(v).toLocaleString('en-US')}`);
-const thousands = (v) => (v == null ? '' : Number(v).toLocaleString('en-US'));
-function imgFallback(cap) {
-  return cap ? `if(this.dataset.f){this.style.visibility='hidden'}else{this.dataset.f=1;this.src='${esc(cap)}'}` : "this.style.visibility='hidden'";
-}
 const REL_TYPE = { original: '新作', port: '移植', remaster: '重製版', remake: '重製', 'early access': '搶先體驗', 'full release': '正式版', expansion: '資料片', compilation: '合輯', dlc: 'DLC', 'enhanced port': '強化移植', rerelease: '再發行', 're-release': '再發行', unknown: '' };
 const GENRE = { action: '動作', 'action-adventure': '動作冒險', adventure: '冒險', rpg: '角色扮演', 'action rpg': '動作角色扮演', jrpg: '日式 RPG', 'tactical rpg': '戰略 RPG', fps: '第一人稱射擊', tps: '第三人稱射擊', "shoot 'em up": '射擊', 'survival horror': '生存恐怖', horror: '恐怖', puzzle: '解謎', platformer: '平台', metroidvania: '銀河惡魔城', roguelike: 'Roguelike', roguelite: 'Roguelite', 'deck building': '牌組構築', strategy: '策略', rts: '即時戰略', tbs: '回合策略', '4x': '4X', simulation: '模擬', 'life sim': '生活模擬', 'city builder': '城市建造', survival: '生存', sandbox: '沙盒', sports: '運動', racing: '賽車', fighting: '格鬥', 'visual novel': '視覺小說', cozy: '療癒', stealth: '潛行', mmorpg: 'MMORPG', moba: 'MOBA', 'battle royale': '大逃殺', rhythm: '節奏', 'beat \'em up': '清版動作', soulslike: '魂系', 'hack and slash': '砍殺', party: '派對', 'card game': '卡牌', idle: '放置', farming: '農場', 'open world': '開放世界', 'tower defense': '塔防', 'turn-based': '回合制', 'dungeon crawl': '地城探索', otome: '乙女', cms: '經營模擬', mmo: 'MMO', brawler: '清版格鬥', 'puzzle-platformer': '解謎平台', 'interactive film': '互動電影', 'bullet heaven': '割草射擊', rougelike: 'Roguelike', 'scrolling shooter': '捲軸射擊', 'vehicle sim': '載具模擬', pinball: '彈珠台', 'dating sim': '戀愛模擬', 'graphic adventure': '圖像冒險', 'tile matching': '三消', 'vehicular combat': '載具戰鬥', 'digital tabletop': '數位桌遊', 'sports management': '運動經營', 'narrative adventure': '劇情冒險', pca: '點擊冒險', 'point-and-click': '點擊冒險', cooking: '料理', fitness: '健身', 'auto battler': '自走棋', 'government sim': '治國模擬', 'social sim': '社交模擬', dccg: '數位卡牌', ccg: '卡牌', shooter: '射擊', 'hero shooter': '英雄射擊', 'extraction shooter': '撤離射擊', 'twin-stick shooter': '雙搖桿射擊', 'bullet hell': '彈幕射擊', 'walking sim': '步行模擬', 'flight sim': '飛行模擬', 'grand strategy': '大戰略', tactics: '戰術', 'monster taming': '魔物收集', 'social deduction': '社交推理', music: '音樂', golf: '高爾夫', wrestling: '摔角', mecha: '機甲' };
 const zhType = (t) => t.split(/\s*[,/+]\s*/).map((x) => REL_TYPE[x.toLowerCase()] ?? x).filter(Boolean).join('、');
 const zhGenre = (g) => g.split(/,\s*/).map((x) => x.trim()).filter((x) => x && !/^[—–-]*\s*(?:n\/?a|tba|tbd)?$/i.test(x))
   .map((x) => GENRE[x.toLowerCase()] || GENRE[x.replace(/\s*\(.*\)$/, '').toLowerCase()] || x).join('、');
-const gradeClass = (p) => (p >= 85 ? 'hi' : p >= 70 ? 'mid' : 'lo');
 
 // ---------- 狀態 ----------
 const S = {
@@ -101,6 +46,11 @@ const S = {
   lastSeen: local.get('lastSeen', 0),   // 上一次打開 App 的時間（「新」標記與簡報用）
   speakingLine: -1,
   recent: local.get('recent', []),
+  stageIdx: 0,
+  game: null,          // 打開中的遊戲情報卡（appid）
+  shots: [],           // 截圖全螢幕瀏覽
+  shotAt: 0,
+  played: new Set(),   // 這次打開 App 已經播過的登場效果（寶箱、魔王）
 };
 
 const srcMeta = (id) => S.data.meta?.sources?.[id];
@@ -120,13 +70,25 @@ async function getJSON(name, force) {
 }
 async function load(force = false) {
   const names = ['meta', 'news', 'tech', 'deals', 'releases', 'events'];
+  const mp = loadMedia(force);
   const res = await Promise.allSettled(names.map((n) => getJSON(n, force)));
   S.failed = [];
   res.forEach((r, i) => {
     if (r.status === 'fulfilled') S.data[names[i]] = r.value;
     else S.failed.push(names[i]);
   });
-  if (force) S.blocked = null;
+  if (force) { S.blocked = null; await mp; }
+}
+/** 展示素材（大圖、封面、截圖、預告短片）：不擋住第一個畫面，到了再補上焦點舞台與貨架。 */
+let mediaP = null;
+function loadMedia(force = false) {
+  if (mediaP && !force) return mediaP;
+  mediaP = getJSON('media', force).then((m) => {
+    const first = !S.data.media;
+    S.data.media = m;
+    if (first && S.tab === 'top' && $('#v-top .stage, #v-top #top-shelves')) refreshTopArt();
+  }).catch(() => { S.data.media = S.data.media || { games: {} }; });
+  return mediaP;
 }
 async function loadBlocked() {
   if (S.blocked) return;
@@ -147,7 +109,7 @@ function shell() {
     </a>
     <button class="sync" id="sync" aria-label="重新掃描資料"><i class="radar-dot" aria-hidden="true"></i><span id="upd">讀取中</span></button>
     <button class="ibtn" id="btn-search" aria-label="搜尋全部資料">${ICON.search}</button>
-    <button class="ibtn" id="btn-sound" aria-label="音效開關" aria-pressed="${sound.on}">${sound.on ? ICON.soundOn : ICON.soundOff}</button>
+    <button class="ibtn av" id="btn-sound" aria-label="${avLabel()}">${avIcon()}</button>
     <button class="ibtn" id="btn-set" aria-label="設定">${ICON.gear}</button>
   </div></header>
   <main>
@@ -156,8 +118,28 @@ function shell() {
   <nav class="nav" aria-label="分頁"><div class="nav-in">
     ${TABS.map(([id, label]) => `<button data-tab="${id}">${ICON[id]}<span>${label}</span></button>`).join('')}
   </div></nav>
+  <div class="game" id="game" hidden></div>
+  <div class="lightbox" id="lightbox" hidden></div>
   <div class="sheet" id="sheet" hidden></div>
   <div class="finder" id="finder" hidden></div>`;
+}
+
+// 右上角的聲光鈕：全開（音效＋音樂）→ 只有音效 → 靜音
+const avState = () => (sound.on && sound.music ? 'all' : sound.on ? 'sfx' : sound.music ? 'music' : 'mute');
+function avIcon() {
+  const st = avState();
+  if (st === 'mute') return ICON.soundOff;
+  if (st === 'sfx') return ICON.soundOn;
+  return `<span class="av-ic">${ICON.soundOn}<i class="av-note">${ICON.music}</i></span>`;
+}
+const avLabel = () => `聲光：${({ all: '音效＋音樂', sfx: '只有音效', music: '只有音樂', mute: '靜音' })[avState()]}，點一下切換`;
+function setAV(next) {
+  const was = musicPlaying();
+  setSound({ on: next === 'all' || next === 'sfx', music: next === 'all' || next === 'music' });
+  const b = $('#btn-sound');
+  if (b) { b.innerHTML = avIcon(); b.setAttribute('aria-label', avLabel()); }
+  if (sound.music && !was) whenUnlocked(() => { startMusic(); setMood(S.game ? 'sheet' : S.tab); });
+  if (!sound.music && was) stopMusic();
 }
 
 function updHeader() {
@@ -199,9 +181,11 @@ function card(e, { hero = false, img = false } = {}) {
   const softTags = (e.soft || []).filter((s) => s !== 'rumor').map((s) => `<span class="tag">${SOFT[s] || s}</span>`).join('');
   const saved = S.saved.some((x) => x.id === e.id);
   const open = S.open.has(e.id);
-  const pic = (hero || img) && e.img ? `<img class="thumb" src="${esc(e.img)}" alt="" loading="${hero ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
-  const cls = ['doc', 'news', hero && 'hero', verified && 'v', rumor && 'rumor', S.read.has(e.id) && 'read', isNew(e) && 'new'].filter(Boolean).join(' ');
+  const side = !hero && img && e.img;
+  const pic = hero && e.img ? `<div class="hero-pic"><img class="thumb" src="${esc(bigImg(e.img))}" alt="" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>` : '';
+  const cls = ['doc', 'news', hero && 'hero', side && 'has-pic', verified && 'v', rumor && 'rumor', S.read.has(e.id) && 'read', isNew(e) && 'new'].filter(Boolean).join(' ');
   return `<article class="${cls}" data-id="${esc(e.id)}">
+    ${pic}
     <header class="doc-h">
       <span class="sig t${tier}" title="${TIER[tier]}" aria-label="${TIER[tier]}"><i></i><i></i><i></i></span>
       <span class="src">${esc(srcName(e.src))}</span>
@@ -211,13 +195,14 @@ function card(e, { hero = false, img = false } = {}) {
       ${e.n > 1 ? `<span class="cov"><b class="num">${e.n}</b> 家</span>` : ''}
       ${verified ? sealHTML(official ? '官方來源' : `${e.n} 家獨立報導`) : ''}
     </header>
-    ${hero ? pic : ''}
     <a class="doc-link" href="${esc(e.u)}" target="_blank" rel="noopener noreferrer" data-open="${esc(e.id)}">
-      <h3 class="t">${esc(e.tz || e.t)}</h3>
-      ${e.tz ? `<p class="t-orig">${esc(e.t)}</p>` : ''}
-      ${e.tz ? (e.sz ? `<p class="s">${esc(e.sz)}</p>` : '') : (e.s ? `<p class="s">${esc(e.s)}</p>` : '')}
+      <span class="txt">
+        <h3 class="t">${esc(e.tz || e.t)}</h3>
+        ${e.tz ? `<span class="t-orig">${esc(e.t)}</span>` : ''}
+        ${e.tz ? (e.sz ? `<span class="s">${esc(e.sz)}</span>` : '') : (e.s ? `<span class="s">${esc(e.s)}</span>` : '')}
+      </span>
+      ${side ? `<img class="thumb side" src="${esc(e.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.doc').classList.remove('has-pic');this.remove()">` : ''}
     </a>
-    ${!hero ? pic : ''}
     <footer class="doc-f">
       ${followHit(e) ? '<span class="ty follow">追蹤中</span>' : ''}
       ${(e.plat || []).map((p) => `<span class="p ${p}">${PLAT[p] || p}</span>`).join('')}
@@ -240,7 +225,7 @@ function newsList(key, items, emptyText) {
   const allMode = S.f[key] === 'all';
   let html = '';
   items.slice(0, n).forEach((e, i) => {
-    html += card(e, { hero: key === 'top' && allMode && i === 0, img: allMode && i > 0 && i < 4 });
+    html += card(e, { hero: key === 'top' && allMode && i === 0 && !S.stageNews, img: true });
   });
   if (items.length > n) html += `<button class="more-btn" data-loadmore="${key}">再看 ${Math.min(30, items.length - n)} 則（共 ${items.length} 則）</button>`;
   return `<div class="list">${html}</div>`;
@@ -304,14 +289,38 @@ function topChips() {
     '|', ['pc', 'PC'], ['ps', 'PS'], ['xbox', 'Xbox'], ['switch', 'Switch'], ['mobile', '手機買斷'],
     '|', ['release', '發售'], ['delay', '延期'], ['review', '評測'], ['showcase', '發表會'], ['industry', '產業'], ['rumor', '傳聞']];
 }
-function viewTop() {
+function topNewsHTML() {
   const items = S.data.news?.items || [];
-  const chips = topChips();
   const list = filterNews(items, S.f.top);
-  return `${staleNotice()}${S.data.meta ? briefHTML() : ''}
-    ${secHead('頭條', `${items.length ? `共 ${items.length} 則` : ''}`)}
-    ${chipsHTML('top', chips)}
+  return `${secHead('頭條', `${items.length ? `共 ${items.length} 則` : ''}`)}
+    ${chipsHTML('top', topChips())}
     ${newsList('top', list, S.f.top === 'saved' ? '還沒有收藏。看到想晚點讀的新聞，按卡片右下角的書籤。' : S.f.top === 'follow' ? '追蹤的遊戲最近沒有消息。到「濾網」頁可以增減追蹤。' : items.length ? '這個分類目前沒有新聞。' : '還沒有資料。第一輪自動更新跑完就會出現（每小時一次）。')}`;
+}
+function topStageHTML() {
+  if (!S.data.meta) return '';
+  const slides = buildSlides(S.data, S.data.media || {});
+  S.stageNews = slides.some((x) => x.kind === 'news');
+  return stageHTML(slides, S.stageIdx);
+}
+function viewTop() {
+  return `<div id="top-stage">${topStageHTML()}</div>
+    ${staleNotice()}
+    ${S.data.meta ? briefHTML() : ''}
+    <div id="top-shelves">${S.data.meta ? shelvesHTML(S.data, S.data.media || {}) : ''}</div>
+    <div id="top-news">${topNewsHTML()}</div>`;
+}
+/** 素材到了：只換焦點舞台和貨架，不動簡報和頭條（捲動位置不變）。 */
+function refreshTopArt() {
+  const st = $('#top-stage');
+  const sh = $('#top-shelves');
+  if (st) { st.innerHTML = topStageHTML(); mountTopStage(); }
+  if (sh) sh.innerHTML = shelvesHTML(S.data, S.data.media || {});
+}
+function mountTopStage() {
+  mountStage($('#top-stage'), {
+    onMove: (dir, user) => { if (user) play('whoosh', dir); },
+    onIndex: (i) => { S.stageIdx = i; },
+  });
 }
 
 function viewTech() {
@@ -333,14 +342,15 @@ function viewDeals() {
     const r = d.steam?.rules;
     const f = S.f.deals;
     const items = all.filter((x) => (f === 'all' ? true : f === 'great' ? x.verdict === 'great' : f === 'good' ? x.verdict : f === 'low' ? x.low : x.disc >= 50));
-    body = `${r ? `<details class="rules"><summary>收錄條件與「好價」怎麼判斷</summary><ul>
+    body = `${r ? `<details class="rules"><summary>收錄條件與稀有度怎麼判斷</summary><ul>
         <li>至少打 ${(100 - r.min_discount) / 10} 折，全球玩家好評率 ${r.min_pct}% 以上、評論 ${thousands(r.min_reviews)} 則以上。</li>
-        <li><b>好價</b>：折扣 ${r.great.discount}% 以上、好評率 ${r.great.pct}% 以上、評論 ${thousands(r.great.reviews)} 則以上，會蓋上「真」字全像印。</li>
-        <li><b>推薦</b>：折扣 ${r.good.discount}% 以上、好評率 ${r.good.pct}% 以上。</li>
+        <li><b>傳說（好價）</b>：折扣 ${r.great.discount}% 以上、好評率 ${r.great.pct}% 以上、評論 ${thousands(r.great.reviews)} 則以上，金框，蓋上「真」字全像印。</li>
+        <li><b>史詩（推薦）</b>：折扣 ${r.good.discount}% 以上、好評率 ${r.good.pct}% 以上，紫框。</li>
+        <li><b>稀有</b>：觀測新低或六折以下，藍框。其他是普通。</li>
         <li><b>觀測新低</b>：本 App 開始記錄滿 ${r.low_days} 天後，價格等於或低於記錄中的最低價。</li>
         <li>價格為 Steam 台灣區（新台幣），評價是 Steam 全球所有語言的玩家評論。</li></ul></details>` : ''}
-      ${chipsHTML('deals', [['all', '全部', all.length], ['great', '好價', all.filter((x) => x.verdict === 'great').length], ['good', '推薦以上', all.filter((x) => x.verdict).length], ['half', '五折以下', all.filter((x) => x.disc >= 50).length], ['low', '觀測新低', all.filter((x) => x.low).length]])}
-      ${items.length ? `<div class="grid2">${items.map(dealCard).join('')}</div>` : `<div class="empty">${all.length ? '這個分類目前沒有符合的特價。' : '還沒有特價資料。'}</div>`}
+      ${chipsHTML('deals', [['all', '全部', all.length], ['great', '傳說', all.filter((x) => x.verdict === 'great').length], ['good', '史詩以上', all.filter((x) => x.verdict).length], ['half', '五折以下', all.filter((x) => x.disc >= 50).length], ['low', '觀測新低', all.filter((x) => x.low).length]])}
+      ${items.length ? `<div class="grid2 loot-grid">${items.map((x, i) => dealCard(x, i)).join('')}</div>` : `<div class="empty">${all.length ? '這個分類目前沒有符合的特價。' : '還沒有特價資料，下一輪更新（每小時）會補上。'}</div>`}
       ${d.steam?.at ? `<p class="hint">Steam 價格 ${ago(d.steam.at)}更新</p>` : ''}`;
   } else if (S.sub.deals === 'epic') {
     const e = d.epic || {};
@@ -392,26 +402,26 @@ function relText(x) {
   if (r.d) return `${Number(r.d.slice(5, 7))}/${Number(r.d.slice(8))} 發售`;
   return r.t || '即將推出';
 }
-function wishCard(x) {
-  const verdict = x.verdict === 'great' ? `<span class="verdict great">${sealHTML('好價')}好價</span>` : x.verdict === 'good' ? '<span class="verdict good">推薦</span>' : '';
+function wishCard(x, i = 0) {
+  const r = rarity(x, S.data.deals?.steam?.rules);
   const ends = x.ends ? `<span class="ends">特價到 ${fmtFull.format(new Date(x.ends))}</span>` : '';
-  return `<article class="doc deal wish ${x.verdict || ''}"><a class="deal-in" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="wish">
-    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}"><span class="off num">-${x.disc}%</span>${verdict}</span>
+  return `<article class="doc deal wish loot r-${r}" style="--k:${i}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}">
+    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}"><span class="off num">-${x.disc}%</span>${rarTag(r)}${r === 'legend' ? '<i class="shine" aria-hidden="true"></i>' : ''}</span>
     <span class="info">
       <span class="name">${esc(x.name)}${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}</span>
       <span class="price"><b class="now num">${x.final ? money(x.final) : '免費'}</b>${x.orig ? `<s class="num">${money(x.orig)}</s>` : ''}</span>
       ${x.low ? '<span class="lowtag">觀測新低</span>' : ''}${ends}
       ${x.pct != null ? `<span class="grade ${gradeClass(x.pct)}"><b class="g num">${x.pct}</b><span>${esc(x.label || '')}<br><span class="num">${thousands(x.n)}</span> 則評論</span></span>` : '<span class="ends">還沒有評價</span>'}
-    </span></a></article>`;
+    </span></button></article>`;
 }
 function wishRow(x) {
   const r = x.rel || {};
   const sub = r.soon
     ? `<span class="word mid">${esc(relText(x))}</span>${x.demo ? '<span class="ty">有試玩版</span>' : ''}`
     : `<span>${x.free ? '免費遊玩' : x.final != null ? money(x.final) : '尚未開賣'}</span>${x.pct != null ? `<span class="word ${gradeClass(x.pct)}">${x.pct}% 好評</span>` : ''}`;
-  return `<a class="rank-row wish-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="wish">
+  return `<button class="rank-row wish-row" data-sheet="${esc(x.appid)}">
     <img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">
-    <span><span class="name">${esc(x.name)}</span>${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}<span class="sub">${sub}</span></span></a>`;
+    <span><span class="name">${esc(x.name)}</span>${x.en ? `<span class="en">${esc(x.en)}</span>` : ''}<span class="sub">${sub}</span></span></button>`;
 }
 function wishView(w) {
   if (!w || !w.setup) {
@@ -432,7 +442,7 @@ function wishView(w) {
   const f = S.f.wish;
   const head = `<p class="hint lead">${w.persona ? `${esc(w.persona)} 的 ` : ''}Steam 願望清單，共 <b class="num">${all.length}</b> 款。價格是 Steam 台灣區，每小時同步；最上面是正在特價的。</p>`;
   const chips = chipsHTML('wish', [['all', '全部', all.length], ['sale', '特價中', sale.length], ['soon', '即將推出', soon.length], ...(low.length ? [['low', '觀測新低', low.length]] : [])]);
-  const saleBlock = (list) => (list.length ? `<div class="grid2">${list.map(wishCard).join('')}</div>` : '<div class="empty small">願望清單裡目前沒有遊戲在特價。</div>');
+  const saleBlock = (list) => (list.length ? `<div class="grid2 loot-grid">${list.map((x, i) => wishCard(x, i)).join('')}</div>` : '<div class="empty small">願望清單裡目前沒有遊戲在特價。</div>');
   const listBlock = (list, empty) => (list.length ? `<div class="panel">${list.map(wishRow).join('')}</div>` : `<div class="empty small">${empty}</div>`);
   let body;
   if (f === 'sale') body = saleBlock(sale);
@@ -446,17 +456,20 @@ function wishView(w) {
   return `${head}${chips}${body}${w.at ? `<p class="hint">願望清單 ${ago(w.at)}同步${w.stale ? '（這輪沒連上，先顯示上次的資料）' : ''}</p>` : ''}`;
 }
 
-function dealCard(x) {
-  const verdict = x.verdict === 'great' ? `<span class="verdict great">${sealHTML('好價')}好價</span>`
-    : x.verdict === 'good' ? '<span class="verdict good">推薦</span>' : '';
-  return `<article class="doc deal ${x.verdict || ''}"><a class="deal-in" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="deal">
-    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.capsule)}"><span class="off num">-${x.disc}%</span>${verdict}</span>
+/** 特價卡（寶箱）：稀有度＝傳說（好價）、史詩（推薦）、稀有（觀測新低或六折以下）、普通。點了打開遊戲情報卡。 */
+function rarTag(r) {
+  return r ? `<span class="rar-tag r-${r}">${r === 'legend' ? sealHTML('好價') : ''}${RARITY[r]}</span>` : '';
+}
+function dealCard(x, i = 0) {
+  const r = rarity(x, S.data.deals?.steam?.rules);
+  return `<article class="doc deal loot r-${r}" style="--k:${i}"><button class="deal-in" data-sheet="${esc(x.appid)}" aria-label="${esc(x.name)}，${RARITY[r] || ''}，-${x.disc}%，${money(x.final)}">
+    <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.capsule)}"><span class="off num">-${x.disc}%</span>${rarTag(r)}${r === 'legend' ? '<i class="shine" aria-hidden="true"></i>' : ''}</span>
     <span class="info">
       <span class="name">${esc(x.name)}</span>
       <span class="price"><b class="now num">${money(x.final)}</b><s class="num">${money(x.orig)}</s></span>
       ${x.low ? '<span class="lowtag">觀測新低</span>' : ''}
       <span class="grade ${gradeClass(x.pct)}"><b class="g num">${x.pct}</b><span>${esc(x.desc)}<br><span class="num">${thousands(x.n)}</span> 則評論</span></span>
-    </span></a></article>`;
+    </span></button></article>`;
 }
 
 function freeCard(x, now) {
@@ -487,18 +500,18 @@ function viewRel() {
   else if (S.sub.rel === 'wish') {
     const items = r.steam_upcoming?.items || [];
     body = `<p class="hint lead">Steam 上最多人關注、即將推出的遊戲（依 Steam 熱門程度排序）。</p>
-      ${items.length ? `<div class="panel">${items.slice(0, 60).map((x) => `<a class="rank-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="wish">
+      ${items.length ? `<div class="panel">${items.slice(0, 60).map((x) => `<button class="rank-row" data-sheet="${esc(x.appid)}">
         <span class="rk num">${x.rank}</span><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.capsule)}">
-        <span><span class="name">${esc(x.name)}</span><span class="sub">${esc(x.text || '未定')}</span></span></a>`).join('')}</div>` : '<div class="empty">還沒有資料。</div>'}`;
+        <span><span class="name">${esc(x.name)}</span><span class="sub">${esc(x.text || '未定')}</span></span></button>`).join('')}</div>` : '<div class="empty">還沒有資料。</div>'}`;
   } else {
     const items = (r.steam_new?.items || []).slice().sort((a, b) => a.rank - b.rank);
     body = `<p class="hint lead">最近 45 天內發售、正在 Steam 熱銷榜上的新作。左邊是熱銷名次，右邊是全球玩家好評率（評論還太少的顯示「–」）。</p>
       ${items.length ? `<div class="panel">${items.map((x) => {
         const word = x.pct == null ? '' : x.pct >= 85 ? '<span class="word hi">口碑佳</span>' : x.pct >= 70 ? '<span class="word mid">普通</span>' : '<span class="word lo">口碑差</span>';
-        return `<a class="rank-row new-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="new">
+        return `<button class="rank-row new-row" data-sheet="${esc(x.appid)}">
         <span class="rk num">${x.rank}</span><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.capsule)}">
         <span><span class="name">${esc(x.name)}</span><span class="sub">${word}<span>${esc(x.date.slice(5).replace('-', '/'))} 發售</span><span>${x.final ? money(x.final) : '免費遊玩'}</span></span></span>
-        <span class="grade ${x.pct == null ? '' : gradeClass(x.pct)}"><b class="g num">${x.pct ?? '–'}</b></span></a>`;
+        <span class="grade ${x.pct == null ? '' : gradeClass(x.pct)}"><b class="g num">${x.pct ?? '–'}</b></span></button>`;
       }).join('')}</div>` : '<div class="empty">還沒有資料。</div>'}`;
   }
   return `${staleNotice()}${segHTML('rel', [['cal', '發售日曆'], ['subs', '訂閱片單'], ['wish', '期待榜'], ['new', '新作口碑']])}${body}`;
@@ -605,7 +618,8 @@ function relRow(x) {
   const k = relKey(x);
   const on = S.watch.has(k);
   const label = x.zh || x.title;
-  const name = x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="rel">${esc(label)}</a>` : esc(label);
+  const name = x.appid ? `<button class="rel-go" data-sheet="${esc(x.appid)}">${esc(label)}</button>`
+    : x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="rel">${esc(label)}</a>` : esc(label);
   return `<div class="rel${x.big ? ' big' : ''}">
     <div class="name">${name}${x.zh ? `<span class="en">${esc(x.title)}</span>` : ''}</div>
     <span class="rel-act">${x.ics ? `<a class="star cal" href="data/ics/${esc(x.ics)}.ics" target="_blank" rel="noopener" data-ics="1" aria-label="把《${esc(label)}》的發售日加入行事曆">${ICON.calAdd}</a>` : ''}<button class="star" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on ? '取消追蹤' : '追蹤'}">${ICON.star}</button></span>
@@ -621,15 +635,6 @@ function evTime(iso, withWd = true) {
   if (!iso) return '';
   const t = new Date(iso);
   return `${fmtMD.format(t)}${withWd ? ` ${fmtWD.format(t)}` : ''} ${fmtHM.format(t)}`;
-}
-function span(ms) {
-  const m = Math.max(1, Math.floor(ms / 6e4));
-  const h = Math.floor(m / 60);
-  const d = Math.floor(h / 24);
-  if (d >= 2) return `<b class="num">${d}</b> 天`;
-  if (d >= 1) return `<b class="num">${d}</b> 天 <b class="num">${h % 24}</b> 小時`;
-  if (h >= 1) return `<b class="num">${h}</b> 小時`;
-  return `<b class="num">${m}</b> 分鐘`;
 }
 function evStatus(e, now = Date.now()) {
   const s = e.start ? new Date(e.start).getTime() : null;
@@ -665,7 +670,9 @@ function deadline(label, iso) {
   return `<span class="g-dead">${esc(label)}到 ${evTime(iso)}<span class="left" data-until="${esc(iso)}">剩 ${span(ms)}</span></span>`;
 }
 function gameRow(x, rank, extra = '') {
-  return `<a class="g-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="game">
+  const r = rarity(x, S.data.deals?.steam?.rules);
+  const tag = x.appid ? `button class="g-row${r ? ` r-${r}` : ''}" data-sheet="${esc(x.appid)}"` : `a class="g-row" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="game"`;
+  return `<${tag}>
     <span class="g-art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">${rank ? `<span class="rk num">${rank}</span>` : ''}</span>
     <span class="g-main">
       <span class="name">${esc(x.name)}</span>${extra}
@@ -673,9 +680,9 @@ function gameRow(x, rank, extra = '') {
       ${x.short ? `<span class="g-desc">${x.mt ? '<span class="mt" title="英文簡介由開源模型翻譯">機翻</span>' : ''}${esc(x.short)}</span>` : x.sp ? '<span class="g-desc pend">簡介翻譯中</span>' : ''}
       ${gamePrice(x)}
       <span class="g-meta">${gameBadges(x)}</span>
-    </span></a>`;
+    </span></${x.appid ? 'button' : 'a'}>`;
 }
-const dealAsGame = (d) => ({ name: d.name, url: d.url, img: d.img, cap: d.capsule, final: d.final, orig: d.orig, disc: d.disc, n: d.n, pct: d.pct, label: d.desc, tags: d.genres });
+const dealAsGame = (d) => ({ appid: d.appid, name: d.name, url: d.url, img: d.img, cap: d.capsule, final: d.final, orig: d.orig, disc: d.disc, n: d.n, pct: d.pct, label: d.desc, tags: d.genres, verdict: d.verdict, low: d.low });
 
 function ring(pct, centerHTML) {
   const C = 2 * Math.PI * 44;
@@ -689,32 +696,35 @@ function bigLeft(ms) {
   return d >= 1 ? `<b class="num">${d}</b><small>天</small>` : `<b class="num">${Math.max(1, h)}</b><small>小時</small>`;
 }
 
+/** 進行中的 Steam 官方活動：魔王血條＝活動剩下的時間（越接近結束血越少），背景是參加遊戲的封面牆。 */
 function evHero(e, E, idx = 0) {
   const lists = e.lists || [];
   const cur = lists.find((l) => l.id === S.evList[e.id]) || lists[0];
   const st = evStatus(e);
   const s = new Date(e.start).getTime();
   const en = new Date(e.end).getTime();
-  const pct = Math.min(100, Math.max(0, ((Date.now() - s) / (en - s)) * 100));
+  const hp = Math.min(100, Math.max(0, ((en - Date.now()) / (en - s)) * 100));
   let rows = '';
+  let items = [];
   if (cur) {
-    const items = cur.src === 'deals' ? (S.data.deals?.steam?.items || []).slice(0, 40).map(dealAsGame) : (cur.ids || []).map((a) => E.games?.[a]).filter(Boolean);
+    items = cur.src === 'deals' ? (S.data.deals?.steam?.items || []).slice(0, 40).map(dealAsGame) : (cur.ids || []).map((a) => E.games?.[a]).filter(Boolean);
     const key = `${e.id}:${cur.id}`;
     const n = S.evShown[key] || (idx === 0 ? 12 : 6);
     rows = items.slice(0, n).map((x, i) => gameRow(x, i + 1)).join('');
     if (items.length > n) rows += `<button class="more-btn" data-evmore="${esc(key)}" data-n="${n}">再看 ${Math.min(12, items.length - n)} 款（共 ${items.length} 款）</button>`;
     if (!items.length) rows = `<div class="empty">${cur.src === 'deals' ? '特價資料整理中。' : '參加遊戲整理中，下一輪更新會補上。'}</div>`;
   }
-  return `<article class="doc console k-${e.kind}">
+  const M = S.data.media?.games || {};
+  const wall = [...new Set(lists.flatMap((l) => l.ids || []))].map((a) => M[a]?.wide || E.games?.[a]?.img).filter(Boolean).slice(0, 8);
+  return `<article class="doc console boss k-${e.kind}">
+    ${wall.length >= 4 ? `<div class="boss-wall" aria-hidden="true">${[...wall, ...wall].map((u) => `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`).join('')}</div>` : ''}
     <header class="doc-h">${sealHTML('Steam 官方活動')}<span class="src">Steam 官方</span><span class="tag">${EV_KIND[e.kind] || '活動'}</span>
       ${st.k === 'live' ? '<span class="live">進行中</span>' : `<span class="when">${st.txt}</span>`}</header>
-    <div class="console-main">
-      ${ring(pct, st.k === 'live' ? `${bigLeft(en - Date.now())}<em>剩下</em>` : '<b class="num">0</b><em>未開始</em>')}
-      <div class="console-info">
-        <h3 class="ev-name">${esc(e.name)}${e.edition ? `<span class="ed">${esc(e.edition)}</span>` : ''}</h3>
-        <div class="ev-time"><span>${evTime(e.start)}</span><span class="dash">至</span><span>${evTime(e.end)}</span></div>
-        <div class="ev-left">${st.k === 'live' ? `還剩 <span data-until="${esc(e.end)}">${span(en - Date.now())}</span>` : st.txt}${e.count ? `<span class="gap"></span>共 <b class="num" data-count="${e.count}" data-ck="${esc(e.id)}">${thousands(e.count)}</b> 款參加` : ''}</div>
-      </div>
+    <div class="boss-main">
+      <h3 class="ev-name">${esc(e.name)}${e.edition ? `<span class="ed">${esc(e.edition)}</span>` : ''}</h3>
+      <div class="boss-hp" style="--hp:${hp.toFixed(1)}%" role="img" aria-label="活動剩下 ${Math.round(hp)}% 的時間"><i></i><b class="boss-pct num">${Math.round(hp)}%</b></div>
+      <div class="ev-left">${st.k === 'live' ? `還剩 <span data-until="${esc(e.end)}">${span(en - Date.now())}</span>` : st.txt}${e.count ? `<span class="gap"></span>共 <b class="num" data-count="${e.count}" data-ck="${esc(e.id)}">${thousands(e.count)}</b> 款參加` : ''}</div>
+      <div class="ev-time"><span>${evTime(e.start)}</span><span class="dash">至</span><span>${evTime(e.end)}</span></div>
     </div>
     ${e.note || e.rule ? `<div class="console-notes">${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}${e.rule ? `<p class="ev-rule">${esc(e.rule)}</p>` : ''}</div>` : ''}
     ${lists.length > 1 ? `<div class="seg ev-seg" role="tablist">${lists.map((l) => `<button data-evlist="${esc(e.id)}|${esc(l.id)}" aria-pressed="${l === cur}">${esc(l.label)}</button>`).join('')}</div>` : ''}
@@ -740,11 +750,11 @@ function evNext(e) {
 }
 
 function miniCard(x) {
-  return `<a class="mini-card" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="game">
+  return `<button class="mini-card" data-sheet="${esc(x.appid)}">
     <span class="art"><img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback(x.cap)}">${x.disc ? `<span class="off num">-${x.disc}%</span>` : ''}</span>
     <span class="name">${esc(x.name)}</span>
     <span class="mp">${x.final == null ? (x.rel?.soon ? esc(x.rel.t || '即將推出') : '') : x.final === 0 ? '免費' : `<span class="num">${money(x.final)}</span>`}${x.disc && x.orig ? `<s class="num">${money(x.orig)}</s>` : ''}</span>
-  </a>`;
+  </button>`;
 }
 
 function saleCard(r, E) {
@@ -938,13 +948,16 @@ function settingsHTML() {
   return `<div class="sheet-in" role="dialog" aria-modal="true" aria-label="設定">
     <div class="sheet-h"><h2 class="serif">設定</h2><button class="ibtn" data-close="sheet" aria-label="關閉設定">${ICON.close}</button></div>
     <div class="set-group">
-      ${sw('sound.on', sound.on, '音效', '點擊、切換、掃描、蓋章的聲音')}
-      <label class="set-row"><span class="set-t"><b>音量</b></span><input type="range" min="0" max="1" step="0.05" value="${sound.vol}" data-set="sound.vol" aria-label="音量"></label>
-      ${navigator.vibrate ? sw('sound.haptic', sound.haptic, '震動回饋', '點擊時輕輕震一下') : ''}
+      ${sw('sound.on', sound.on, '音效', '點擊、切換、寶箱、魔王登場、蓋章的聲音；iPhone 切成靜音模式時不會出聲')}
+      ${sw('sound.music', sound.music, '背景音樂', '遊戲主機選單風的電子音樂，每個分頁氣氛不同；小真播報時自動變小聲')}
+      <label class="set-row"><span class="set-t"><b>總音量</b></span><input type="range" min="0" max="1" step="0.05" value="${sound.vol}" data-set="sound.vol" aria-label="總音量"></label>
+      <label class="set-row"><span class="set-t"><b>音樂音量</b></span><input type="range" min="0" max="1" step="0.05" value="${sound.mvol}" data-set="sound.mvol" aria-label="音樂音量"></label>
+      ${navigator.vibrate ? sw('sound.haptic', sound.haptic, '震動回饋', '點擊時輕輕震一下，開寶箱、魔王登場會震得比較有感') : ''}
     </div>
     <div class="set-group">
-      ${sw('fx.boot', fx.boot, '開機動畫', '每次打開 App 播一次，點一下就能略過')}
-      <div class="set-row"><span class="set-t"><b>光影特效</b><small>省電模式會停掉背景動畫、掃描光與數字滾動</small></span>
+      ${sw('fx.boot', fx.boot, '開場畫面', '每次打開 App 先出現「輕觸開始」；按下去同時打開音效和音樂')}
+      ${sw('fx.video', fx.video, '自動播放預告短片', '焦點舞台和遊戲情報卡會播幾秒鐘的無聲精華；省電模式或手機開了省數據時不播')}
+      <div class="set-row"><span class="set-t"><b>光影特效</b><small>省電模式會停掉背景光塵、粒子、轉場、掃描光與預告短片</small></span>
         <span class="seg mini">${[['full', '全開'], ['lite', '省電']].map(([v, l]) => `<button data-fxlevel="${v}" aria-pressed="${fx.level === v}">${l}</button>`).join('')}</span></div>
       ${window.DeviceOrientationEvent ? sw('fx.tilt', fx.tilt, '傾斜手機看全像光影', '「真」字印與選中的分頁會跟著手機角度變色；iPhone 第一次會詢問權限') : ''}
     </div>
@@ -1007,11 +1020,13 @@ function openSheet(html = settingsHTML(), { quiet = false } = {}) {
   if (!quiet) play('open');
 }
 function closeOverlay(id) {
+  if (id === 'game') { closeGame(); return; }
+  if (id === 'lightbox') { closeShots(); return; }
   const el = $(`#${id}`);
   if (!el || el.hidden) return;
   el.classList.remove('on');
   setTimeout(() => { el.hidden = true; el.innerHTML = ''; }, 260);
-  play('tick');
+  play('back');
 }
 
 // ---------- 搜尋 ----------
@@ -1041,15 +1056,21 @@ function resultsHTML(q) {
       : kind === 'wish' ? `願望清單　${x.disc ? `-${x.disc}%　${money(x.final)}` : x.rel?.soon ? relText(x) : x.final != null ? money(x.final) : ''}`
       : kind === 'ps' || kind === 'ns' ? `${kind === 'ps' ? 'PlayStation Store' : 'Nintendo eShop'}　-${x.disc}%　${money(x.final)}`
       : kind === 'sub' ? x.sub : `App Store 付費榜第 ${x.rank} 名　${money(x.price)}`;
-    return `<a class="res" href="${esc(x.url || '#')}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(x.name)}</span><span class="res-s">${esc(sub)}</span></a>`;
+    return resRow(x.appid && (kind === 'steam' || kind === 'wish') ? x.appid : null, x.url, x.name, sub);
   }).join(''));
   html += group('Steam 活動', r.events.map((o) => (o.sale
     ? `<a class="res" href="${esc(o.sale.url)}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(o.sale.name)}</span><span class="res-s">特賣活動　共 ${thousands(o.sale.count)} 款</span></a>`
-    : `<a class="res" href="${esc(o.g.url)}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(o.g.name)}</span><span class="res-s">${esc(o.where.slice(0, 2).join('、'))}${o.g.final != null ? `　${o.g.disc ? `-${o.g.disc}%　` : ''}${o.g.final ? money(o.g.final) : '免費'}` : ''}</span></a>`)).join(''));
+    : resRow(o.g.appid, o.g.url, o.g.name, `${o.where.slice(0, 2).join('、')}${o.g.final != null ? `　${o.g.disc ? `-${o.g.disc}%　` : ''}${o.g.final ? money(o.g.final) : '免費'}` : ''}`))).join(''));
   html += group('發售', r.rel.map(({ kind, x }) => (kind === 'cal'
-    ? `<a class="res" href="${esc(x.url || '#')}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(x.zh || x.title)}</span><span class="res-s">${esc(x.date || '日期未定')}　${x.plat.map((p) => PLAT[p]).join('／')}</span></a>`
-    : `<a class="res" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-open="res"><span class="res-t">${esc(x.name)}</span><span class="res-s">Steam 期待榜第 ${x.rank} 名　${esc(x.text || '')}</span></a>`)).join(''));
+    ? resRow(x.appid, x.url || '#', x.zh || x.title, `${x.date || '日期未定'}　${x.plat.map((p) => PLAT[p]).join('／')}`)
+    : resRow(x.appid, x.url, x.name, `Steam 期待榜第 ${x.rank} 名　${x.text || ''}`))).join(''));
   return html;
+}
+/** 搜尋結果的一列：Steam 遊戲打開遊戲情報卡，其他的直接連到來源。 */
+function resRow(appid, url, title, sub) {
+  const inner = `<span class="res-t">${esc(title)}</span><span class="res-s">${esc(sub)}</span>`;
+  return appid ? `<button class="res" data-sheet="${esc(appid)}">${inner}</button>`
+    : `<a class="res" href="${esc(url || '#')}" target="_blank" rel="noopener noreferrer" data-open="res">${inner}</a>`;
 }
 function openFinder(q = '') {
   const el = $('#finder');
@@ -1069,19 +1090,22 @@ document.addEventListener('input', (ev) => {
     finderTimer = setTimeout(() => { $('#results').innerHTML = resultsHTML(ev.target.value); }, 140);
   }
   if (ev.target.dataset?.set === 'sound.vol') setSound({ vol: Number(ev.target.value) });
+  if (ev.target.dataset?.set === 'sound.mvol') setSound({ mvol: Number(ev.target.value) });
 });
 
 // ---------- 繪製 ----------
 const VIEWS = { top: viewTop, deals: viewDeals, events: viewEvents, rel: viewRel, tech: viewTech, filter: viewFilter };
 
-function render() {
+function render({ dir = 0 } = {}) {
   updHeader();
+  if (S.tab !== 'top') unmountStage();
   for (const [id] of TABS) {
     const v = $(`#v-${id}`);
     if (id === S.tab) {
       v.hidden = false;
       v.innerHTML = VIEWS[id]();
       afterRender(v);
+      if (dir) swapIn(v, dir);
     } else {
       v.hidden = true;
       v.innerHTML = '';
@@ -1098,43 +1122,175 @@ function afterRender(v) {
   countUp(v);
   const hello = $('#hello', v);
   if (hello) decrypt(hello, `hello:${hello.textContent}`);
+  if (S.tab === 'top') mountTopStage();
+}
+/** 只重畫頭條區（換篩選、看更多）：焦點舞台和貨架不動。 */
+function renderTopNews() {
+  const box = $('#top-news');
+  if (!box) { render(); return; }
+  box.innerHTML = topNewsHTML();
+  countUp(box);
+}
+
+/** 登場效果：每次打開 App，第一次進特價頁開寶箱、第一次進活動頁魔王登場。 */
+function entrance(tab) {
+  if (S.played.has(tab)) return;
+  if (tab === 'deals' && S.sub.deals === 'steam') {
+    const cards = [...document.querySelectorAll('#v-deals .loot')];
+    if (!cards.length) return;
+    S.played.add(tab);
+    const box = $('#v-deals .loot-grid');
+    if (!calm() && box) {
+      box.classList.add('reveal');
+      setTimeout(() => box.classList.remove('reveal'), 1600);
+    }
+    const legend = cards.find((c) => c.classList.contains('r-legend') && c.getBoundingClientRect().top < innerHeight);
+    setTimeout(() => {
+      play(legend ? 'legend' : 'loot');
+      if (legend) { burst(legend, { kind: 'gold', n: 34 }); flash('gold'); }
+    }, calm() ? 0 : 380);
+  }
+  if (tab === 'events' && $('#v-events .boss')) {
+    S.played.add(tab);
+    setTimeout(() => play('boss'), 120);
+  }
 }
 
 function setTab(tab, { push = true } = {}) {
   if (!VIEWS[tab]) tab = 'top';
+  const from = TABS.findIndex(([id]) => id === S.tab);
+  const to = TABS.findIndex(([id]) => id === tab);
   const changed = S.tab !== tab;
   S.tab = tab;
   if (push && location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
   if (tab === 'filter' && !S.blocked) loadBlocked().then(() => S.tab === 'filter' && render());
-  render();
-  if (changed) window.scrollTo({ top: 0 });
+  render({ dir: changed ? (to > from ? 1 : -1) : 0 });
+  if (changed) { window.scrollTo({ top: 0 }); setMood(tab); }
+  if (!document.body.classList.contains('booting')) entrance(tab);
 }
 
-function markRead(id) {
-  if (!id) return;
-  S.read.add(id);
-  local.set('read', [...S.read].slice(-800));
+// ---------- 遊戲情報卡 ----------
+function openGame(appid, from) {
+  const g = gameModel(S.data, S.data.media, appid);
+  if (!g) { toast('這款遊戲的資料還沒整理好，下一輪更新會補上。', 'warn'); play('error'); return; }
+  const el = $('#game');
+  S.game = g.appid;
+  el.innerHTML = gameSheetHTML(g, { D: S.data, srcName, followed: S.follow.some((k) => k.toLowerCase() === g.name.toLowerCase()) });
+  el.hidden = false;
+  document.body.classList.add('locked');
+  requestAnimationFrame(() => el.classList.add('on'));
+  stageCtl.pause('sheet');
+  play('sheet');
+  setMood('sheet');
+  if (from) {
+    const r = rarity({ disc: g.price.disc, pct: g.rv.pct, n: g.rv.n, low: g.price.low, verdict: g.price.verdict || undefined }, S.data.deals?.steam?.rules);
+    if (r === 'legend') burst(from, { kind: 'gold', n: 24, spread: 0.7 });
+  }
+  const v = $('.gs-vid', el);
+  if (v) { v.addEventListener('playing', () => el.querySelector('.gs-hero')?.classList.add('vid'), { once: true }); v.play?.()?.catch?.(() => {}); }
+  countUp(el);
+  setTimeout(() => $('.gs-x', el)?.focus({ preventScroll: true }), 60);
 }
-function findItem(id) {
-  return (S.data.news?.items || []).find((e) => e.id === id) || (S.data.tech?.items || []).find((e) => e.id === id) || S.saved.find((e) => e.id === id);
+function closeGame(quiet = false) {
+  const el = $('#game');
+  if (!el || el.hidden) return;
+  el.querySelectorAll('video').forEach((v) => v.pause());
+  hlsPlayer?.destroy();
+  hlsPlayer = null;
+  el.classList.remove('on');
+  S.game = null;
+  document.body.classList.remove('locked');
+  setTimeout(() => { if (!S.game) { el.hidden = true; el.innerHTML = ''; } }, 300);
+  stageCtl.resume('sheet');
+  if (sound.music && !musicPlaying()) whenUnlocked(() => startMusic());
+  setMood(S.tab);
+  if (!quiet) play('back');
 }
-
-// 時間會走的地方（剩幾天幾小時）每 30 秒更新一次，不重畫整頁
-setInterval(() => {
-  document.querySelectorAll('[data-until]').forEach((el) => {
-    const ms = new Date(el.dataset.until) - Date.now();
-    if (ms > 0) el.innerHTML = el.classList.contains('left') ? `剩 ${span(ms)}` : span(ms);
-    else if (!el.dataset.over) { el.dataset.over = '1'; el.textContent = el.classList.contains('left') ? '已結束' : '0 分鐘'; }
-  });
-}, 30000);
+function openShots(i) {
+  const g = gameModel(S.data, S.data.media, S.game);
+  if (!g?.shots.length) return;
+  S.shots = g.shots;
+  S.shotAt = i;
+  const el = $('#lightbox');
+  el.innerHTML = lightboxHTML(S.shots, i);
+  el.hidden = false;
+  requestAnimationFrame(() => el.classList.add('on'));
+  play('open');
+  // 左右滑動換張
+  let sx = 0;
+  el.onpointerdown = (e) => { sx = e.clientX; };
+  el.onpointerup = (e) => { const dx = e.clientX - sx; if (Math.abs(dx) > 40) moveShot(dx < 0 ? 1 : -1); };
+}
+function moveShot(d) {
+  if (!S.shots.length) return;
+  S.shotAt = (S.shotAt + d + S.shots.length) % S.shots.length;
+  const el = $('#lightbox');
+  $('.lb-track', el)?.style.setProperty('--i', S.shotAt);
+  const n = $('.lb-n b', el);
+  if (n) n.textContent = S.shotAt + 1;
+  play('move');
+}
+function closeShots() {
+  const el = $('#lightbox');
+  if (!el || el.hidden) return;
+  el.classList.remove('on');
+  setTimeout(() => { el.hidden = true; el.innerHTML = ''; }, 220);
+  play('back');
+}
+/** 完整預告（有聲音）：在情報卡的大圖位置播放。HLS 串流：iPhone 直接播，其他瀏覽器載入 hls.js 來播。 */
+let hlsPlayer = null;
+async function playTrailer(btn) {
+  const hero = $('#game .gs-hero');
+  if (!hero) return;
+  hero.querySelectorAll('video').forEach((v) => v.remove());
+  const v = document.createElement('video');
+  v.className = 'gs-full';
+  v.controls = true;
+  v.playsInline = true;
+  v.setAttribute('playsinline', '');
+  v.poster = btn.dataset.poster || '';
+  hero.classList.add('playing');
+  hero.appendChild(v);
+  btn.closest('.gs-trailer')?.remove();
+  stopMusic(0.4);
+  play('select');
+  const back = () => { if (sound.music && S.game) whenUnlocked(() => { startMusic(); setMood('sheet'); }); };
+  const fail = () => {
+    toast('這支預告在這台裝置上播不了，可以到 Steam 商店頁看。', 'warn');
+    hero.classList.remove('playing');
+    v.remove();
+    hlsPlayer?.destroy();
+    hlsPlayer = null;
+    back();
+  };
+  v.addEventListener('ended', back, { once: true });
+  const src = btn.dataset.trailer;
+  if (!/\.m3u8(\?|$)/.test(src) || v.canPlayType('application/vnd.apple.mpegurl')) {
+    v.src = src;
+    v.addEventListener('error', fail, { once: true });
+  } else {
+    try {
+      const { default: Hls } = await import('./vendor/hls.min.mjs');
+      if (!Hls.isSupported()) throw new Error('沒有 MSE');
+      hlsPlayer?.destroy();
+      hlsPlayer = new Hls({ capLevelToPlayerSize: true, maxBufferLength: 24, startLevel: -1 });
+      hlsPlayer.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) fail(); });
+      hlsPlayer.loadSource(src);
+      hlsPlayer.attachMedia(v);
+    } catch { fail(); return; }
+  }
+  v.play()?.catch?.(() => {});
+  hero.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'start' });
+}
 
 // ---------- 小真播報 ----------
 function toggleSpeak() {
   if (S.speakingLine >= 0) {
     stopSpeak();
     S.speakingLine = -1;
+    duck(false);
     play('stop');
-    if (S.tab === 'top') render();
+    highlightLine();
     return;
   }
   const b = S.brief || buildBrief(S.data, { follow: S.follow, lastSeen: S.lastSeen });
@@ -1144,10 +1300,11 @@ function toggleSpeak() {
   const ok = speak(parts.map((p) => p[0]), {
     rate: fx.rate,
     onLine: (k) => { S.speakingLine = parts[k][1]; highlightLine(); },
-    onEnd: () => { S.speakingLine = -1; highlightLine(); },
+    onEnd: () => { S.speakingLine = -1; highlightLine(); duck(false); },
     onFail: voiceFail,
   });
   if (!ok) { toast('這支手機的瀏覽器不支援語音播報。', 'warn'); play('error'); return; }
+  duck(true);
   S.speakingLine = 0;
   highlightLine();
 }
@@ -1189,13 +1346,38 @@ async function rescan() {
 document.addEventListener('pointerdown', () => unlock(), { capture: true, passive: true });
 document.addEventListener('keydown', (ev) => {
   unlock();
-  if (ev.key === 'Escape') { closeOverlay('finder'); closeOverlay('sheet'); }
+  if (ev.key === 'Escape') {
+    if (!$('#lightbox').hidden) closeShots();
+    else if (!$('#game').hidden) closeGame();
+    else { closeOverlay('finder'); closeOverlay('sheet'); }
+  }
+  if (!$('#lightbox').hidden && (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft')) moveShot(ev.key === 'ArrowRight' ? 1 : -1);
 });
 
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],[data-calsub],[data-copy],[data-ics],[data-updates],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder');
+  const t = ev.target.closest('[data-tab],[data-chip],[data-seg],[data-more],[data-save],[data-open],[data-loadmore],[data-star],[data-bar],[data-unfollow],[data-past],[data-evlist],[data-evmore],[data-evsale],[data-pkall],[data-go],[data-speak],[data-scan],[data-close],[data-q],[data-followq],[data-fxlevel],[data-rate],[data-testvoice],[data-calsub],[data-copy],[data-ics],[data-updates],[data-sheet],[data-shot],[data-lbnav],[data-trailer],[data-followgame],#sync,#btn-search,#btn-sound,#btn-set,.sheet,.finder,.game,.lightbox');
   if (!t) return;
-  if (t.classList.contains('sheet') || t.classList.contains('finder')) { if (ev.target === t) closeOverlay(t.id); return; }
+  if (t.classList.contains('sheet') || t.classList.contains('finder') || t.classList.contains('game')) { if (ev.target === t) closeOverlay(t.id); return; }
+  if (t.classList.contains('lightbox')) { if (ev.target === t || ev.target.closest('.lb-fig')) closeShots(); return; }
+  if (t.dataset.sheet) {
+    ev.preventDefault();
+    if (!$('#finder').hidden) closeOverlay('finder');
+    openGame(t.dataset.sheet, t);
+    return;
+  }
+  if (t.dataset.shot) { openShots(Number(t.dataset.shot)); return; }
+  if (t.dataset.lbnav) { moveShot(Number(t.dataset.lbnav)); return; }
+  if (t.dataset.trailer) { playTrailer(t); return; }
+  if (t.dataset.followgame) {
+    const name = t.dataset.followgame;
+    const on = S.follow.some((k) => k.toLowerCase() === name.toLowerCase());
+    if (on) { S.follow = S.follow.filter((k) => k.toLowerCase() !== name.toLowerCase()); local.set('follow', S.follow); play('unsave'); toast(`不再追蹤「${esc(name)}」`); }
+    else { addFollow(name, t); }
+    const now = !on;
+    t.setAttribute('aria-pressed', String(now));
+    t.querySelector('span').textContent = now ? '追蹤中' : '追蹤這款';
+    return;
+  }
   if (t.dataset.open !== undefined) {
     play('open');
     markRead(t.dataset.open);
@@ -1215,17 +1397,17 @@ document.addEventListener('click', (ev) => {
     return;
   }
   if (t.id === 'btn-sound') {
-    setSound({ on: !sound.on });
-    t.setAttribute('aria-pressed', String(sound.on));
-    t.innerHTML = sound.on ? ICON.soundOn : ICON.soundOff;
-    play(sound.on ? 'toggleOn' : 'toggleOff');
-    toast(sound.on ? '音效開啟' : '音效關閉');
+    const next = { all: 'sfx', sfx: 'mute', music: 'mute', mute: 'all' }[avState()];
+    setAV(next);
+    play(next === 'mute' ? 'toggleOff' : 'toggleOn');
+    toast({ all: '聲光全開：音效＋背景音樂', sfx: '只開音效，背景音樂關掉', mute: '靜音' }[next]);
     return;
   }
   if (t.dataset.close) { closeOverlay(t.dataset.close); return; }
   if (t.dataset.speak) { toggleSpeak(); return; }
   if (t.dataset.go) {
     const go = JSON.parse(t.dataset.go || '{}');
+    if (!$('#game').hidden) closeGame(true);
     if (go.seg) { const [k, v] = go.seg.split(':'); S.sub[k] = v; local.set(`sub.${k}`, v); }
     if (go.chip) { const [k, v] = go.chip.split(':'); S.f[k] = v; }
     play('tab');
@@ -1234,7 +1416,10 @@ document.addEventListener('click', (ev) => {
   }
   if (t.dataset.tab) {
     ev.preventDefault();
-    if (t.dataset.tab !== S.tab) play('tab');
+    if (t.dataset.tab !== S.tab) {
+      const d = TABS.findIndex(([id]) => id === t.dataset.tab) > TABS.findIndex(([id]) => id === S.tab) ? 1 : -1;
+      play('tab', d);
+    }
     setTab(t.dataset.tab);
     return;
   }
@@ -1243,7 +1428,7 @@ document.addEventListener('click', (ev) => {
     S.f[k] = v;
     if (S.shown[k]) S.shown[k] = 30;
     play('select');
-    render();
+    if (k === 'top' && S.tab === 'top') renderTopNews(); else render();
     return;
   }
   if (t.dataset.seg) {
@@ -1275,7 +1460,8 @@ document.addEventListener('click', (ev) => {
     t.setAttribute('aria-pressed', String(i < 0));
     play(i < 0 ? 'save' : 'unsave');
     if (i < 0) toast('已加入稍後看');
-    if (S.f.top === 'saved' || S.f.tech === 'saved') render();
+    if (S.f.top === 'saved' && S.tab === 'top') renderTopNews();
+    else if (S.f.tech === 'saved') render();
     else if (S.tab === 'top') {
       // 只更新篩選列，讓「稍後看」馬上出現（不重畫整頁，捲動位置不變）
       const row = $('#v-top .chips');
@@ -1283,7 +1469,12 @@ document.addEventListener('click', (ev) => {
     }
     return;
   }
-  if (t.dataset.loadmore) { S.shown[t.dataset.loadmore] += 30; play('tick'); render(); return; }
+  if (t.dataset.loadmore) {
+    S.shown[t.dataset.loadmore] += 30;
+    play('tick');
+    if (t.dataset.loadmore === 'top' && S.tab === 'top') renderTopNews(); else render();
+    return;
+  }
   if (t.dataset.star) {
     const k = t.dataset.star;
     const on = !S.watch.has(k);
@@ -1307,7 +1498,7 @@ document.addEventListener('click', (ev) => {
   if (t.dataset.updates) { $('#sheet').innerHTML = updatesHTML(UPDATES); play('select'); return; }
   if (t.dataset.testvoice) {
     if (S.speakingLine >= 0) { S.speakingLine = -1; highlightLine(); }
-    if (speak(['你好，PZ。我是小真，這是播報的語速。'], { rate: fx.rate, onFail: voiceFail })) play('speak');
+    if (speak(['你好，痞子葳。我是小真，這是播報的語速。'], { rate: fx.rate, onEnd: () => duck(false), onFail: voiceFail })) { play('speak'); duck(true); }
     else { toast('這支手機的瀏覽器不支援語音播報。', 'warn'); play('error'); }
   }
 });
@@ -1316,9 +1507,16 @@ document.addEventListener('change', async (ev) => {
   const key = ev.target.dataset?.set;
   if (!key) return;
   const on = ev.target.checked;
-  if (key === 'sound.on') { setSound({ on }); const b = $('#btn-sound'); b.setAttribute('aria-pressed', String(on)); b.innerHTML = on ? ICON.soundOn : ICON.soundOff; }
+  if (key === 'sound.on') setAV(on ? (sound.music ? 'all' : 'sfx') : (sound.music ? 'music' : 'mute'));
+  if (key === 'sound.music') {
+    setSound({ music: on });
+    if (on) whenUnlocked(() => { startMusic(); setMood(S.game ? 'sheet' : S.tab); }); else stopMusic();
+    const b = $('#btn-sound');
+    if (b) { b.innerHTML = avIcon(); b.setAttribute('aria-label', avLabel()); }
+  }
   if (key === 'sound.haptic') setSound({ haptic: on });
   if (key === 'fx.boot') setFx({ boot: on });
+  if (key === 'fx.video') setFx({ video: on });
   if (key === 'fx.tilt') {
     const ok = await enableTilt(on);
     if (!ok) { ev.target.checked = false; toast('沒有取得「動作與方向」權限，可以到 iPhone 設定裡開啟。', 'warn'); play('error'); return; }
@@ -1326,13 +1524,14 @@ document.addEventListener('change', async (ev) => {
   play(on ? 'toggleOn' : 'toggleOff');
 });
 
-function addFollow(v) {
+function addFollow(v, from) {
   v = v.trim();
   if (!v || S.follow.some((k) => k.toLowerCase() === v.toLowerCase())) return;
   S.follow.push(v);
   local.set('follow', S.follow);
-  play('seal');
-  toast(`開始追蹤「${esc(v)}」，小真會幫你盯著它的新聞、特價與發售日。`);
+  play('achieve');
+  if (from) burst(from, { kind: 'uv', n: 30 });
+  toast(`<span class="achv-k">${ICON.trophy}成就解鎖</span>開始追蹤「${esc(v)}」，小真會幫你盯著它的新聞、特價與發售日。`, 'achv');
 }
 
 document.addEventListener('submit', (ev) => {
@@ -1371,9 +1570,13 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     rememberVisit();
     hiddenAt = Date.now();
-    if (S.speakingLine >= 0) { stopSpeak(); S.speakingLine = -1; highlightLine(); }
+    if (S.speakingLine >= 0) { stopSpeak(); S.speakingLine = -1; highlightLine(); duck(false); }
+    pauseMusic();
+    suspendAudio(true);
     return;
   }
+  suspendAudio(false);
+  resumeMusic();
   if (SW.updated) { location.reload(); return; }
   if (SW.reg && Date.now() - SW.checked > 30 * 60000) { SW.checked = Date.now(); SW.reg.update().catch(() => {}); }
   const away = hiddenAt ? Date.now() - hiddenAt : 0;
@@ -1389,28 +1592,50 @@ async function bootApp() {
   initHolo();
   S.tab = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'top';
   $(`#v-${S.tab}`).hidden = false;
-  $(`#v-${S.tab}`).innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+  $(`#v-${S.tab}`).innerHTML = '<div class="skel tall"></div><div class="skel"></div><div class="skel"></div>';
   const firstOpen = !sessionStorage.getItem('fr.booted');
   const dataP = load();
-  let shown = false;
+  // 開場畫面：「輕觸開始」那一下同時喚醒音效引擎、開場音效與背景音樂
+  const starter = () => {
+    unlock();
+    whenUnlocked(() => {
+      play('start');
+      if (sound.music) setTimeout(() => { startMusic(); setMood(S.tab); }, 900);
+    });
+    flash();
+  };
+  let ctl = null;
   if (firstOpen) {
     sessionStorage.setItem('fr.booted', '1');
-    await Promise.race([dataP, new Promise((r) => setTimeout(r, 700))]);
-    const m = S.data.meta || {};
-    const nSrc = Object.keys(m.sources || {}).length;
-    const lines = [
-      `連線 <b class="num">${nSrc || '…'}</b> 個情報來源`,
-      m.stats ? `濾網就緒：過去 24 小時攔下 <b class="num x">${m.stats.blocked24}</b> 則業配、農場與課金宣傳` : '濾網就緒',
-      m.generated ? `資料同步於 <b class="num">${fmtHM.format(new Date(m.generated))}</b>` : '同步資料中',
-      `${esc(buildBrief(S.data, {}).hello)}，小真上線`,
-    ];
-    shown = await boot(lines);
+    if (fx.boot) ctl = title({ onStart: starter });
+  }
+  if (ctl) {
+    dataP.then(async () => {
+      await Promise.race([mediaP, new Promise((r) => setTimeout(r, 1200))]);
+      const m = S.data.meta || {};
+      const nSrc = Object.keys(m.sources || {}).length;
+      const M = S.data.media?.games || {};
+      const pick = [...(S.data.deals?.steam?.items || []).slice(0, 8), ...(S.data.releases?.steam_new?.items || []).slice(0, 5), ...(S.data.releases?.steam_upcoming?.items || []).slice(0, 5)];
+      const arts = [...new Set(pick.map((x) => M[x.appid]?.wide || x.img))];
+      ctl.fill([
+        `連線 <b class="num">${nSrc || '…'}</b> 個情報來源`,
+        m.stats ? `濾網就緒：過去 24 小時攔下 <b class="num x">${m.stats.blocked24}</b> 則業配、農場與課金宣傳` : '濾網就緒',
+        m.generated ? `資料同步於 <b class="num">${fmtHM.format(new Date(m.generated))}</b>` : '同步資料中',
+        `${esc(buildBrief(S.data, {}).hello)}，小真上線`,
+      ], arts);
+    });
   }
   await dataP;
   setTab(S.tab, { push: false });
-  if (shown || firstOpen) whenUnlocked(() => play('boot'));
+  if (ctl) {
+    await ctl.done;
+    entrance(S.tab);
+  } else if (sound.music) {
+    // 沒有開場畫面：第一次碰畫面時才開始放音樂（瀏覽器規定）
+    whenUnlocked(() => { if (!musicPlaying()) { startMusic(); setMood(S.tab); } });
+  }
   initSW();
-  setTimeout(showNewUpdates, shown ? 400 : 900);
+  setTimeout(showNewUpdates, ctl ? 500 : 900);
 }
 
 bootApp();

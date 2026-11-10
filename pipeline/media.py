@@ -4,7 +4,7 @@ App 的焦點輪播、首頁貨架、遊戲情報卡、開場畫面的遊戲牆�
 - 只收 App 裡看得到的 Steam 遊戲：特價、活動、限時免費、新作、期待榜、願望清單、發售日曆（對得到 Steam 的）。
 - GetItems 一次 40 款；每款快取 3 天（state 分支 media.json），每輪最多重查 MAX_FETCH 款，重要的先查。
 - 成人限定（content descriptor 3、4）、標了色情／Hentai 的小眾作品不收（和「活動」頁同一套規則，用 events.norm_item）。
-- 預告片：microtrailer 是幾秒鐘、沒有聲音的精華（App 自動循環播放）；完整預告是 HLS／DASH 串流（App 點了才播）。
+- 預告片：microtrailer 是幾秒鐘、沒有聲音的精華（App 自動循環播放）；完整預告是 HLS 串流（App 點了才播）。
 """
 import re
 
@@ -15,8 +15,8 @@ ASSET = 'https://shared.akamai.steamstatic.com/store_item_assets/'
 VIDEO = 'https://video.akamai.steamstatic.com/store_trailers/'
 TTL_H = 72
 MAX_FETCH = 240
-MAX_OUT = 320
-SHOTS = 8
+MAX_OUT = 260
+SHOTS = 6
 
 
 def _join(base, fmt, name):
@@ -44,8 +44,6 @@ def _files(lst):
             out.setdefault('mp4', name)
         elif 'hls' in kind or name.endswith('.m3u8'):
             out.setdefault('hls', name)
-        elif 'dash_h264' in kind or (name.endswith('.mpd') and 'h264' in name):
-            out.setdefault('dash', name)
     return out
 
 
@@ -68,9 +66,7 @@ def _trailers(it):
                 poster = t.get('screenshot_full') or t.get('screenshot_medium')
                 if poster:
                     f['poster'] = _join(ASSET, fmt, poster)   # 預告封面在圖片主機（和截圖同一個）
-                f = {k: v for k, v in f.items() if v}
-                f['name'] = (t.get('trailer_name') or '').strip()[:60]
-                full = f
+                full = {k: v for k, v in f.items() if v}
         if vid and full:
             break
     return vid, full

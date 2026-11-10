@@ -46,11 +46,11 @@ function twHour(d) {
 
 export function greeting(now = new Date()) {
   const h = twHour(now);
-  if (h >= 5 && h < 11) return '早安，PZ';
-  if (h >= 11 && h < 14) return '午安，PZ';
-  if (h >= 14 && h < 18) return '午後好，PZ';
-  if (h >= 18 && h < 23) return '晚安，PZ';
-  return '夜深了，PZ';
+  if (h >= 5 && h < 11) return '早安，痞子葳';
+  if (h >= 11 && h < 14) return '午安，痞子葳';
+  if (h >= 14 && h < 18) return '午後好，痞子葳';
+  if (h >= 18 && h < 23) return '晚安，痞子葳';
+  return '夜深了，痞子葳';
 }
 
 // ---------------------------------------------------------------- 搜尋（全 App）

@@ -1,22 +1,32 @@
-// 玩真的 光影特效：開機序列、扭索紋（鈔票上的防偽花紋）、全像光影、紫外線掃描、數字滾動、解碼文字、提示框。
-// 所有特效都能在「設定」關掉；系統開了「減少動態效果」時一律不播。
+// 玩真的 光影特效：開場畫面（輕觸開始）、背景光塵、爆閃粒子、扭索紋（鈔票上的防偽花紋）、全像光影、
+// 紫外線掃描、數字滾動、解碼文字、分頁轉場、提示框。
+// 所有特效都能在「設定」關掉或切省電；系統開了「減少動態效果」時一律不播。
 const KEY = 'fr.fx';
 const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })();
 export const fx = {
-  boot: saved.boot ?? true,       // 開機動畫
+  boot: saved.boot ?? true,       // 開場畫面
   level: saved.level ?? 'full',   // full 全開 / lite 省電
   tilt: saved.tilt ?? false,      // 傾斜手機控制全像光影
   rate: saved.rate ?? 1.05,       // 播報語速
+  video: saved.video ?? true,     // 自動播放預告短片（省電或省流量模式不播）
 };
 export function setFx(patch) {
   Object.assign(fx, patch);
   try { localStorage.setItem(KEY, JSON.stringify(fx)); } catch { /* 私密模式 */ }
   document.documentElement.dataset.fx = fx.level;
+  if ('level' in patch) { if (calm()) dust.stop(); else dust.start(); }
 }
 document.documentElement.dataset.fx = fx.level;
 
 const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-export const calm = () => Boolean(mq && mq.matches) || fx.level === 'lite';
+export const reduced = () => Boolean(mq && mq.matches);
+export const calm = () => reduced() || fx.level === 'lite';
+/** 省流量：系統開了「省數據」或網路很慢時，不自動播影片。 */
+export const lean = () => {
+  const c = navigator.connection;
+  return Boolean(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+};
+export const canVideo = () => fx.video && !calm() && !lean();
 
 // ---------------------------------------------------------------- 扭索紋
 /**
@@ -71,6 +81,7 @@ function onTilt(e) {
 export function initHolo() {
   window.addEventListener('scroll', onScroll, { passive: true });
   if (fx.tilt && !window.DeviceOrientationEvent?.requestPermission) window.addEventListener('deviceorientation', onTilt);
+  if (!calm()) dust.start();
 }
 /** 開啟傾斜光影（iPhone 會跳出允許「動作與方向」的詢問）。回傳是否成功。 */
 export async function enableTilt(on) {
@@ -85,6 +96,144 @@ export async function enableTilt(on) {
   return true;
 }
 
+// ---------------------------------------------------------------- 背景光塵
+// 全像箔的碎屑在背景慢慢往上飄，捲動時有一點視差。省電模式、減少動態效果時不畫。
+const HOLO = ['116,242,230', '157,140,255', '255,154,213', '255,224,138', '142,240,198'];
+const dust = (() => {
+  let cv = null;
+  let g = null;
+  let ps = [];
+  let on = false;
+  let last = 0;
+  let id = 0;
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  function size() {
+    if (!cv) return;
+    cv.width = innerWidth * DPR;
+    cv.height = innerHeight * DPR;
+  }
+  function seed() {
+    const n = Math.round(Math.min(70, Math.max(28, (innerWidth * innerHeight) / 16000)));
+    ps = Array.from({ length: n }, () => ({
+      x: Math.random() * innerWidth, y: Math.random() * innerHeight, z: 0.2 + Math.random() * 0.8,
+      r: 0.6 + Math.random() * 1.6, c: HOLO[(Math.random() * HOLO.length) | 0], tw: Math.random() * 6.28, cross: Math.random() < 0.18,
+    }));
+  }
+  function frame(now) {
+    if (!on) return;
+    id = requestAnimationFrame(frame);
+    if (now - last < 33 || document.hidden) return;   // 30fps 就夠，省電
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, innerWidth, innerHeight);
+    const sy = window.scrollY;
+    for (const p of ps) {
+      p.y -= dt * 7 * p.z;
+      p.tw += dt * 1.6;
+      if (p.y < -10) { p.y = innerHeight + 10; p.x = Math.random() * innerWidth; }
+      const y = ((p.y - sy * 0.12 * p.z) % (innerHeight + 20) + innerHeight + 20) % (innerHeight + 20) - 10;
+      const a = (0.18 + 0.32 * (0.5 + 0.5 * Math.sin(p.tw))) * p.z;
+      g.fillStyle = `rgba(${p.c},${a.toFixed(3)})`;
+      if (p.cross) {
+        g.fillRect(p.x - p.r * 2, y - 0.4, p.r * 4, 0.8);
+        g.fillRect(p.x - 0.4, y - p.r * 2, 0.8, p.r * 4);
+      } else {
+        g.beginPath();
+        g.arc(p.x, y, p.r * p.z, 0, 6.283);
+        g.fill();
+      }
+    }
+  }
+  return {
+    start() {
+      if (on || calm()) return;
+      if (!cv) {
+        cv = document.createElement('canvas');
+        cv.className = 'fx-dust';
+        cv.setAttribute('aria-hidden', 'true');
+        document.body.prepend(cv);
+        g = cv.getContext('2d');
+        addEventListener('resize', () => { size(); seed(); }, { passive: true });
+      }
+      size();
+      seed();
+      on = true;
+      cv.hidden = false;
+      id = requestAnimationFrame(frame);
+    },
+    stop() {
+      on = false;
+      cancelAnimationFrame(id);
+      if (cv) cv.hidden = true;
+    },
+  };
+})();
+
+// ---------------------------------------------------------------- 爆閃粒子
+const SPARK = { gold: ['255,214,102', '255,238,170', '255,170,60'], uv: ['160,139,255', '200,190,255', '116,242,230'], red: ['255,82,102', '255,150,160'], live: ['94,235,168', '170,255,214'], holo: HOLO };
+let top = null;
+let tg = null;
+let sparks = [];
+let tid = 0;
+function topFrame() {
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  tg.setTransform(DPR, 0, 0, DPR, 0, 0);
+  tg.clearRect(0, 0, innerWidth, innerHeight);
+  sparks = sparks.filter((s) => s.life > 0);
+  for (const s of sparks) {
+    s.vy += 520 * 0.016 * s.g;
+    s.vx *= 0.985;
+    s.x += s.vx * 0.016;
+    s.y += s.vy * 0.016;
+    s.life -= 0.016 / s.ttl;
+    tg.globalAlpha = Math.max(0, s.life);
+    tg.fillStyle = `rgb(${s.c})`;
+    if (s.line) {
+      tg.save();
+      tg.translate(s.x, s.y);
+      tg.rotate(Math.atan2(s.vy, s.vx));
+      tg.fillRect(-s.r * 3, -0.7, s.r * 6, 1.4);
+      tg.restore();
+    } else {
+      tg.beginPath();
+      tg.arc(s.x, s.y, s.r, 0, 6.283);
+      tg.fill();
+    }
+  }
+  tg.globalAlpha = 1;
+  if (sparks.length) tid = requestAnimationFrame(topFrame);
+  else { tid = 0; tg.clearRect(0, 0, innerWidth, innerHeight); }
+}
+/** 在畫面某一點炸出一團粒子（x、y 是視窗座標；也可以傳一個元素，從它的中心炸開）。 */
+export function burst(at, { kind = 'uv', n = 26, spread = 1, up = 1 } = {}) {
+  if (calm()) return;
+  let x = at?.x;
+  let y = at?.y;
+  if (at instanceof Element) {
+    const r = at.getBoundingClientRect();
+    x = r.left + r.width / 2;
+    y = r.top + r.height / 2;
+  }
+  if (x == null) return;
+  if (!top) {
+    top = document.createElement('canvas');
+    top.className = 'fx-top';
+    top.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(top);
+    tg = top.getContext('2d');
+  }
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  if (top.width !== innerWidth * DPR || top.height !== innerHeight * DPR) { top.width = innerWidth * DPR; top.height = innerHeight * DPR; }
+  const cs = SPARK[kind] || SPARK.uv;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const v = (120 + Math.random() * 320) * spread;
+    sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 220 * up, r: 1 + Math.random() * 2.2, c: cs[(Math.random() * cs.length) | 0], life: 1, ttl: 0.5 + Math.random() * 0.6, g: 0.7 + Math.random() * 0.6, line: Math.random() < 0.45 });
+  }
+  if (!tid) tid = requestAnimationFrame(topFrame);
+}
+
 // ---------------------------------------------------------------- 紫外線掃描
 export function scanSweep() {
   if (calm()) return;
@@ -93,6 +242,25 @@ export function scanSweep() {
   el.setAttribute('aria-hidden', 'true');
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1300);
+}
+
+// ---------------------------------------------------------------- 分頁轉場
+/** 新分頁從切換的方向滑進來，帶一道掃描光（dir：-1 從左、1 從右）。 */
+export function swapIn(el, dir = 1) {
+  if (!el || calm()) return;
+  el.classList.remove('in-l', 'in-r');
+  void el.offsetWidth;
+  el.classList.add(dir < 0 ? 'in-l' : 'in-r');
+  setTimeout(() => el.classList.remove('in-l', 'in-r'), 520);
+}
+/** 畫面閃一下白光（傳說級好價、按下開始）。 */
+export function flash(kind = '') {
+  if (calm()) return;
+  const el = document.createElement('div');
+  el.className = `fx-flash ${kind}`;
+  el.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
 }
 
 // ---------------------------------------------------------------- 數字滾動
@@ -119,8 +287,8 @@ export function countUp(root) {
 // ---------------------------------------------------------------- 解碼文字
 const GLYPH = '真偽驗證攔截掃描訊號情報鑑定01#%&+=<>';
 const decoded = new Set();
-export function decrypt(el, key) {
-  if (!el || calm() || decoded.has(key)) return;
+export function decrypt(el, key, { force = false } = {}) {
+  if (!el || calm() || (!force && decoded.has(key))) return;
   decoded.add(key);
   const final = el.textContent;
   const chars = [...final];
@@ -151,48 +319,79 @@ export function toast(html, kind = '') {
   t.className = `toast ${kind}`;
   t.innerHTML = html;
   box.appendChild(t);
-  setTimeout(() => t.classList.add('out'), 2600);
-  setTimeout(() => t.remove(), 3100);
+  const life = kind === 'achv' ? 3600 : 2600;
+  setTimeout(() => t.classList.add('out'), life);
+  setTimeout(() => t.remove(), life + 500);
 }
 
-// ---------------------------------------------------------------- 開機序列
-/** 扭索紋自己畫出來 → 「真」印蓋下 → 系統狀態逐行出現 → 紫外線掃描退場。點一下就略過。 */
-export function boot(lines) {
-  return new Promise((resolve) => {
-    if (!fx.boot || calm()) { resolve(false); return; }
-    const el = document.createElement('div');
-    el.className = 'boot';
-    el.innerHTML = `<div class="boot-stage">
-        ${rosette({ size: 320, cls: 'boot-rose', draw: true, width: 0.7, pts: 220 })}
-        <span class="seal xl boot-seal" aria-hidden="true">真</span>
+// ---------------------------------------------------------------- 開場畫面
+/**
+ * 「輕觸開始」開場畫面：背景是一面斜放、慢慢流動的遊戲牆（這一輪的特價、活動、新作封面），
+ * 中間是扭索紋與「真」印，下面逐行出現系統狀態。按下開始的那一下同時喚醒音效與音樂。
+ * 回傳 { done: Promise<boolean>, fill(lines, arts) }；資料到了再呼叫 fill 補上狀態與封面。
+ */
+export function title({ onStart } = {}) {
+  if (!fx.boot) return { done: Promise.resolve(false), fill() {} };
+  const still = reduced();
+  const el = document.createElement('div');
+  el.className = `title${still ? ' still' : ''}`;
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-label', '玩真的 開場');
+  el.innerHTML = `<div class="title-wall" aria-hidden="true"></div>
+    <div class="title-vignette" aria-hidden="true"></div>
+    <div class="title-core">
+      <div class="title-stage">
+        ${rosette({ size: 320, cls: 'title-rose', draw: true, width: 0.7, pts: 220 })}
+        <span class="seal xl title-seal" aria-hidden="true">真</span>
       </div>
-      <div class="boot-word"><span class="serif">玩真的</span><span class="boot-en">FOR REAL</span></div>
-      <ol class="boot-log" aria-live="polite"></ol>
-      <p class="boot-skip">輕觸略過</p>`;
-    document.body.appendChild(el);
-    document.body.classList.add('booting');
-    const log = el.querySelector('.boot-log');
-    let done = false;
-    const timers = [];
-    const finish = () => {
+      <h1 class="title-word"><span class="serif">玩真的</span><span class="title-en">FOR REAL</span></h1>
+      <ol class="title-log" aria-live="polite"></ol>
+    </div>
+    <button class="title-start" type="button"><span>輕觸開始</span></button>
+    <p class="title-foot">音效與音樂可以隨時在右上角切換</p>`;
+  document.body.appendChild(el);
+  document.body.classList.add('booting');
+  const log = el.querySelector('.title-log');
+  const btn = el.querySelector('.title-start');
+  let done = false;
+  let resolve;
+  const p = new Promise((r) => { resolve = r; });
+  const timers = [];
+  const go = (ev) => {
+    if (done) return;
+    if (ev?.type === 'keydown' && !['Enter', ' ', 'Escape'].includes(ev.key)) return;
+    done = true;
+    timers.forEach(clearTimeout);
+    try { onStart?.(); } catch { /* 開場失敗也要進 App */ }
+    el.classList.add('go');
+    document.body.classList.remove('booting');
+    document.removeEventListener('keydown', go);
+    setTimeout(() => { el.remove(); resolve(true); }, still ? 60 : 760);
+  };
+  el.addEventListener('click', go);
+  document.addEventListener('keydown', go);
+  setTimeout(() => btn.focus({ preventScroll: true }), 300);
+  return {
+    done: p,
+    fill(lines = [], arts = []) {
       if (done) return;
-      done = true;
-      timers.forEach(clearTimeout);
-      el.classList.add('out');
-      document.body.classList.remove('booting');
-      setTimeout(() => { el.remove(); resolve(true); }, 520);
-    };
-    el.addEventListener('click', finish);
-    let at = 980;
-    lines.forEach((line, i) => {
-      timers.push(setTimeout(() => {
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${line}</span>`;
-        log.appendChild(li);
-        requestAnimationFrame(() => li.classList.add('on'));
-      }, at));
-      at += i === lines.length - 1 ? 0 : 300;
-    });
-    timers.push(setTimeout(finish, at + 900));
-  });
+      let at = still ? 0 : 900;
+      lines.forEach((line) => {
+        timers.push(setTimeout(() => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span>${line}</span>`;
+          log.appendChild(li);
+          requestAnimationFrame(() => li.classList.add('on'));
+        }, at));
+        at += still ? 0 : 260;
+      });
+      timers.push(setTimeout(() => el.classList.add('ready'), at + 100));
+      const pics = arts.filter(Boolean).slice(0, 18);
+      if (pics.length >= 6 && !lean()) {
+        const rows = [0, 1, 2].map((r) => pics.filter((_, i) => i % 3 === r));
+        el.querySelector('.title-wall').innerHTML = rows.map((row, r) => `<div class="wall-row r${r}">${[...row, ...row].map((u) => `<img src="${u.replace(/"/g, '&quot;')}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`).join('')}</div>`).join('');
+        requestAnimationFrame(() => el.classList.add('art'));
+      }
+    },
+  };
 }
