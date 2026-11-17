@@ -66,7 +66,7 @@ TERMS = [('克隆', '複製'), ('存儲', '儲存'), ('視頻', '影片'), ('軟
          ('繫列', '系列'), ('優化', '最佳化'), ('流行朋克', '流行龐克'),
          ('朋克', '龐克'), ('社區', '社群'), ('集郵卡', '收藏卡'), ('reportedly ', '據報導'), (' reportedly', '據報導'),
          ('AI聲 clone', 'AI 複製聲音'), (' clone', ' 複製'), ('網絡', '網路'), ('數據', '資料'), ('視圖', '畫面'),
-         ('芯片', '晶片'), ('筆記本電腦', '筆電'), ('特朗普', '川普'), ('早期存取', '搶先體驗'), ('早期訪問', '搶先體驗'),
+         ('芯片', '晶片'), ('首席執行長', '執行長'), ('筆記本電腦', '筆電'), ('特朗普', '川普'), ('早期存取', '搶先體驗'), ('早期訪問', '搶先體驗'),
          ('物理版', '實體版'), ('遊戲 Pass', 'Game Pass'), ('遊戲Pass', 'Game Pass'), ('開箱箱', '開箱'),
          # 「質量」→「品質」會把《質量效應》（Mass Effect）改壞，換回來
          ('品質效應', '質量效應'),
@@ -337,7 +337,21 @@ def check(src_title: str, src_body: str, out_t: str, out_s: str) -> list[str]:
     for zh, rx in _EXAMPLE_LEAK:
         if zh in out and not re.search(rx, src, re.I):
             probs.append(f'「{zh}」是範例裡的內容，原文沒有，不要抄範例')
+    # 6. 職稱：模型常把 CEO、boss 翻成「董事長」（Xbox 的 Asha Sharma、黃仁勳…）；原文沒有 chairman 就不能寫董事長
+    if '董事長' in out and not _CHAIR.search(src):
+        probs.append('原文沒有 chairman，不要寫「董事長」：CEO 寫「執行長」，boss 寫「負責人」')
     return list(dict.fromkeys(probs))
+
+
+_CHAIR = re.compile(r'chair|会長|會長|董事長', re.I)
+_CEO = re.compile(r'(?<![A-Za-z])CEO(?![A-Za-z])')
+
+
+def fix_roles(src: str, s: str) -> str:
+    """原文是 CEO、沒有 chairman，翻譯卻寫「董事長」→ 直接改成「執行長」（固定規則，不用重翻）。"""
+    if s and '董事長' in s and _CEO.search(src or '') and not _CHAIR.search(src or ''):
+        return s.replace('董事長', '執行長')
+    return s
 
 
 def hints(src_title: str, src_body: str) -> list[str]:
@@ -349,6 +363,9 @@ def hints(src_title: str, src_body: str) -> list[str]:
     pairs = list(dict.fromkeys(f'{frag}＝{zh_amount(v, c)}' for frag, v, c in _money_frags(f'{src_title}\n{src_body or ""}')))
     if pairs:
         out.append('金額：' + '；'.join(pairs[:5]))
+    src = f'{src_title}\n{src_body or ""}'
+    if _CEO.search(src) and not _CHAIR.search(src):
+        out.append('職稱：CEO＝執行長（不是董事長）')
     return out
 
 
@@ -434,8 +451,9 @@ class Translator:
         raise ValueError('檢查不合格：' + '；'.join(probs)[:100])
 
     def _finish(self, data: dict, title: str, body: str) -> tuple[str, str]:
-        t = self.polish(data.get('title', '')).rstrip('。')
-        s = self.polish(data.get('summary', ''))
+        src = f'{title}\n{body or ""}'
+        t = fix_roles(src, self.polish(data.get('title', '')).rstrip('。'))
+        s = fix_roles(src, self.polish(data.get('summary', '')))
         if len(re.findall(r'[\u4e00-\u9fff]', t)) < 2 or not 2 <= len(t) <= 100:
             if len(title.split()) <= 5 and len(title) <= 60:
                 t = title  # 例如「MiniMax M3.1 Flash」這種純產品名，保留原文即可
@@ -545,7 +563,8 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
         h = _h(e['t'], (e.get('_body') or '')[:400])
         c = cache.get(e['id'])
         if c and c.get('h') == h and c.get('v') == PROMPT_VERSION:
-            t, s = tr.polish(c['t']), tr.polish(c.get('s'))
+            src = f"{e['t']}\n{body_of(e)}"
+            t, s = fix_roles(src, tr.polish(c['t'])), fix_roles(src, tr.polish(c.get('s')))
             if not check(e['t'], body_of(e), t, s):
                 e['tz'], e['sz'] = t, (s or None)
                 stats['cached'] += 1
@@ -589,8 +608,8 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
                 if m.get('lang') == 'zh' or not m.get('id'):
                     continue
                 c = cache.get(m['id'])
-                if c and c.get('h') == _h(m['t']) and c.get('v') == PROMPT_VERSION and not check(m['t'], '', tr.polish(c['t']), ''):
-                    m['tz'] = tr.polish(c['t'])
+                if c and c.get('h') == _h(m['t']) and c.get('v') == PROMPT_VERSION and not check(m['t'], '', fix_roles(m['t'], tr.polish(c['t'])), ''):
+                    m['tz'] = fix_roles(m['t'], tr.polish(c['t']))
                 else:
                     members.append(m)
 
@@ -623,7 +642,7 @@ def run(entries: list[dict], st, t0, src_names: dict, budget_s: int | None = Non
             if not m.get('tz'):
                 c = cache.get(m.get('id'))
                 if c and c.get('h') == _h(m['t']) and c.get('v') == PROMPT_VERSION:
-                    t = tr.polish(c['t'])
+                    t = fix_roles(m['t'], tr.polish(c['t']))
                     if not check(m['t'], '', t, ''):
                         m['tz'] = t
             m.pop('lang', None)
